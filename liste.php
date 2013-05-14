@@ -9,7 +9,8 @@
 	else require_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
 	
 	require_once(DOL_DOCUMENT_ROOT."/product/class/product.class.php");
-		
+	
+	$ATMdb = new Tdb;	
 	$product = new Product($db);
 	$result=$product->fetch($_REQUEST['fk_product']);	
 		
@@ -70,90 +71,90 @@
 	print "</div>\n";
 	
 	print '<div class="tabsAction">
-				<a class="butAction" href="'.DOL_DOCUMENT_ROOT.'/tarif/liste.php?action=add&fk_product='.$object->id.'">Ajouter un conditionnement</a>
-			</div>';
+				<a class="butAction" href="?action=add&fk_product='.$object->id.'">Ajouter un conditionnement</a>
+			</div><br>';
 	
 	/***********************************
 	 * Traitements actions
 	 ***********************************/
 	if(isset($_REQUEST['action']) && !empty($_REQUEST['action']) && $_REQUEST['action'] == 'add'){
-		print '<form action="'.DOL_DOCUMENT_ROOT.'/product/liste.php?action=add&fk_product='.$object->id.'" method="POST">';
+		
+		print '<table class="notopnoleftnoright" width="100%" border="0" style="margin-bottom: 2px;" summary="">';
+		print '<tbody><tr>';
+		print '<td class="nobordernopadding" valign="middle"><div class="titre">Nouveau conditionnement</div></td>';
+		print '</tr></tbody>';
+		print '</table>';
+		
+		print '<form action="" method="POST">';
 		print '<input type="hidden" name="action" value="add_conditionnement">';
 		print '<input type="hidden" name="id" value="'.$object->id.'">';
 		print '<table class="border" width="100%">';
 
-        // Conditionnement
-        print '<tr><td>Intitul&eacute; :</td><td>';
-        print $form->text("tva_tx",$object->tva_tx,$mysoc,'',$object->id,$object->tva_npr);
-        print '</td></tr>';
-
-		// Contenance
-		print '<tr><td width="15%">';
-		print $langs->trans('PriceBase');
-		print '</td>';
-		print '<td>';
-		print $form->select_PriceBaseType($object->price_base_type, "price_base_type");
-		print '</td>';
+		print '<tr>';
+		print '	<td>Intitul&eacute; :</td>';
+		print '	<td><input type="text" name="intitule" size="40" maxlength="255" /></td>';
 		print '</tr>';
-
-		// Prix
-		print '<tr><td width="20%">';
-		$text=$langs->trans('SellingPrice');
-		print $form->textwithtooltip($text,$langs->trans("PrecisionUnitIsLimitedToXDecimals",$conf->global->MAIN_MAX_DECIMALS_UNIT),1,1);
-		print '</td><td>';
-		if ($object->price_base_type == 'TTC')
-		{
-			print '<input name="price" size="10" value="'.price($object->price_ttc).'">';
-		}
-		else
-		{
-			print '<input name="price" size="10" value="'.price($object->price).'">';
-		}
-		print '</td></tr>';
+		print '<tr>';
+		print '	<td>Contenance :</td>';
+		print '	<td><input type="text" name="contenance" size="15" maxlength="255" /> grammes</td>';
+		print '</tr>';
+		print '<tr>';
+		print '	<td>Tarif :</td>';
+		print '	<td><input type="text" name="tarif" size="15" maxlength="255" /> TTC</td>';
+		print '</tr>';
 
 		print '</table>';
 
-		print '<center><br><input type="submit" class="button" value="'.$langs->trans("Save").'">&nbsp;';
-		print '<input type="submit" class="button" name="cancel" value="'.$langs->trans("Cancel").'"></center>';
+		print '<center><br><input type="submit" class="button" value="'.$langs->trans("Save").'" name="save">&nbsp;';
+		print '<input type="submit" class="button" value="Annuler" name="back"></center>';
 
 		print '<br></form>';
 	}
+	elseif(isset($_REQUEST['action']) && !empty($_REQUEST['action']) && $_REQUEST['action'] == 'add_conditionnement' && isset($_REQUEST['save'])) {
+		$Ttarif = new TTarif;
+		$Ttarif->description = $_POST['intitule'];
+		$Ttarif->prix = $_POST['tarif'];
+		$Ttarif->fk_user_author = $user->id;
+		$Ttarif->contenance = $_POST['contenance'];
+		$Ttarif->fk_product = $_POST['id'];
+		$Ttarif->save($ATMdb);
+	}
+	elseif(isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
+	{
+		$Ttarif = new TTarif;
+		$Ttarif->load($ATMdb,$_GET['id']);
+		$Ttarif->delete($ATMdb);
+	}
+
 	
 	/**********************************
 	 * Liste des tarifs
 	 **********************************/
-	
-	$ATMdb = new Tdb;
 	$TConditionnement = array();
 	
-	$sql = "SELECT rowid AS id, description AS description, contenance AS contenance, prix AS prix
+	$sql = "SELECT rowid AS 'id', description AS description, contenance AS contenance, prix AS prix, '' AS 'Supprimer'
 			FROM ".MAIN_DB_PREFIX."tarif_conditionnement
-			WHERE fk_product = ".$object->rowid."
-			ORDER BY date DESC";
+			WHERE fk_product = ".$object->id."
+			ORDER BY rowid DESC";
 			
 	$ATMdb->Execute($sql);
 	
-	while($ATMdb->Get_line()){
-		$Tligne["id"] = $ATMdb->Get_field('id');
-		$Tligne["description"] = $ATMdb->Get_field('description');
-		$Tligne["contenance"] = $ATMdb->Get_field('contenance');
-		$Tligne["prix"] = $ATMdb->Get_field('prix');
+	$r = new TSSRenderControler(new TTarif);
 		
-		$TConditionnement[] = $Tligne;
-	}
-	
-	$r = new TListviewTBS('liste_tarif_conditionnement', ROOT.'custom/tarif/tpl/html.list.tbs.php');
-		
-	print $r->renderArray($ATMdb, $TSurvey, array(
+	print $r->liste($ATMdb, $sql, array(
 		'limit'=>array('nbLine'=>1000)
 		,'title'=>array(
 			'description'=>'Conditionnement'
-			,'contenance' => 'Contenance'
-			,'prix'=>'Tarif'
+			,'contenance' => 'Contenance (grammes)'
+			,'prix'=>'Tarif TTC'
+			,'Supprimer' => 'Supprimer'
 		)
 		,'type'=>array('date_debut'=>'date','date_fin'=>'date')
 		,'hide'=>array(
 			'id'
+		)
+		,'link'=>array(
+			'Supprimer'=>'<a href="?id=@id@&action=delete&fk_product='.$object->id.'"><img src="img/delete.png"></a>'
 		)
 	));
 	?>
