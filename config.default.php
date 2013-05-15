@@ -8,7 +8,7 @@
 	if(defined('INC_FROM_CRON_SCRIPT')) {
 		include(ROOT."master.inc.php");
 	}
-	elseif(!defined('INC_FROM_DOLIBARR')) {
+	else {
 		include(ROOT."main.inc.php");
 	}
 
@@ -22,3 +22,4 @@
 	define('USE_TBS', true);
 
 	require(COREROOT.'inc.core.php');
+	require('class/tarif.class.php');
