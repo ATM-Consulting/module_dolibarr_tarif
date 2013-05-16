@@ -1,7 +1,9 @@
 <?php
 	require('config.php');
+	require('class/tarif.class.php');
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 	
 	llxHeader('','Liste des tarifs par conditionnement','','');
 	
@@ -21,6 +23,7 @@
 	
 	$object = $product;
 	$form = new Form($db);
+	$formproduct = new FormProduct($db);
 	
 	print '<table class="border" width="100%">';
 	
@@ -90,18 +93,33 @@
 		print '<input type="hidden" name="id" value="'.$object->id.'">';
 		print '<table class="border" width="100%">';
 
-		print '<tr>';
-		print '	<td>Intitul&eacute; :</td>';
-		print '	<td><input type="text" name="intitule" size="40" maxlength="255" /></td>';
+		// VAT
+        print '<tr><td width="20%">'.$langs->trans("VATRate").'</td><td>';
+        print $form->load_tva("tva_tx",$object->tva_tx,$mysoc,'',$object->id,$object->tva_npr);
+        print '</td></tr>';
+
+		// Price base
+		print '<tr><td width="20%">Base du prix</td>';
+		print '<td>';
+		//print $form->select_PriceBaseType($object->price_base_type, "price_base_type");
+		print 'HT</td>';
 		print '</tr>';
-		print '<tr>';
-		print '	<td>Contenance :</td>';
-		print '	<td><input type="text" name="contenance" size="15" maxlength="255" /> grammes</td>';
-		print '</tr>';
-		print '<tr>';
-		print '	<td>Tarif :</td>';
-		print '	<td><input type="text" name="tarif" size="15" maxlength="255" /> TTC</td>';
-		print '</tr>';
+
+		// Price
+		print '<tr><td width="20%">';
+		print 'Prix de vente';
+		print '</td><td><input value="" size="10" name="prix"></td></tr>';
+		
+		//Quantité
+		print '<tr><td width="20%">';
+		print 'Quantit&eacute;';
+		print '</td><td><input value="" size="10" name="quantite"></td></tr>';
+		
+		print '<tr><td width="20%">';
+		print 'Unit&eacute;';
+		print '</td><td>';
+		print $formproduct->select_measuring_units("weight_units", "weight", $object->weight_units);
+		print '</td></tr>';
 
 		print '</table>';
 
@@ -111,11 +129,28 @@
 		print '<br></form>';
 	}
 	elseif(isset($_REQUEST['action']) && !empty($_REQUEST['action']) && $_REQUEST['action'] == 'add_conditionnement' && isset($_REQUEST['save'])) {
+		switch($_POST['weight_units']){
+			case -6:
+				$unite = "mg";
+				break;
+			case -3:
+				$unite = "g";
+				break;
+			case 0:
+				$unite = "kg";
+				break;
+			case 3:
+				$unite = "tonnes";
+				break;
+		}	
+			
 		$Ttarif = new TTarif;
-		$Ttarif->description = $_POST['intitule'];
-		$Ttarif->prix = $_POST['tarif'];
+		$Ttarif->tva_tx = $_POST['tva_tx'];
+		$Ttarif->price_base_type = 'HT';
 		$Ttarif->fk_user_author = $user->id;
-		$Ttarif->contenance = $_POST['contenance'];
+		$Ttarif->prix = $_POST['prix'];
+		$Ttarif->quantite = $_POST['quantite'];
+		$Ttarif->unite = $unite;
 		$Ttarif->fk_product = $_POST['id'];
 		$Ttarif->save($ATMdb);
 	}
@@ -132,21 +167,21 @@
 	 **********************************/
 	$TConditionnement = array();
 	
-	$sql = "SELECT rowid AS 'id', description AS description, contenance AS contenance, prix AS prix, '' AS 'Supprimer'
+	$sql = "SELECT rowid AS 'id', tva_tx AS tva, price_base_type AS base, quantite as quantite, unite AS unite, prix AS prix, '' AS 'Supprimer'
 			FROM ".MAIN_DB_PREFIX."tarif_conditionnement
 			WHERE fk_product = ".$object->id."
 			ORDER BY rowid DESC";
-			
-	$ATMdb->Execute($sql);
 	
 	$r = new TSSRenderControler(new TTarif);
 		
 	print $r->liste($ATMdb, $sql, array(
 		'limit'=>array('nbLine'=>1000)
 		,'title'=>array(
-			'description'=>'Conditionnement'
-			,'contenance' => 'Contenance (grammes)'
-			,'prix'=>'Tarif TTC'
+			'tva'=>'Taux TVA'
+			,'base' => 'Type du Prix'
+			,'quantite'=>'Quantit&eacute;'
+			,'unite'=>'Unit&eacute;'
+			,'prix'=>'Tarif (Euros)'
 			,'Supprimer' => 'Supprimer'
 		)
 		,'type'=>array('date_debut'=>'date','date_fin'=>'date')

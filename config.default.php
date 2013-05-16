@@ -22,4 +22,3 @@
 	define('USE_TBS', true);
 
 	require(COREROOT.'inc.core.php');
-	require('class/tarif.class.php');
