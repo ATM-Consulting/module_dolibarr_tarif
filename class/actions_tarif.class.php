@@ -11,54 +11,8 @@ class ActionsTarif
     {	 
     	global $db;
 		
-    	if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
+    	if (in_array('propalcard',explode(':',$parameters['context']))) 
         {
-        	if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
-        	dol_include_once('/tarif/config.php');
-		 
-			if($action == 'addline'){
-           		if(isset($_POST['poids']) && !empty($_POST['poids']) && $_POST['poids'] != 0){ //si poids renseigné alors conditionnement
-					$sql = "SELECT quantite, unite, prix
-							FROM ".MAIN_DB_PREFIX."tarif_conditionnement
-							WHERE fk_product = ".$_POST['idprod']."
-							ORDER BY quantite DESC";
-							
-					$resql = $db->query($sql);
-					while($res = $db->fetch_object($resql)){
-						//echo "ok ";
-						if($res->quantite <= ($_POST['qty'] * $_POST['poids'])){
-							$prod = new Product($db);
-							$prod->fetch($_POST['idprod']);
-							
-							$commande = new Commande($db);
-							$commande->addline(
-										$_POST['id'],
-										$prod->description,
-										$res->prix,
-										$_POST['qty'],
-										$_POST['tva_tx'],
-										0,
-										0,
-										$_POST['idprod'],
-										$_POST['remise_percent'],
-										0,
-										0,
-										"HT",
-										0,
-										'',
-										'',
-										$_POST['type'],
-										-1,
-										0,
-										$_POST['fk_parent_line'],
-										null,
-										0,
-										($_POST['product_label']?$_POST['product_label']:''));
-							break;
-						}
-					}
-           		}
-           	}
            	
 			$this->resprints='';
         }
@@ -66,25 +20,33 @@ class ActionsTarif
         /*$this->results=array('myreturn'=>$myvalue);
         $this->resprints='';
  */
-        return 1;
+        return 0;
     }
     
 	function formCreateProductSupplierOptions($parameters, &$object, &$action, $hookmanager) {
 				
 		global $db;
+		include_once(DOL_DOCUMENT_ROOT."/commande/class/commande.class.php");
 		
 		if (in_array('ordersuppliercard',explode(':',$parameters['context']))) 
         {
-        	/*echo '<pre>';
-        	print_r($object->lines);
-			echo '</pre>';*/
-			if($action == "addline"){
-           		//echo $object->weight;
-           		/*$quantite = $object->weight * $object->
-           		$ATMdb = new Tdb;
-			   	$sql = "SELECT "
-           		print_r($object->weight);*/
-           }
+        	$commande = new Commande($db);
+        	$commande->fetch($_GET['id']);
+			$commande->fetch_lines();
+        	?> 
+         	<script type="text/javascript">
+         		<?php echo (count($commande->lines) >0)? "$('.liste_titre').first().children().last().prev().prev().prev().prev().prev().after('<td align=\"right\" width=\"50\">Poids</td>');" : '' ;?>
+         		$('.impair').children().last().prev().prev().prev().prev().prev().after('<td> </td>');
+	         	$('#add').parent().next().next().next().next().after('<td align="right" width="50">Poids</td>');
+	         	$('#qty').parent().after('<td align="right"><input id="poidsAff" type="text" value="0" name="poidsAff" size="3"></td>');
+	         	$('#addproduct').append('<input id="poids" type="hidden" value="0" name="poids" size="3">');
+	         	$('#addproduct').submit(function() {
+	         		$('#poids').val( $('#poidsAff').val() );
+	         		
+	         		return true;
+	         	});
+         	</script>
+         	<?php
         	/*?> 
          	<script type="text/javascript">
 	         	$('#idprodfournprice').after('<span id="span_condi"> ou </span><select id="conditionnement" name="conditionnement" class="flat"></select>');
@@ -118,6 +80,7 @@ class ActionsTarif
 	function formAddObjectLine ($parameters, &$object, &$action, $hookmanager) {
 		
 		global $db;
+		include_once(DOL_DOCUMENT_ROOT."/commande/class/commande.class.php");
 		
 		if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
         {
@@ -126,8 +89,12 @@ class ActionsTarif
 			$commande->fetch_lines();
         	?> 
          	<script type="text/javascript">
-         		<?php echo (count($commande->lines) >0)? "$('.liste_titre').first().children().last().prev().prev().prev().prev().prev().after('<td align=\"right\" width=\"50\">Poids</td>');" : '' ;?>
-         		$('#row-2').children().last().prev().prev().prev().prev().prev().after('<td> </td>');
+         		<?php
+         			echo (count($commande->lines) >0)? "$('.liste_titre').first().children().last().prev().prev().prev().prev().prev().after('<td align=\"right\" width=\"50\">Poids</td>');" : '' ;
+         			foreach($commande->lines as $line){
+         				echo "$('#row-".$line->rowid."').children().last().prev().prev().prev().prev().prev().after('<td> </td>');";
+         			}
+         		?>
 	         	$('#add').parent().next().next().next().next().after('<td align="right" width="50">Poids</td>');
 	         	$('#qty').parent().after('<td align="right"><input id="poidsAff" type="text" value="0" name="poidsAff" size="3"></td>');
 	         	$('#addproduct').append('<input id="poids" type="hidden" value="0" name="poids" size="3">');
