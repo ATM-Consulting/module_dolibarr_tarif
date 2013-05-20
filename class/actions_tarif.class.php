@@ -35,44 +35,36 @@ class ActionsTarif
 			$commande->fetch_lines();
         	?> 
          	<script type="text/javascript">
-         		<?php echo (count($commande->lines) >0)? "$('.liste_titre').first().children().last().prev().prev().prev().prev().prev().after('<td align=\"right\" width=\"50\">Poids</td>');" : '' ;?>
-         		$('.impair').children().last().prev().prev().prev().prev().prev().after('<td> </td>');
-	         	$('#add').parent().next().next().next().next().after('<td align="right" width="50">Poids</td>');
-	         	$('#qty').parent().after('<td align="right"><input id="poidsAff" type="text" value="0" name="poidsAff" size="3"></td>');
+         		<?php
+         			echo (count($commande->lines) >0)? "$('#tablelines').children().first().children().first().children().last().prev().prev().prev().prev().prev().after('<td align=\"right\" width=\"50\">Poids</td>');" : '' ;
+         			foreach($commande->lines as $line){
+         				$resql = $db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX."commandedet WHERE rowid = ".$line->rowid);
+						$res = $db->fetch_object($resql);
+						switch($res->poids){
+							case -6:
+								$unite = "mg";
+								break;
+							case -3:
+								$unite = "g";
+								break;
+							case 0:
+								$unite = "kg";
+								break;
+						}
+         				echo "$('#row-".$line->rowid."').children().last().prev().prev().prev().prev().prev().after('<td align=\"right\">".((!is_null($res->tarif_poids))?$res->tarif_poids." ".$unite:"")."</td>');";
+         			}
+         		?>
+	         	$('#add').parent().next().next().next().next().after('<td align="right" width="110">Poids</td>');
+	         	$('#qty').parent().after('<td align="right"><input id="poidsAff" type="text" value="0" name="poidsAff" size="3"><select class="flat" name="weight_unitsAff" id="weight_unitsAff"><option value="-6">mg</option><option value="-3">g</option><option selected="selected" value="0">kg</option></select></td>');
 	         	$('#addproduct').append('<input id="poids" type="hidden" value="0" name="poids" size="3">');
+	         	$('#addproduct').append('<input id="weight_units" type="hidden" value="0" name="weight_units" size="3">');
 	         	$('#addproduct').submit(function() {
 	         		$('#poids').val( $('#poidsAff').val() );
-	         		
+	         		$('#weight_units').val( $('#weight_unitsAff option:selected').val() );
 	         		return true;
 	         	});
          	</script>
          	<?php
-        	/*?> 
-         	<script type="text/javascript">
-	         	$('#idprodfournprice').after('<span id="span_condi"> ou </span><select id="conditionnement" name="conditionnement" class="flat"></select>');
-	         	$('#conditionnement, #span_condi').hide();
-	         	$('#idprodfournprice').change( function(){
-	         		$.ajax({
-	         			type: "POST"
-	         			,url: "<?=DOL_URL_ROOT; ?>/custom/tarif/script/ajax.liste_conditionnement.php"
-	         			,dataType: "json"
-	         			,data: {fk_fourn_price: $('#idprodfournprice option:selected').val()}
-	         		},"json").then(function(select){
-	         			if(select.length > 0){
-	         				$('#conditionnement').empty().show();
-	         				$('#span_condi').show();
-	         				$.each(select, function(i,option){
-	         					$('#conditionnement').prepend('<option value="'+option.id+'">'+option.intitule+'</option>');
-	         				})
-	         				$('#conditionnement').prepend('<option value="0" selected="selected">S&eacute;lectionnez un conditionnement</option>');
-	         			}
-	         			else{
-	         				$('#conditionnement, #span_condi').hide();
-	         			}
-	         		});
-	         	});
-         	</script>
-         	<?php*/
         }
 		return 0;
 	}
@@ -84,23 +76,54 @@ class ActionsTarif
 		
 		if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
         {
-        	$commande = new Commande($db);
-        	$commande->fetch($_GET['id']);
-			$commande->fetch_lines();
+        	if(in_array('propalcard',explode(':',$parameters['context']))){
+        		$instance = new Propal($db);
+	        	$instance->fetch($_GET['id']);
+				$table = "propaldet";
+        	}
+			elseif(in_array('ordercard',explode(':',$parameters['context']))){
+				$instance = new Commande($db);
+	        	$instance->fetch($_GET['id']);
+				$table = "commandedet";
+			}
+        	elseif(in_array('invoicecard',explode(':',$parameters['context']))){
+        		$instance = new Facture($db);
+	        	$instance->fetch((isset($_GET['facid']))?$_GET['facid']:$_GET['id']);
+				$table = "facturedet";
+        	}
+			//echo count($instance->lines);
+			
+			/*echo '<pre>';
+			print_r($object);
+			echo '</pre>';*/
         	?> 
          	<script type="text/javascript">
          		<?php
-         			echo (count($commande->lines) >0)? "$('.liste_titre').first().children().last().prev().prev().prev().prev().prev().after('<td align=\"right\" width=\"50\">Poids</td>');" : '' ;
-         			foreach($commande->lines as $line){
-         				echo "$('#row-".$line->rowid."').children().last().prev().prev().prev().prev().prev().after('<td> </td>');";
+         			echo (count($instance->lines) >0)? "$('#tablelines').children().first().children().first().children().last().prev().prev().prev().prev().prev().after('<td align=\"right\" width=\"50\">Poids</td>');" : '' ;
+         			foreach($instance->lines as $line){
+         				$resql = $db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$line->rowid);
+						$res = $db->fetch_object($resql);
+						switch($res->poids){
+							case -6:
+								$unite = "mg";
+								break;
+							case -3:
+								$unite = "g";
+								break;
+							case 0:
+								$unite = "kg";
+								break;
+						}
+         				echo "$('#row-".$line->rowid."').children().last().prev().prev().prev().prev().prev().after('<td align=\"right\">".((!is_null($res->tarif_poids))?$res->tarif_poids." ".$unite:"")."</td>');";
          			}
          		?>
-	         	$('#add').parent().next().next().next().next().after('<td align="right" width="50">Poids</td>');
-	         	$('#qty').parent().after('<td align="right"><input id="poidsAff" type="text" value="0" name="poidsAff" size="3"></td>');
+	         	$('#add').parent().next().next().next().next().after('<td align="right" width="110">Poids</td>');
+	         	$('#qty').parent().after('<td align="right"><input id="poidsAff" type="text" value="0" name="poidsAff" size="3"><select class="flat" name="weight_unitsAff" id="weight_unitsAff"><option value="-6">mg</option><option value="-3">g</option><option selected="selected" value="0">kg</option></select></td>');
 	         	$('#addproduct').append('<input id="poids" type="hidden" value="0" name="poids" size="3">');
+	         	$('#addproduct').append('<input id="weight_units" type="hidden" value="0" name="weight_units" size="3">');
 	         	$('#addproduct').submit(function() {
 	         		$('#poids').val( $('#poidsAff').val() );
-	         		
+	         		$('#weight_units').val( $('#weight_unitsAff option:selected').val() );
 	         		return true;
 	         	});
          	</script>

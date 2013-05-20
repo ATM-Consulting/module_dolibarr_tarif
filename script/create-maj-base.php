@@ -14,4 +14,11 @@
 	$o=new TTarif;
 	$o->init_db_by_vars($ATMdb);
 	
+	$o=new TTarifCommandedet;
+	$o->init_db_by_vars($ATMdb);
 	
+	$o=new TTarifPropaldet;
+	$o->init_db_by_vars($ATMdb);
+	
+	$o=new TTarifFacturedet;
+	$o->init_db_by_vars($ATMdb);

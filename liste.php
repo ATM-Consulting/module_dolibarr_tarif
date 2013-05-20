@@ -151,6 +151,7 @@
 		$Ttarif->prix = $_POST['prix'];
 		$Ttarif->quantite = $_POST['quantite'];
 		$Ttarif->unite = $unite;
+		$Ttarif->unite_value = $_POST['weight_units'];
 		$Ttarif->fk_product = $_POST['id'];
 		$Ttarif->save($ATMdb);
 	}
@@ -167,10 +168,10 @@
 	 **********************************/
 	$TConditionnement = array();
 	
-	$sql = "SELECT rowid AS 'id', tva_tx AS tva, price_base_type AS base, quantite as quantite, unite AS unite, prix AS prix, '' AS 'Supprimer'
+	$sql = "SELECT rowid AS 'id', tva_tx AS tva, price_base_type AS base, quantite as quantite, unite AS unite, prix AS prix, unite_value AS unite_value, '' AS 'Supprimer'
 			FROM ".MAIN_DB_PREFIX."tarif_conditionnement
 			WHERE fk_product = ".$object->id."
-			ORDER BY rowid DESC";
+			ORDER BY unite_value, quantite ASC";
 	
 	$r = new TSSRenderControler(new TTarif);
 		
@@ -187,6 +188,7 @@
 		,'type'=>array('date_debut'=>'date','date_fin'=>'date')
 		,'hide'=>array(
 			'id'
+			,'unite_value'
 		)
 		,'link'=>array(
 			'Supprimer'=>'<a href="?id=@id@&action=delete&fk_product='.$object->id.'"><img src="img/delete.png"></a>'

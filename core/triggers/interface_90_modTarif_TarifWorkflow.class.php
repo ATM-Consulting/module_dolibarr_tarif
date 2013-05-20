@@ -109,109 +109,120 @@ class InterfaceTarifWorkflow
     	
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
     	dol_include_once('/tarif/config.php');
-    	dol_include_once('/product/class/product.class.php');
 		dol_include_once('/commande/class/commande.class.php');
+		dol_include_once('/fourn/class/fournisseur.commande.class.php');
+		dol_include_once('/compta/facture/class/facture.class.php');
+		dol_include_once('/comm/propal/class/propal.class.php');
 		
-		/*	ini_set('dysplay_errors','On');
-			error_reporting(E_ALL);*/
+			ini_set('dysplay_errors','On');
+			error_reporting(E_ALL);
        
-        // Projects
+        /*
+		 *  COMMANDES
+		 */
         if ($action == 'LINEORDER_INSERT')
         {        	
 			if(isset($_POST['poids']) && !empty($_POST['poids']) && $_POST['poids'] != 0){ //si poids renseigné alors conditionnement
-				
-				$sql = "SELECT quantite, unite, prix
+				$sql = "SELECT quantite, unite, prix, unite_value
 						FROM ".MAIN_DB_PREFIX."tarif_conditionnement
 						WHERE fk_product = ".$_POST['idprod']."
-						ORDER BY quantite DESC";
+						ORDER BY unite_value,quantite DESC";
 								
 				$resql = $this->db->query($sql);
 				while($res = $this->db->fetch_object($resql)){
-					if($res->quantite <= ($_POST['qty'] * $_POST['poids'])){
+					
+					if(pow($res->quantite,$res->unite_value) <= ($_POST['qty'] * pow($_POST['poids'],$_POST['weight_units']))){
 						$commande = new Commande($this->db);
 						$commande->fetch($object->fk_commande);
 									
-						$commande->updateline(
-									$object->rowid,
-									$object->description,
-									$res->prix,
-									$_POST['qty'],
-									$_POST['remise_percent'],
-									$_POST['tva_tx'],
-									0,
-									0,
-									'HT',
-									0,
-									'',
-									'',
-									$_POST['type'],
-									$_POST['fk_parent_line'],
-									0,
-									null,
-									0,
-									($_POST['product_label']?$_POST['product_label']:''),
-									0);
+						$commande->updateline($object->rowid, $object->desc, $res->prix, $_POST['qty'], $_POST['remise_percent'], $_POST['tva_tx'], 0, 0, 'HT', 0, '', '', 0, 0, 0, null, 0, ($_POST['product_label']?$_POST['product_label']:''), 0);
+						
+						$this->db->query("UPDATE ".MAIN_DB_PREFIX."commandedet SET tarif_poids = ".$_POST['poids'].", poids = ".$_POST['weight_units']." WHERE rowid = ".$object->rowid);
+						
 						break;
 					}
 				}
 			}
 			
-			
-			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
 
         }
         elseif ($action == 'LINEORDER_UPDATE')
         {
         	
-            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
 			
         }
-        elseif ($action == 'LINEORDER_SUPPLIER_CREATE')
-        {
-        	
-            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
-			
-        }
-        elseif ($action == 'LINEORDER_SUPPLIER_UPDATE')
-        {
-        	
-            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
-            
-        }
+        
+         /*
+		 *  PROPOSITIONS COMMERCIALES
+		 */
         elseif ($action == 'LINEPROPAL_INSERT')
         {
-        	
-            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+			if(isset($_POST['poids']) && !empty($_POST['poids']) && $_POST['poids'] != 0){ //si poids renseigné alors conditionnement
+				$sql = "SELECT quantite, unite, prix, unite_value
+						FROM ".MAIN_DB_PREFIX."tarif_conditionnement
+						WHERE fk_product = ".$_POST['idprod']."
+						ORDER BY unite_value,quantite DESC";
+								
+				$resql = $this->db->query($sql);
+				while($res = $this->db->fetch_object($resql)){
+					if(pow($res->quantite,$res->unite_value) <= ($_POST['qty'] * pow($_POST['poids'],$_POST['weight_units']))){
+						$propal = new Propal($this->db);
+						$propal->fetch($object->fk_propal);
+						
+						$propal->updateline($object->rowid, $res->prix, $_POST['qty'], $_POST['remise_percent'], $_POST['tva_tx'], 0, 0, $object->desc, 'HT', 0, 0, 0, 0, 0, 0, ($_POST['product_label']?$_POST['product_label']:''), 0, '', '');
+						
+						$this->db->query("UPDATE ".MAIN_DB_PREFIX."propaldet SET tarif_poids = ".$_POST['poids'].", poids = ".$_POST['weight_units']." WHERE rowid = ".$object->rowid);
+						break;
+					}
+				}
+			}
+			
+            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
 			
         }
         elseif ($action == 'LINEPROPAL_UPDATE')
         {
         	
-            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
 			
         }
+		
+		/*
+		 *  FACTURES
+		 */
         elseif ($action == 'LINEBILL_INSERT')
         {
+        	if(isset($_POST['poids']) && !empty($_POST['poids']) && $_POST['poids'] != 0){ //si poids renseigné alors conditionnement
         	
-            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+				$sql = "SELECT quantite, unite, prix, unite_value
+						FROM ".MAIN_DB_PREFIX."tarif_conditionnement
+						WHERE fk_product = ".$_POST['idprod']."
+						ORDER BY unite_value,quantite DESC";
+				
+				$resql = $this->db->query($sql);
+				while($res = $this->db->fetch_object($resql)){
+					print_r(bcpow($res->quantite,$res->unite_value)." <= ".$_POST['qty']." * ".bcpow($_POST['poids'],$_POST['weight_units']));
+					if(pow($res->quantite,$res->unite_value) <= ($_POST['qty'] * pow($_POST['poids'],$_POST['weight_units']))){
+						$facture = new Facture($this->db);
+						$facture->fetch($object->fk_facture);
+						
+						$facture->updateline($object->rowid, $object->desc, $res->prix, $_POST['qty'], $_POST['remise_percent'], NULL, NULL, $_POST['tva_tx'], 0, 0, 'HT', 0, 0, 0, 0, null, 0, ($_POST['product_label']?$_POST['product_label']:''), 0);
+						
+						$this->db->query("UPDATE ".MAIN_DB_PREFIX."facturedet SET tarif_poids = ".$_POST['poids'].", poids = ".$_POST['weight_units']." WHERE rowid = ".$object->rowid);
+						break;
+					}
+				}
+			}	
+        	
+            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
 			
         }
 		elseif ($action == 'LINEBILL_UPDATE')
         {
         	
-            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
-			
-        }
-		elseif ($action == 'LINEBILL_SUPPLIER_CREATE')
-        {
-        	
-            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
-			
-        }
-		elseif ($action == 'LINEBILL_SUPPLIER_UPDATE')
-        {
-        	
-            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+            dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
 			
         }
 
