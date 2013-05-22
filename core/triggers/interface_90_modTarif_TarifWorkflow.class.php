@@ -215,7 +215,7 @@ class InterfaceTarifWorkflow
 				$resql = $this->db->query($sql);
 				while($res = $this->db->fetch_object($resql)){					
 					if($res->quantite * pow(10,$res->unite_value) <= $_POST['qty'] * ($_POST['poids'] * pow(10,$_POST['weight_units']))){
-						$propal = new Commande($this->db);
+						$propal = new Propal($this->db);
 						$propal->fetch($object->oldline->fk_propal);
 						
 						$propal->deleteline($object->rowid);
