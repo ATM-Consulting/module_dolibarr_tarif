@@ -69,7 +69,7 @@ class ActionsTarif
 								<?php
 							}
 							else{
-								echo "$('#row-".$line->rowid."').children().last().prev().prev().prev().prev().prev().after('<td align=\"right\">".((!is_null($res->tarif_poids))?$res->tarif_poids." ".$unite:"")."</td>');";
+								echo "$('#row-".$line->rowid."').children().last().prev().prev().prev().prev().prev().after('<td align=\"right\">".((!is_null($res->tarif_poids))?number_format($res->tarif_poids,2)." ".$unite:"")."</td>');";
 							}
 				        }
 						?>
@@ -135,7 +135,7 @@ class ActionsTarif
 								$unite = "kg";
 								break;
 						}
-         				echo "$('#row-".$line->rowid."').children().last().prev().prev().prev().prev().prev().after('<td align=\"right\">".((!is_null($res->tarif_poids))?$res->tarif_poids." ".$unite:"")."</td>');";
+         				echo "$('#row-".$line->rowid."').children().last().prev().prev().prev().prev().prev().after('<td align=\"right\">".((!is_null($res->tarif_poids))? number_format($res->tarif_poids,2)." ".$unite : "")."</td>');";
          			}
          		?>
 	         	$('#tablelines .liste_titre > td').each(function(){
