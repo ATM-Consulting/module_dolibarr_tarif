@@ -22,7 +22,8 @@ class TTarifCommandedet extends TObjetStdDolibarr {
 		global $langs;
 		
 		parent::set_table(MAIN_DB_PREFIX.'commandedet');
-		parent::add_champs('tarif_poids,poids','type=entier;');
+		parent::add_champs('poids','type=entier;');
+		parent::add_champs('tarif_poids','type=float;');
 		
 		parent::_init_vars();
 		parent::start();
@@ -34,7 +35,8 @@ class TTarifPropaldet extends TObjetStdDolibarr {
 		global $langs;
 		
 		parent::set_table(MAIN_DB_PREFIX.'propaldet');
-		parent::add_champs('tarif_poids,poids','type=entier;');
+		parent::add_champs('poids','type=entier;');
+		parent::add_champs('tarif_poids','type=float;');
 		
 		parent::_init_vars();
 		parent::start();
@@ -46,7 +48,8 @@ class TTarifFacturedet extends TObjetStdDolibarr {
 		global $langs;
 		
 		parent::set_table(MAIN_DB_PREFIX.'facturedet');
-		parent::add_champs('tarif_poids,poids','type=entier;');
+		parent::add_champs('poids','type=entier;');
+		parent::add_champs('tarif_poids','type=float;');
 		
 		parent::_init_vars();
 		parent::start();
