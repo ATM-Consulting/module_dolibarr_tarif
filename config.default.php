@@ -6,10 +6,10 @@
 	define('HTTP','http://localhost/dolibarr/');
 
 	if(defined('INC_FROM_CRON_SCRIPT')) {
-		include(ROOT."master.inc.php");
+		require_once(ROOT."master.inc.php");
 	}
 	else {
-		include(ROOT."main.inc.php");
+		require_once(ROOT."main.inc.php");
 	}
 
 	define('DB_HOST',$dolibarr_main_db_host);
