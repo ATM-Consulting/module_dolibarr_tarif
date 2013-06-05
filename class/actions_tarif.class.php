@@ -88,7 +88,7 @@ class ActionsTarif
     }
 
 
-	function formAddObjectLine ($parameters, &$object, &$action, $hookmanager) {
+	function formBuilddocOptions ($parameters, &$object, &$action, $hookmanager) {
 		
 		global $db;
 		include_once(DOL_DOCUMENT_ROOT."/commande/class/commande.class.php");
@@ -135,7 +135,7 @@ class ActionsTarif
 								$unite = "kg";
 								break;
 						}
-         				echo "$('#row-".$line->rowid."').children().last().prev().prev().prev().prev().prev().after('<td align=\"right\">".((!is_null($res->tarif_poids))? number_format($res->tarif_poids,2)." ".$unite : "")."</td>');";
+         				echo "$('#row-".$line->rowid."').children().eq(3).after('<td align=\"right\">".((!is_null($res->tarif_poids))? number_format($res->tarif_poids,2)." ".$unite : "")."</td>');";
          			}
          		?>
 	         	$('#tablelines .liste_titre > td').each(function(){
