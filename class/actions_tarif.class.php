@@ -57,7 +57,7 @@ class ActionsTarif
 							
 							if($line->rowid == $_REQUEST['lineid']){
 								?>
-								$('input[name=qty]').parent().after('<td align="right"><input id="poidsAff" type="text" value="<?php if(!is_null($res->tarif_poids)) echo $res->tarif_poids; ?>" name="poidsAff" size="3"><select class="flat" name="weight_unitsAff" id="weight_unitsAff"><option value="-6" <?php if($unite == "mg") echo ' selected="selected" '; ?>>mg</option><option value="-3" <?php if($unite == "g") echo ' selected="selected" '; ?>>g</option><option value="0" <?php if($unite == "kg") echo ' selected="selected" '; ?>>kg</option></select></td>');
+								$('input[name=qty]').parent().after('<td align="right"><input id="poidsAff" type="text" value="<?php if(!is_null($res->tarif_poids)) echo $res->tarif_poids; ?>" name="poidsAff" size="6"><select class="flat" name="weight_unitsAff" id="weight_unitsAff"><option value="-6" <?php if($unite == "mg") echo ' selected="selected" '; ?>>mg</option><option value="-3" <?php if($unite == "g") echo ' selected="selected" '; ?>>g</option><option value="0" <?php if($unite == "kg") echo ' selected="selected" '; ?>>kg</option></select></td>');
 								$('#tablelines').children().first().children().first().children().last().prev().prev().prev().prev().prev().after('<td align=\"right\" width=\"100\">Poids</td>');
 								$('input[name=token]').prev().append('<input id="poids" type="hidden" value="0" name="poids" size="3">');
 					         	$('input[name=token]').prev().append('<input id="weight_units" type="hidden" value="0" name="weight_units" size="3">');
@@ -142,8 +142,8 @@ class ActionsTarif
 	         		if($(this).html() == "Qté")
 	         			$(this).after('<td align="right" width="140">Poids</td>');
 	         	});
-	         	$('#np_desc').parent().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff" size="3"><select class="flat weight_unitsAff" name="weight_unitsAff"><option value="-6">mg</option><option value="-3">g</option><option selected="selected" value="0">kg</option></select></td>');
-	         	$('#dp_desc').parent().next().next().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff" size="3"><select class="flat weight_unitsAff" name="weight_unitsAff"><option value="-6">mg</option><option value="-3">g</option><option selected="selected" value="0">kg</option></select></td>');
+	         	$('#np_desc').parent().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff" size="6"><select class="flat weight_unitsAff" name="weight_unitsAff"><option value="-6">mg</option><option value="-3">g</option><option selected="selected" value="0">kg</option></select></td>');
+	         	$('#dp_desc').parent().next().next().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff" size="6"><select class="flat weight_unitsAff" name="weight_unitsAff"><option value="-6">mg</option><option value="-3">g</option><option selected="selected" value="0">kg</option></select></td>');
 	         	$('#addpredefinedproduct').append('<input class="poids" type="hidden" value="0" name="poids" size="3">');
 	         	$('#addpredefinedproduct').append('<input class="weight_units" type="hidden" value="0" name="weight_units" size="3">');
 	         	$('#addproduct').append('<input class="poids" type="hidden" value="0" name="poids" size="3">');
