@@ -117,8 +117,6 @@ class InterfaceTarifWorkflow
 			/*ini_set('dysplay_errors','On');
 			error_reporting(E_ALL);*/
        
-       echo $action;
-       
         /*
 		 *  COMMANDES
 		 */
@@ -134,7 +132,7 @@ class InterfaceTarifWorkflow
 				// Ajout d'un produit/service existant
 				if(isset($_POST['idprod'])){
 					
-					$sql = "SELECT quantite, unite, prix, unite_value, tva_tx
+					$sql = "SELECT quantite, unite, prix, unite_value, tva_tx, remise_percent
 							FROM ".MAIN_DB_PREFIX."tarif_conditionnement
 							WHERE fk_product = ".$_POST['idprod']."
 							ORDER BY unite_value DESC, quantite DESC";
@@ -147,8 +145,16 @@ class InterfaceTarifWorkflow
 							$trouve = true;
 							$commande = new Commande($this->db);
 							$commande->fetch($object->fk_commande);
+							
+							//Récupération de la remise
+							if(isset($_POST['remise_percent']) && !empty($_POST['remise_percent']) && $_POST['remise_percent'] != 0) 
+								$remise = $_POST['remise_percent'];
+							elseif($res->remise_percent != 0 && !is_null($res->remise_percent))
+								$remise = $res->remise_percent;
+							else
+								$remise = NULL;
 										
-							$commande->updateline($object->rowid, $object->desc, $res->prix, $_POST['qty'], $_POST['remise_percent'], $res->tva_tx, 0, 0, 'HT', 0, '', '', 0, 0, 0, null, 0, ($_POST['product_label']?$_POST['product_label']:''), 0);
+							$commande->updateline($object->rowid, $object->desc, $res->prix, $_POST['qty'], $remise, $res->tva_tx, 0, 0, 'HT', 0, '', '', 0, 0, 0, null, 0, ($_POST['product_label']?$_POST['product_label']:''), 0);
 							
 							//MAJ des totaux de la ligne de commande
 							$object->total_ht = $_POST['qty'] * $res->prix * ($_POST['poids'] * pow(10,abs($_POST['weight_units']-$res->unite_value)));
@@ -204,8 +210,16 @@ class InterfaceTarifWorkflow
 							$commande = new Commande($this->db);
 							$commande->fetch($object->oldline->fk_commande);
 							
+							//Récupération de la remise
+							if(isset($_POST['remise_percent']) && !empty($_POST['remise_percent']) && $_POST['remise_percent'] != $object->remise_percent) 
+								$remise = $_POST['remise_percent'];
+							elseif($res->remise_percent != 0 && !is_null($res->remise_percent))
+								$remise = $res->remise_percent;
+							else
+								$remise = $object->remise_percent;
+							
 							$commande->deleteline($object->rowid);
-							$id_line = $commande->addline($object->oldline->fk_commande, $object->desc, $res->prix, $_POST['qty'], $res->tva_tx, 0, 0, $_POST['productid'], $_POST['remise_percent'], '', '', 0, 0, '', 'HT', 0, 0, $object->rang, 0, '', 0, 0, null, 0, ($_POST['product_label']?$_POST['product_label']:''));
+							$id_line = $commande->addline($object->oldline->fk_commande, $object->desc, $res->prix, $_POST['qty'], $res->tva_tx, 0, 0, $_POST['productid'], $remise, '', '', 0, 0, '', 'HT', 0, 0, $object->rang, 0, '', 0, 0, null, 0, ($_POST['product_label']?$_POST['product_label']:''));
 							
 							//MAJ des totaux de la ligne de commande
 							$object->fetch($id_line);
@@ -266,7 +280,15 @@ class InterfaceTarifWorkflow
 							$propal = new Propal($this->db);
 							$propal->fetch($object->fk_propal);
 							
-							$propal->updateline($object->rowid, $res->prix, $_POST['qty'], $_POST['remise_percent'], $res->tva_tx, 0, 0, $object->desc, 'HT', 0, 0, 0, 0, 0, 0, ($_POST['product_label']?$_POST['product_label']:''), 0, '', '');
+							//Récupération de la remise
+							if(isset($_POST['remise_percent']) && !empty($_POST['remise_percent']) && $_POST['remise_percent'] != 0) 
+								$remise = $_POST['remise_percent'];
+							elseif($res->remise_percent != 0 && !is_null($res->remise_percent))
+								$remise = $res->remise_percent;
+							else
+								$remise = NULL;
+							
+							$propal->updateline($object->rowid, $res->prix, $_POST['qty'], $remise, $res->tva_tx, 0, 0, $object->desc, 'HT', 0, 0, 0, 0, 0, 0, ($_POST['product_label']?$_POST['product_label']:''), 0, '', '');
 							
 							//MAJ des totaux de la ligne de propal
 							$object->total_ht = $_POST['qty'] * $res->prix * ($_POST['poids'] * pow(10,abs($_POST['weight_units']-$res->unite_value)));
@@ -316,8 +338,16 @@ class InterfaceTarifWorkflow
 							$propal = new Propal($this->db);
 							$propal->fetch($object->oldline->fk_propal);
 							
+							//Récupération de la remise
+							if(isset($_POST['remise_percent']) && !empty($_POST['remise_percent']) && $_POST['remise_percent'] != $object->remise_percent) 
+								$remise = $_POST['remise_percent'];
+							elseif($res->remise_percent != 0 && !is_null($res->remise_percent))
+								$remise = $res->remise_percent;
+							else
+								$remise = $object->remise_percent;
+							
 							$propal->deleteline($object->rowid);
-							$propal->addline($object->oldline->fk_propal, $object->desc, $res->prix, $_POST['qty'], $res->tva_tx, 0, 0, $_POST['productid'], $_POST['remise_percent'], 'HT',0, 0, 0, $object->rang, 0, 0, 0, 0, ($_POST['product_label']?$_POST['product_label']:''));
+							$propal->addline($object->oldline->fk_propal, $object->desc, $res->prix, $_POST['qty'], $res->tva_tx, 0, 0, $_POST['productid'], $remise, 'HT',0, 0, 0, $object->rang, 0, 0, 0, 0, ($_POST['product_label']?$_POST['product_label']:''));
 							
 							$resql2 = $this->db->query("SELECT rowid FROM ".MAIN_DB_PREFIX."propaldet WHERE fk_propal = ".$object->oldline->fk_propal." ORDER BY rowid DESC LIMIT 1");
 							$res2 = $this->db->fetch_object($resql2);
@@ -387,7 +417,15 @@ class InterfaceTarifWorkflow
 							$facture = new Facture($this->db);
 							$facture->fetch($object->fk_facture);
 							
-							$facture->updateline($object->rowid, $object->desc, $res->prix, $_POST['qty'], $_POST['remise_percent'], NULL, NULL, $res->tva_tx, 0, 0, 'HT', 0, 0, 0, 0, null, 0, ($_POST['product_label']?$_POST['product_label']:''), 0);
+							//Récupération de la remise
+							if(isset($_POST['remise_percent']) && !empty($_POST['remise_percent']) && $_POST['remise_percent'] != 0) 
+								$remise = $_POST['remise_percent'];
+							elseif($res->remise_percent != 0 && !is_null($res->remise_percent))
+								$remise = $res->remise_percent;
+							else
+								$remise = NULL;
+							
+							$facture->updateline($object->rowid, $object->desc, $res->prix, $_POST['qty'], $remise, NULL, NULL, $res->tva_tx, 0, 0, 'HT', 0, 0, 0, 0, null, 0, ($_POST['product_label']?$_POST['product_label']:''), 0);
 							
 							//MAJ des totaux de la ligne de facture
 							$object->total_ht = $_POST['qty'] * $res->prix * ($_POST['poids'] * pow(10,abs($_POST['weight_units']-$res->unite_value)));
@@ -438,8 +476,16 @@ class InterfaceTarifWorkflow
 							$facture = new Facture($this->db);
 							$facture->fetch($object->oldline->fk_facture);
 							
+							//Récupération de la remise
+							if(isset($_POST['remise_percent']) && !empty($_POST['remise_percent']) && $_POST['remise_percent'] != $object->remise_percent) 
+								$remise = $_POST['remise_percent'];
+							elseif($res->remise_percent != 0 && !is_null($res->remise_percent))
+								$remise = $res->remise_percent;
+							else
+								$remise = $object->remise_percent;
+							
 							$facture->deleteline($object->rowid);
-							$id_line = $facture->addline($object->oldline->fk_facture, $object->desc, $res->prix, $_POST['qty'], $res->tva_tx, 0, 0, $_POST['productid'], $_POST['remise_percent'], '', '', 0, 0, '', 'HT', 0, 0, $object->rang, 0, '', 0, 0, null, 0, ($_POST['product_label']?$_POST['product_label']:''));
+							$id_line = $facture->addline($object->oldline->fk_facture, $object->desc, $res->prix, $_POST['qty'], $res->tva_tx, 0, 0, $_POST['productid'], $remise, '', '', 0, 0, '', 'HT', 0, 0, $object->rang, 0, '', 0, 0, null, 0, ($_POST['product_label']?$_POST['product_label']:''));
 							
 							//MAJ des totaux de la ligne de propal
 							$object->fetch($id_line);

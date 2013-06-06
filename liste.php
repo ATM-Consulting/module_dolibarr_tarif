@@ -110,6 +110,11 @@
 		print 'Prix de vente';
 		print '</td><td><input value="" size="10" name="prix"></td></tr>';
 		
+		// Remise
+		print '<tr><td width="20%">';
+		print 'Pourcentage de remise';
+		print '</td><td><input value="" size="10" name="remise"></td></tr>';
+		
 		//Quantité
 		print '<tr><td width="20%">';
 		print 'Quantit&eacute;';
@@ -151,6 +156,7 @@
 		$Ttarif->prix = $_POST['prix'];
 		$Ttarif->quantite = $_POST['quantite'];
 		$Ttarif->unite = $unite;
+		(isset($_POST['remise']) && !empty($_POST['remise'])) ? $Ttarif->remise_percent = $_POST['remise'] : "" ;
 		$Ttarif->unite_value = $_POST['weight_units'];
 		$Ttarif->fk_product = $_POST['id'];
 		$Ttarif->save($ATMdb);
@@ -168,9 +174,9 @@
 	 **********************************/
 	$TConditionnement = array();
 	
-	$sql = "SELECT rowid AS 'id', tva_tx AS tva, price_base_type AS base, quantite as quantite, unite AS unite, prix AS prix, unite_value AS unite_value, '' AS 'Supprimer'
+	$sql = "SELECT rowid AS 'id', tva_tx AS tva, price_base_type AS base, quantite as quantite, unite AS unite, prix AS prix, remise_percent AS remise, unite_value AS unite_value, '' AS 'Supprimer'
 			FROM ".MAIN_DB_PREFIX."tarif_conditionnement
-			WHERE fk_product = ".$object->id."
+			WHERE fk_product = ".$product->id."
 			ORDER BY unite_value, quantite ASC";
 	
 	$r = new TSSRenderControler(new TTarif);
@@ -182,7 +188,8 @@
 			,'base' => 'Type du Prix'
 			,'quantite'=>'Quantit&eacute;'
 			,'unite'=>'Unit&eacute;'
-			,'prix'=>'Tarif (Euros)'
+			,'prix'=>'Tarif (€)'
+			,'remise' => 'Remise (%)'
 			,'Supprimer' => 'Supprimer'
 		)
 		,'type'=>array('date_debut'=>'date','date_fin'=>'date')
@@ -191,7 +198,7 @@
 			,'unite_value'
 		)
 		,'link'=>array(
-			'Supprimer'=>'<a href="?id=@id@&action=delete&fk_product='.$object->id.'"><img src="img/delete.png"></a>'
+			'Supprimer'=>'<a href="?id=@id@&action=delete&fk_product='.$object->id.'" onclick="return confirm(\'Êtes-vous sûr de vouloir supprimer ce conditionnement?\');"><img src="img/delete.png"></a>'
 		)
 	));
 	?>
