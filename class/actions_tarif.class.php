@@ -18,6 +18,10 @@ class ActionsTarif
 		
     	if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context'])))
         {
+        	
+			/*
+			 * AJOUT DU CHAMPS POIDS
+			 */
         	if(in_array('propalcard',explode(':',$parameters['context']))){
         		$instance = new Propal($db);
 				$instance->fetch($_GET['id']);
@@ -79,11 +83,7 @@ class ActionsTarif
 			}
 			
 			$this->resprints='';
-        }
- 
-        /*$this->results=array('myreturn'=>$myvalue);
-        $this->resprints='';
- */
+		}
         return 0;
     }
 
@@ -143,7 +143,7 @@ class ActionsTarif
 	         			$(this).after('<td align="right" width="140">Poids</td>');
 	         	});
 	         	$('#np_desc').parent().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff" size="6"><select class="flat weight_unitsAff" name="weight_unitsAff"><option value="-6">mg</option><option value="-3">g</option><option selected="selected" value="0">kg</option></select></td>');
-	         	$('#dp_desc').parent().next().next().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff" size="6"><select class="flat weight_unitsAff" name="weight_unitsAff"><option value="-6">mg</option><option value="-3">g</option><option selected="selected" value="0">kg</option></select></td>');
+	         	$('#dp_desc').parent().next().next().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff" size="6"><select class="flat weight_unitsAff" name="weight_unitsAff"><option value="-6">mg</option><option value="-3">g</option><option value="0">kg</option></select></td>');
 	         	$('#addpredefinedproduct').append('<input class="poids" type="hidden" value="0" name="poids" size="3">');
 	         	$('#addpredefinedproduct').append('<input class="weight_units" type="hidden" value="0" name="weight_units" size="3">');
 	         	$('#addproduct').append('<input class="poids" type="hidden" value="0" name="poids" size="3">');
@@ -153,6 +153,25 @@ class ActionsTarif
 	         		$('.weight_units').val( $(this).parent().prev().prev().find('> .weight_unitsAff option:selected').val() );
 	         		return true;
 	         	});
+	         	
+	         	//Sélection automatique de l'unité de mesure associé au produit sélectionné
+	         	$('#idprod').change( function(){
+					$.ajax({
+						type: "POST"
+						,url: "<?=DOL_URL_ROOT; ?>/custom/tarif/script/ajax.unite_poids.php"
+						,dataType: "json"
+						,data: {fk_product: $('#idprod').val()}
+						},"json").then(function(select){
+							if(select.unite != ""){
+								$('.weight_unitsAff:last option:selected').removeAttr('selected');
+								$('.weight_unitsAff:last option[value='+select.unite+']').attr('selected','selected');
+							}
+							else{
+								$('.weight_unitsAff:last option:selected').removeAttr('selected');
+								$('.weight_unitsAff:last option[value=0]').attr('selected','selected');
+							}
+						});
+				});
          	</script>
          	<?php
         }
