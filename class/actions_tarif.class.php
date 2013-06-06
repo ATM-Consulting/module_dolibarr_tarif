@@ -178,4 +178,72 @@ class ActionsTarif
 
 		return 0;
 	}
+
+	/*
+	 * TRAITEMENT LORS DE CREATION:
+	 * 		FACTURE => venant de COMMANDE
+	 *		FACTURE => venant de PROPAL
+	 *		COMMANDE => venant de PROPAL
+	 */
+		
+	function createFrom($parameters, &$object, &$action, $hookmanager){
+		
+		global $db;	
+		include_once(DOL_DOCUMENT_ROOT."/commande/class/commande.class.php");
+		include_once(DOL_DOCUMENT_ROOT."/compta/facture/class/facture.class.php");
+		include_once(DOL_DOCUMENT_ROOT."/comm/propal/class/propal.class.php");
+			
+		if (in_array('invoicedao',explode(':',$parameters['context'])) || in_array('orderdao',explode(':',$parameters['context']))) 
+        { 
+        	/*echo '<pre>';
+			print_r($object);
+			echo '</pre>';
+			exit;*/
+			
+			if($object->origin == "commande"){
+				$commande = new Commande($db);
+				$commande->fetch($object->origin_id);
+				
+				foreach($commande->lines as $line){
+					$resql = $db->query("SELECT poids, tarif_poids FROM ".MAIN_DB_PREFIX."commandedet WHERE rowid = ".$line->rowid);
+					$res = $db->fetch_object($resql);
+					
+					$sql = "UPDATE ".MAIN_DB_PREFIX."facturedet SET tarif_poids = ".$res->tarif_poids.", poids = ".$res->poids." WHERE rang = ".$line->rang;
+					($line->fk_product != 0) ? $sql .= " AND fk_product = ".$line->fk_product :"" ;
+					
+					$db->query($sql);
+				}
+			}
+			elseif ($object->origin == "propal" && $object->element == "commande"){
+				$propal = new Propal($db);
+				$propal->fetch($object->origin_id);
+				
+				foreach($propal->lines as $line){
+					$resql = $db->query("SELECT poids, tarif_poids FROM ".MAIN_DB_PREFIX."propaldet WHERE rowid = ".$line->rowid);
+					$res = $db->fetch_object($resql);
+					
+					$sql = "UPDATE ".MAIN_DB_PREFIX."commandedet SET tarif_poids = ".$res->tarif_poids.", poids = ".$res->poids." WHERE rang = ".$line->rang;
+					($line->fk_product != 0) ? $sql .= " AND fk_product = ".$line->fk_product :"" ;
+					
+					$db->query($sql);
+				}
+			}
+			elseif ($object->origin == "propal" && $object->element == "facture"){
+				$propal = new Propal($db);
+				$propal->fetch($object->origin_id);
+				
+				foreach($propal->lines as $line){
+					$resql = $db->query("SELECT poids, tarif_poids FROM ".MAIN_DB_PREFIX."propaldet WHERE rowid = ".$line->rowid);
+					$res = $db->fetch_object($resql);
+					
+					$sql = "UPDATE ".MAIN_DB_PREFIX."facturedet SET tarif_poids = ".$res->tarif_poids.", poids = ".$res->poids." WHERE rang = ".$line->rang;
+					($line->fk_product != 0) ? $sql .= " AND fk_product = ".$line->fk_product :"" ;
+					
+					$db->query($sql);
+				}
+			}
+        }
+ 
+        return 0;
+	}
 }

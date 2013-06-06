@@ -117,6 +117,8 @@ class InterfaceTarifWorkflow
 			/*ini_set('dysplay_errors','On');
 			error_reporting(E_ALL);*/
        
+       echo $action;
+       
         /*
 		 *  COMMANDES
 		 */
@@ -150,6 +152,8 @@ class InterfaceTarifWorkflow
 							
 							//MAJ des totaux de la ligne de commande
 							$object->total_ht = $_POST['qty'] * $res->prix * ($_POST['poids'] * pow(10,abs($_POST['weight_units']-$res->unite_value)));
+							$object->total_tva = ($object->total_ht * (1 + ($res->tva_tx/100))) - $object->total_ht;
+							$object->total_ttc = $object->total_ht + $object->total_tva;
 							$object->update_total();
 							
 							$this->db->query("UPDATE ".MAIN_DB_PREFIX."commandedet SET tarif_poids = ".$_POST['poids'].", poids = ".$_POST['weight_units']." WHERE rowid = ".$object->rowid);
@@ -206,6 +210,8 @@ class InterfaceTarifWorkflow
 							//MAJ des totaux de la ligne de commande
 							$object->fetch($id_line);
 							$object->total_ht = $_POST['qty'] * $res->prix * ($_POST['poids'] * pow(10,abs($_POST['weight_units']-$res->unite_value)));
+							$object->total_tva = ($object->total_ht * (1 + ($res->tva_tx/100))) - $object->total_ht;
+							$object->total_ttc = $object->total_ht + $object->total_tva;
 							$object->update_total();
 							
 							$this->db->query("UPDATE ".MAIN_DB_PREFIX."commandedet SET tarif_poids = ".$_POST['poids'].", poids = ".$_POST['weight_units']." WHERE rowid = ".$id_line);
@@ -264,6 +270,8 @@ class InterfaceTarifWorkflow
 							
 							//MAJ des totaux de la ligne de propal
 							$object->total_ht = $_POST['qty'] * $res->prix * ($_POST['poids'] * pow(10,abs($_POST['weight_units']-$res->unite_value)));
+							$object->total_tva = ($object->total_ht * (1 + ($res->tva_tx/100))) - $object->total_ht;
+							$object->total_ttc = $object->total_ht + $object->total_tva;
 							$object->update_total();
 							
 							$this->db->query("UPDATE ".MAIN_DB_PREFIX."propaldet SET tarif_poids = ".$_POST['poids'].", poids = ".$_POST['weight_units']." WHERE rowid = ".$object->rowid);
@@ -318,6 +326,8 @@ class InterfaceTarifWorkflow
 							//MAJ des totaux de la ligne de propal
 							$object->fetch($id_line);
 							$object->total_ht = $_POST['qty'] * $res->prix * ($_POST['poids'] * pow(10,abs($_POST['weight_units']-$res->unite_value)));
+							$object->total_tva = ($object->total_ht * (1 + ($res->tva_tx/100))) - $object->total_ht;
+							$object->total_ttc = $object->total_ht + $object->total_tva;
 							$object->update_total();
 							
 							$this->db->query("UPDATE ".MAIN_DB_PREFIX."propaldet SET tarif_poids = ".$_POST['poids'].", poids = ".$_POST['weight_units']." WHERE rowid = ".$id_line);
@@ -381,6 +391,8 @@ class InterfaceTarifWorkflow
 							
 							//MAJ des totaux de la ligne de facture
 							$object->total_ht = $_POST['qty'] * $res->prix * ($_POST['poids'] * pow(10,abs($_POST['weight_units']-$res->unite_value)));
+							$object->total_tva = ($object->total_ht * (1 + ($res->tva_tx/100))) - $object->total_ht;
+							$object->total_ttc = $object->total_ht + $object->total_tva;
 							$object->update_total();
 							
 							$this->db->query("UPDATE ".MAIN_DB_PREFIX."facturedet SET tarif_poids = ".$_POST['poids'].", poids = ".$_POST['weight_units']." WHERE rowid = ".$object->rowid);
@@ -432,6 +444,8 @@ class InterfaceTarifWorkflow
 							//MAJ des totaux de la ligne de propal
 							$object->fetch($id_line);
 							$object->total_ht = $_POST['qty'] * $res->prix * ($_POST['poids'] * pow(10,abs($_POST['weight_units']-$res->unite_value)));
+							$object->total_tva = ($object->total_ht * (1 + ($res->tva_tx/100))) - $object->total_ht;
+							$object->total_ttc = $object->total_ht + $object->total_tva;
 							$object->update_total();
 							
 							$this->db->query("UPDATE ".MAIN_DB_PREFIX."facturedet SET tarif_poids = ".$_POST['poids'].", poids = ".$_POST['weight_units']." WHERE rowid = ".$id_line);
