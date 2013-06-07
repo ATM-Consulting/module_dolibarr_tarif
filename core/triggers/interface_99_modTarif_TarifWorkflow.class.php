@@ -196,7 +196,7 @@ class InterfaceTarifWorkflow
         		// MAJ d'un produit/service existant
         		if(isset($_POST['productid']) && $_POST['productid'] != 0){
         			
-					$sql = "SELECT quantite, unite, prix, unite_value, tva_tx
+					$sql = "SELECT quantite, unite, prix, unite_value, tva_tx, remise_percent
 							FROM ".MAIN_DB_PREFIX."tarif_conditionnement
 							WHERE fk_product = ".$_POST['productid']."
 							ORDER BY unite_value DESC, quantite DESC";
@@ -211,7 +211,7 @@ class InterfaceTarifWorkflow
 							$commande->fetch($object->oldline->fk_commande);
 							
 							//Récupération de la remise
-							if(isset($_POST['remise_percent']) && !empty($_POST['remise_percent']) && $_POST['remise_percent'] != $object->remise_percent) 
+							if(isset($_POST['remise_percent']) && !empty($_POST['remise_percent']) && $_POST['remise_percent'] != $object->remise_percent)
 								$remise = $_POST['remise_percent'];
 							elseif($res->remise_percent != 0 && !is_null($res->remise_percent))
 								$remise = $res->remise_percent;
@@ -267,7 +267,7 @@ class InterfaceTarifWorkflow
 				
 				// Ajout d'un produit/service existant
 				if(isset($_POST['idprod'])){
-					$sql = "SELECT quantite, unite, prix, unite_value, tva_tx
+					$sql = "SELECT quantite, unite, prix, unite_value, tva_tx, remise_percent
 							FROM ".MAIN_DB_PREFIX."tarif_conditionnement
 							WHERE fk_product = ".$_POST['idprod']."
 							ORDER BY unite_value DESC, quantite DESC";
@@ -325,7 +325,7 @@ class InterfaceTarifWorkflow
         		
         		// MAJ d'un produit/service existant
 				if(isset($_POST['productid']) && $_POST['productid'] != 0){
-					$sql = "SELECT quantite, unite, prix, unite_value, tva_tx
+					$sql = "SELECT quantite, unite, prix, unite_value, tva_tx, remise_percent
 							FROM ".MAIN_DB_PREFIX."tarif_conditionnement
 							WHERE fk_product = ".$_POST['productid']."
 							ORDER BY unite_value DESC, quantite DESC";
@@ -404,7 +404,7 @@ class InterfaceTarifWorkflow
         	
         		// Ajout d'un produit/service existant
 				if(isset($_POST['idprod'])){
-					$sql = "SELECT quantite, unite, prix, unite_value, tva_tx
+					$sql = "SELECT quantite, unite, prix, unite_value, tva_tx, remise_percent
 							FROM ".MAIN_DB_PREFIX."tarif_conditionnement
 							WHERE fk_product = ".$_POST['idprod']."
 							ORDER BY unite_value DESC, quantite DESC";
@@ -463,7 +463,7 @@ class InterfaceTarifWorkflow
         	
         		// Ajout d'un produit/service existant
 				if(isset($_POST['productid']) && $_POST['productid'] != 0){
-					$sql = "SELECT quantite, unite, prix, unite_value, tva_tx
+					$sql = "SELECT quantite, unite, prix, unite_value, tva_tx, remise_percent
 							FROM ".MAIN_DB_PREFIX."tarif_conditionnement
 							WHERE fk_product = ".$_POST['productid']."
 							ORDER BY unite_value DESC, quantite DESC";
