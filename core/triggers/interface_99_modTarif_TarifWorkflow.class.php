@@ -104,7 +104,7 @@ class InterfaceTarifWorkflow
      *      @param  conf		$conf       Object conf
      *      @return int         			<0 if KO, 0 if no triggered ran, >0 if OK
      */
-	function run_trigger($action,$object,$user,$langs,$conf)
+	function run_trigger1($action,$object,$user,$langs,$conf)
     {
     	
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
@@ -519,4 +519,99 @@ class InterfaceTarifWorkflow
 
 		return 0;
     }
+
+	function run_trigger($action,$object,$user,$langs,$conf)
+	{
+		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
+		dol_include_once('/tarif/config.php');
+		dol_include_once('/commande/class/commande.class.php');
+		dol_include_once('/fourn/class/fournisseur.commande.class.php');
+		dol_include_once('/compta/facture/class/facture.class.php');
+		dol_include_once('/comm/propal/class/propal.class.php');
+		
+		if ($action == 'LINEORDER_INSERT' || $action == 'LINEORDER_UPDATE' ||
+			$action == 'LINEPROPAL_INSERT' || $action == 'LINEPROPAL_UPDATE' ||
+			$action == 'LINEBILL_INSERT' || $action == 'LINEBILL_UPDATE') {
+			
+			$prix = 0;
+			$tva_tx = 0;
+			$remise = !empty($_POST['remise_percent']) ? $_POST['remise_percent'] : 0;
+			
+			if(!empty($_POST['poids'])){ // Si poids renseigné alors recherche prix par conditionnement
+				$idProd = 0;
+				if(!empty($_POST['idprod'])) $idProd = $_POST['idprod'];
+				if(!empty($_POST['productid'])) $idProd = $_POST['productid'];
+				
+				// Ajout d'un produit/service existant
+				if(!empty($idProd)){
+					// Chargement du produit pour connaitre son unité de base
+					$product = new Product($this->db);
+					$product->fetch($idProd);
+					
+					
+					
+					// Quantité totale de produit ajoutée dans la ligne
+					$qte_totale = $_POST['qty'] * $_POST['poids'] * pow(10, $_POST['weight_units']);
+					
+					$sql = "SELECT quantite, unite, prix, unite_value, tva_tx, remise_percent
+							FROM ".MAIN_DB_PREFIX."tarif_conditionnement
+							WHERE fk_product = ".$idProd."
+							ORDER BY unite_value DESC, quantite DESC";
+					
+					$resql = $this->db->query($sql);
+					if($resql) { // Prix par conditionnement
+						$found = false;
+						while($res = $this->db->fetch_object($resql)){
+							$qte_totale_grille = $res->quantite * pow(10, $res->unite_value);
+							if($qte_totale_grille <= $qte_totale) {
+								//Récupération de la remise
+								if(!empty($res->remise_percent) && empty($remise)) $remise = $res->remise_percent;
+								
+								$prix = $res->prix;
+								$tva_tx = $res->tva_tx;
+								
+								$found = true;
+								break;
+							}
+						}
+
+						if(!$found) {
+							$this->errors = 'Qty too low';
+							$this->db->rollback();
+							return -1;
+						}
+					} else { // Pas de grille de tarif, on prend le prix unitaire
+						$prix = $object->price;
+						$tva_tx = $object->tva_tx;
+					}
+				}
+			} else if (false) { // TODO : Prix par quantité
+				
+			}
+			
+			$object->subprice = $prix;
+			$object->price = $prix; // Deprecated in Dolibarr
+			$object->tva_tx = $tva_tx;
+			$object->remise_percent = $remise;
+			$object->remise = $remise; // Deprecated in Dolibarr
+			
+			if(get_class($object) == 'FactureLigne') $object->update($user, true);
+			else $object->update(true);
+			
+			//MAJ des totaux de la ligne de commande
+			$object->total_ht = ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100);
+			$object->total_tva = ($object->total_ht * (1 + ($tva_tx/100))) - $object->total_ht;
+			$object->total_ttc = $object->total_ht + $object->total_tva;
+			$object->update_total();
+			
+			if(get_class($object) == 'PropaleLigne') $table = 'propaldet';
+			if(get_class($object) == 'OrderLine') $table = 'commandedet';
+			if(get_class($object) == 'FactureLigne') $table = 'facturedet'; 
+			$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$_POST['poids'].", poids = ".$_POST['weight_units']." WHERE rowid = ".$object->rowid);
+			
+			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
+		}
+		
+		return 0;
+	}
 }
