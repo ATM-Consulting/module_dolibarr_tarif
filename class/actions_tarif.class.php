@@ -94,6 +94,7 @@ class ActionsTarif
 		include_once(DOL_DOCUMENT_ROOT."/commande/class/commande.class.php");
 		include_once(DOL_DOCUMENT_ROOT."/compta/facture/class/facture.class.php");
 		include_once(DOL_DOCUMENT_ROOT."/comm/propal/class/propal.class.php");
+		include_once(DOL_DOCUMENT_ROOT."/core/lib/functions.lib.php");
 		
 		if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
         {
@@ -117,7 +118,10 @@ class ActionsTarif
 			/*echo '<pre>';
 			print_r($object);
 			echo '</pre>';*/
-        	?> 
+			
+			if($object->line->error)
+				dol_htmloutput_mesg($object->line->error,'', 'error');
+        	?>
          	<script type="text/javascript">
          		<?php
          			//echo (count($instance->lines) >0)? "$('#tablelines').children().first().children().first().children().last().prev().prev().prev().prev().prev().after('<td align=\"right\" width=\"50\">Poids</td>');" : '' ;
@@ -136,6 +140,7 @@ class ActionsTarif
 								break;
 						}
          				echo "$('#row-".$line->rowid."').children().eq(3).after('<td align=\"right\">".((!is_null($res->tarif_poids))? number_format($res->tarif_poids,2)." ".$unite : "")."</td>');";
+						if($line->error != '') echo "alert('".$line->error."');";
          			}
          		?>
 	         	$('#tablelines .liste_titre > td').each(function(){
@@ -177,73 +182,5 @@ class ActionsTarif
         }
 
 		return 0;
-	}
-
-	/*
-	 * TRAITEMENT LORS DE CREATION:
-	 * 		FACTURE => venant de COMMANDE
-	 *		FACTURE => venant de PROPAL
-	 *		COMMANDE => venant de PROPAL
-	 */
-		
-	function createFrom($parameters, &$object, &$action, $hookmanager){
-		
-		global $db;	
-		include_once(DOL_DOCUMENT_ROOT."/commande/class/commande.class.php");
-		include_once(DOL_DOCUMENT_ROOT."/compta/facture/class/facture.class.php");
-		include_once(DOL_DOCUMENT_ROOT."/comm/propal/class/propal.class.php");
-			
-		if (in_array('invoicedao',explode(':',$parameters['context'])) || in_array('orderdao',explode(':',$parameters['context']))) 
-        { 
-        	/*echo '<pre>';
-			print_r($object);
-			echo '</pre>';
-			exit;*/
-			
-			if($object->origin == "commande"){
-				$commande = new Commande($db);
-				$commande->fetch($object->origin_id);
-				
-				foreach($commande->lines as $line){
-					$resql = $db->query("SELECT poids, tarif_poids FROM ".MAIN_DB_PREFIX."commandedet WHERE rowid = ".$line->rowid);
-					$res = $db->fetch_object($resql);
-					
-					$sql = "UPDATE ".MAIN_DB_PREFIX."facturedet SET tarif_poids = ".$res->tarif_poids.", poids = ".$res->poids." WHERE rang = ".$line->rang;
-					($line->fk_product != 0) ? $sql .= " AND fk_product = ".$line->fk_product :"" ;
-					
-					$db->query($sql);
-				}
-			}
-			elseif ($object->origin == "propal" && $object->element == "commande"){
-				$propal = new Propal($db);
-				$propal->fetch($object->origin_id);
-				
-				foreach($propal->lines as $line){
-					$resql = $db->query("SELECT poids, tarif_poids FROM ".MAIN_DB_PREFIX."propaldet WHERE rowid = ".$line->rowid);
-					$res = $db->fetch_object($resql);
-					
-					$sql = "UPDATE ".MAIN_DB_PREFIX."commandedet SET tarif_poids = ".$res->tarif_poids.", poids = ".$res->poids." WHERE rang = ".$line->rang;
-					($line->fk_product != 0) ? $sql .= " AND fk_product = ".$line->fk_product :"" ;
-					
-					$db->query($sql);
-				}
-			}
-			elseif ($object->origin == "propal" && $object->element == "facture"){
-				$propal = new Propal($db);
-				$propal->fetch($object->origin_id);
-				
-				foreach($propal->lines as $line){
-					$resql = $db->query("SELECT poids, tarif_poids FROM ".MAIN_DB_PREFIX."propaldet WHERE rowid = ".$line->rowid);
-					$res = $db->fetch_object($resql);
-					
-					$sql = "UPDATE ".MAIN_DB_PREFIX."facturedet SET tarif_poids = ".$res->tarif_poids.", poids = ".$res->poids." WHERE rang = ".$line->rang;
-					($line->fk_product != 0) ? $sql .= " AND fk_product = ".$line->fk_product :"" ;
-					
-					$db->query($sql);
-				}
-			}
-        }
- 
-        return 0;
 	}
 }
