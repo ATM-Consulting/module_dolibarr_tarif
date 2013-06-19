@@ -123,31 +123,37 @@ class InterfaceTarifWorkflow
 			$poids = 0;
 			$weight_units = 0;
 			
-			/*echo '<pre>';
-			print_r($_POST);
-			echo '</pre>'; exit;*/
 			
 			//Création a partir d'un objet d'origine (propale ou commande)
 			if((!empty($object->origin) && !empty($object->origin_id)) || (!empty($_POST['origin']) && !empty($_POST['originid']))){
 				
 				if($_POST['origin'] == "propal"){
 					$table = "propaldet";
+					$propal = new Propal($this->db);
+					$propal->fetch($_POST['originid']);
+					
+					foreach($propal->lines as $line){
+						if($line->rang == $object->rang)
+							$originid = $line->rowid;
+					}
 	        	}
 				elseif($object->origin == "commande"){
 					$table = "commandedet";
-					$prix = $object->subprice;
-					$tva_tx = $object->tva_tx;
-					$remise = $object->remise_percent;
-					$idProd = $object->fk_product;
-					
-					$resql = $this->db->query("SELECT poids, tarif_poids FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$object->origin_id);
-					$res = $this->db->fetch_object($resql);
-					
-					$poids = $res->tarif_poids;
-					$weight_units = $res->poids;
-					
-					$qte_totale = $object->qty * $poids * pow(10, $weight_units);
+					$originid = $object->origin_id;
 				}
+				
+				$prix = $object->subprice;
+				$tva_tx = $object->tva_tx;
+				$remise = $object->remise_percent;
+				$idProd = $object->fk_product;
+				
+				$resql = $this->db->query("SELECT poids, tarif_poids FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$originid);
+				$res = $this->db->fetch_object($resql);
+				
+				$poids = $res->tarif_poids;
+				$weight_units = $res->poids;
+				
+				$qte_totale = $object->qty * $poids * pow(10, $weight_units);
 			
 			}//Création directement a partir du formulaire pour addline
 			elseif(!empty($_POST['poids'])){ // Si poids renseigné alors recherche prix par conditionnement
@@ -223,10 +229,6 @@ class InterfaceTarifWorkflow
 			$object->total_tva = ($object->total_ht * (1 + ($tva_tx/100))) - $object->total_ht;
 			$object->total_ttc = $object->total_ht + $object->total_tva;
 			$object->update_total();
-			
-			/*echo '<pre>';
-			print_r($object);
-			echo '</pre>';*/
 			
 			if(get_class($object) == 'PropaleLigne') $table = 'propaldet';
 			if(get_class($object) == 'OrderLine') $table = 'commandedet';
