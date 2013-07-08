@@ -1,0 +1,5 @@
+"NumEnr"|"TRANSPORTEUR"|"TRACKING_PATH"
+"1"|"Fedex"|"http://fedex.com/Tracking?sum=n&ascend_header=1&clienttype=dotcom&spnlk=spnl0&cntry_code=us&language=english&tracknumbers=[AWB]"
+"2"|"TNT"|"http://www.tnt.com/webtracker/tracker.do?navigation=1&respLang=en&respCountry=US&genericSiteIdent="
+"3"|"France Express"|"http://ec.france-express.com/espace/client/espaceClientForFranceExpress.jsp"
+"4"|"UPS"|"http://wwwapps.ups.com/WebTracking/track"
