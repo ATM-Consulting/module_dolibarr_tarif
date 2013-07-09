@@ -192,7 +192,7 @@
 			,'remise' => 'Remise (%)'
 			,'Supprimer' => 'Supprimer'
 		)
-		,'type'=>array('date_debut'=>'date','date_fin'=>'date')
+		,'type'=>array('date_debut'=>'date','date_fin'=>'date','tva' => 'float', 'prix'=>'float')
 		,'hide'=>array(
 			'id'
 			,'unite_value'
