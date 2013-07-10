@@ -66,6 +66,8 @@ exit;*/
 $line = fgetcsv($articlesfile,0,'|',';');
 while($line = fgetcsv($articlesfile,0,'|',';')){
 	if(empty($TGlobal['product'][$line[2]]) && !empty($line[2])) { // Création du produit la première fois que l'on a la référence
+		echo "<hr>$i - $line[2] - $line[3]<br>";
+	
 		$produit = new Product($db);
 		$produit->ref = $line[2];
 		$produit->libelle = $line[3];
@@ -98,7 +100,8 @@ while($line = fgetcsv($articlesfile,0,'|',';')){
 			$tarif->tva_tx = 19.6;
 			$tarif->remise_percent = 0;
 			$tarif->prix = $line[36];
-			$tarif->save($ATMdb);
+			//$tarif->save($ATMdb);
+			echo "$string_unite[0] "._unit($string_unite[1])." ";
 		}
 		
 		//Conditionnement 2
@@ -117,6 +120,7 @@ while($line = fgetcsv($articlesfile,0,'|',';')){
 			$tarif->remise_percent = 0;
 			$tarif->prix = $line[38];
 			$tarif->save($ATMdb);
+			echo "$string_unite[0] "._unit($string_unite[1])." ";
 		}
 		
 		//Conditionnement 3
@@ -135,6 +139,7 @@ while($line = fgetcsv($articlesfile,0,'|',';')){
 			$tarif->remise_percent = 0;
 			$tarif->prix = $line[40];
 			$tarif->save($ATMdb);
+			echo "$string_unite[0] "._unit($string_unite[1])."<br>";
 		}
 		
 		//Equitements (Flacons et lots)
@@ -146,18 +151,21 @@ while($line = fgetcsv($articlesfile,0,'|',';')){
 				$equipement->lot_number = $ref_lot;
 				$equipement->contenance_value = $Tinfos_lot['quantite'];
 				$equipement->contenancereel_value = $Tinfos_lot['quantite'];
-				$equipement->contenance_units = $TGlobal['unite'][$line[8]];
-				$equipement->contenancereel_units = $TGlobal['unite'][$line[8]];
+				$equipement->contenance_units = _unit($TGlobal['unite'][$line[8]]);
+				$equipement->contenancereel_units = _unit($TGlobal['unite'][$line[8]]);
+				
+				echo $ref_lot." ".$Tinfos_lot['quantite']." "._unit($TGlobal['unite'][$line[8]])." ";
 				
 				foreach($TGlobal['flacon'] as $ref_flacon=>$flacon_ref_produit){
 					if($flacon_ref_produit == $line[0]){
 						$equipement->serial_number = $ref_flacon;
+						echo "$ref_flacon<br>";
+						break;
 					}
 				}
 				
 				$equipement->save($ATMdb);
-				$stock = new TAssetStock;
-				$stock->mouvement_stock(&$ATMdb,$equipement->rowid,$Tinfos_lot['quantite'],'Equipement',$equipement->rowid);
+				break;
 			}
 		}
 		
@@ -167,7 +175,6 @@ while($line = fgetcsv($articlesfile,0,'|',';')){
 	}
 	
 	$i++;
-	echo "<hr>$i - $line[2] - $line[3]<hr>";
 }
 
 fclose($articlesfile);
