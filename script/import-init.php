@@ -18,6 +18,7 @@ $lotsfile = fopen('../import/lots.csv','r');
 $unitesfile = fopen('../import/unites.csv','r');
 $societesfile = fopen('../import/contacts.csv','r');
 $fournisseursfile = fopen('../import/fournisseurs.csv','r');
+$typeclifile = fopen('../import/type_cli.csv','r');
 $TGlobal = array();
 $i = 0;
 
@@ -59,14 +60,83 @@ function _add_condi($ATMdb,$line,$produit,$nbColUnit,$nbColPrix){
 }
 
 function _add_tiers($ATMdb,$user,$db,$line,$type){
-	$num_ligne = ($type=="client") ? 9: 6;
+	$num_ligne = ($type=="client" || $type == "prospect") ? 9: 6;
 	
-	$ATMdb->Execute('SELECT rowid FROM '.MAIN_DB_PREFIX."c_pays WHERE libelle LIKE '".$line[$num_ligne]."' LIMIT 1");
-	$ATMdb->Get_line();
+	$base_pays = array('JAPAN' => 'Japon',
+						'Japan' => 'Japon',
+						'Poland' => 'Pologne',
+						'United Kindom' => 'United Kingdom',
+						'Great Britain' => 'United Kingdom',
+						'UK' => 'United Kingdom',
+						'USA' => 'United States',
+						'U.S.A.' => 'United States',
+						'U.S.A' => 'United States',
+						'Singapore' => 'Singapour',					
+						'SINGAPORE' => 'Singapour',
+						'Northern Ireland-UK' => 'Irland',
+						'Ireland' => 'Irland',
+						'Nothern Ireland' => 'Irland',
+						'Egypt' => 'Egypte',
+						'Hungary' => 'Hongrie',
+						'Mexico DF' => 'Mexique',
+						'Mexico' => 'Mexique',
+						'Austria' => 'Autriche',
+						'AUSTRIA' => 'Autriche',
+						'Argentina' => 'Argentine',
+						'Denmark' => 'Danemark',
+						'Belgique' => 'Belgium',
+						'Italia' => 'Italy',
+						'Italie' => 'Italy',
+						'ITALIA' => 'Italy',
+						'Vicenza Italia' => 'Italy',
+						'Belgique' => 'Belgium',
+						'Lebanon' => 'Liban',
+						'Puerto Rico' => 'Porto Rico',
+						'TAIWAN ROC' => 'Taïwan',
+						'New Zealand' => 'Nouvelle-Zélande',
+						'Croatia' => 'Croatie',
+						'Brasil' => 'Brazil',
+						'Brésil' => 'Brazil',
+						'Vietnam' => 'Viêt Nam',
+						'South Korea' => 'South Corea',
+						'South Africa' => 'Afrique du Sud',
+						'MALAYSIA' => 'Malaisie',
+						'Malaysia' => 'Malaisie',
+						'New Mexico' => 'United States',
+						'CZECH Republik' =>'République Tchèque',
+						'Thailand' => 'Thaïlande',
+						'PEROU' => 'Pérou',
+						'AUSTRALIE' => 'Australia',
+						'Chine' => 'China',
+						'The Netherlands' => 'Nerderland',
+						'Nederland' => 'Nerderland',
+						'Netherlands' => 'Nerderland',
+						'NEDERLAND' => 'Nerderland',
+						'Pays-Bas' => 'Nerderland',
+						'Hong-Kong' => 'Hong Kong',
+						'HONG KONG PRC' => 'Hong Kong',
+						'HONG-KONG-PRC' => 'Hong Kong',
+						'ARGENTINA' => 'Argentine',
+						'DEUTSCHLAND' => 'Germany',
+						'Tunisie' => 'Tunisia',
+						'Finland' =>'Finlande',
+						'PR CHINA' => 'China',
+						'PR China' => 'China',
+						'Québec, Canada' => 'Canada',
+						'Ontario-Canada' => 'Canada'
+					);
+	
+	if(in_array(htmlentities($line[$num_ligne],ENT_QUOTES,'UTF-8'), array_keys($base_pays)))
+		$pays = htmlentities($base_pays[$line[$num_ligne]],ENT_QUOTES,'UTF-8');
+	else
+		$pays = htmlentities($line[$num_ligne],ENT_QUOTES,'UTF-8');
+						
+	
+	$ATMdb->Execute('SELECT rowid FROM '.MAIN_DB_PREFIX."c_pays WHERE libelle = '".html_entity_decode($pays,ENT_QUOTES,'ISO-8859-1')."' LIMIT 1");
 	
 	$societe = new Societe($db);
 	if($type == "client"){
-		$societe->client 			= 3; //Client/Prospect
+		$societe->client 			= 1; //Client
 		$societe->fournisseur 		= 0; //fournisseur
 		$societe->particulier 		= 0; //Société/Association
 		$societe->name 				= (!empty($line[5]))? $line[5]: "";
@@ -74,13 +144,15 @@ function _add_tiers($ATMdb,$user,$db,$line,$type){
 		$societe->address 			= (!empty($line[6]))? $line[6]: "";
 		$societe->zip 				= (!empty($line[8]))? $line[8]: "";
 		$societe->town 				= (!empty($line[7]))? $line[7]: "";
-		$societe->country_id 		= $ATMdb->Get_field('rowid');
-		$societe->email 			= (!empty($line[14]))? $line[14]: "";
+		$societe->country_id 		= ($ATMdb->Get_field('rowid')) ? $ATMdb->Get_field('rowid') : 0;
+		$societe->email 			= (!empty($line[14]))? strtolower($line[14]): "";
 		$societe->phone 			= (!empty($line[11]))? $line[11]: "";
 		$societe->fax 				= (!empty($line[12]))? $line[12]: "";
+		$societe->ref_ext 			= (!empty($line[0]))? $line[0]: "";
+		$societe->default_lang      = (!empty($line[10]))? $line[10]: "";
 	}
-	else{
-		$societe->client 			= 3; //Client/Prospect
+	elseif($type = "fournisseur"){
+		$societe->client 			= 0; //Prospect
 		$societe->fournisseur 		= 1; //fournisseur
 		$societe->particulier 		= 0; //Société/Association
 		$societe->name 				= (!empty($line[1]))? $line[1]: "";
@@ -88,11 +160,29 @@ function _add_tiers($ATMdb,$user,$db,$line,$type){
 		$societe->address 			= (!empty($line[2]))? $line[2]: "";
 		$societe->zip 				= (!empty($line[4]))? $line[4]: "";
 		$societe->town 				= (!empty($line[5]))? $line[5]: "";
-		$societe->country_id 		= $ATMdb->Get_field('rowid');
-		$societe->email 			= (!empty($line[9]))? $line[9]: "";
+		$societe->country_id 		= ($ATMdb->Get_field('rowid')) ? $ATMdb->Get_field('rowid') : 0;
+		$societe->email 			= (!empty($line[9]))? strtolower($line[9]): "";
 		$societe->phone 			= (!empty($line[7]))? $line[7]: "";
 		$societe->fax 				= (!empty($line[8]))? $line[8]: "";
+		$societe->ref_ext 			= (!empty($line[0]))? $line[0]: "";
 	}
+	else{
+		$societe->client 			= 2; //Client/Prospect
+		$societe->fournisseur 		= 0; //fournisseur
+		$societe->particulier 		= 0; //Société/Association
+		$societe->name 				= (!empty($line[1]))? $line[1]: "";
+		$societe->status 			= 1; //En activité
+		$societe->address 			= (!empty($line[2]))? $line[2]: "";
+		$societe->zip 				= (!empty($line[4]))? $line[4]: "";
+		$societe->town 				= (!empty($line[5]))? $line[5]: "";
+		$societe->country_id 		= ($ATMdb->Get_field('rowid')) ? $ATMdb->Get_field('rowid') : 0;
+		$societe->email 			= (!empty($line[9]))? strtolower($line[9]): "";
+		$societe->phone 			= (!empty($line[7]))? $line[7]: "";
+		$societe->fax 				= (!empty($line[8]))? $line[8]: "";
+		$societe->ref_ext 			= (!empty($line[0]))? $line[0]: "";
+		$societe->default_lang      = (!empty($line[10]))? $line[10]: "";
+	}
+	
 	$societe->create($user);
 	
 	if($type == "client"){
@@ -103,12 +193,30 @@ function _add_tiers($ATMdb,$user,$db,$line,$type){
 	        $contact->address		= (!empty($line[6]))? $line[6]: "";
 	        $contact->zip			= (!empty($line[8]))? $line[8]: "";
 	        $contact->town			= (!empty($line[7]))? $line[7]: "";
-	        $contact->country_id	= $ATMdb->Get_field('rowid');
+	        $contact->country_id	= ($ATMdb->Get_field('rowid')) ? $ATMdb->Get_field('rowid') : 0;;
 	        $contact->socid			= $societe->id;	// fk_soc
 	        $contact->status		= 1;
 	        $contact->email			= (!empty($line[14]))? $line[14]: "";
 			$contact->phone_pro		= (!empty($line[11]))? $line[11]: "";
 			$contact->fax			= (!empty($line[12]))? $line[12]: "";
+	        $contact->priv			= 0;
+			
+			$contact->create($user);
+		}
+		
+		if(!empty($line[17])){
+			$contact=new Contact($db);
+	        $contact->name			= $line[17];
+	        $contact->firstname		= (!empty($line[16]))? $line[16]: "";
+	        $contact->address		= (!empty($line[19]))? $line[19]: "";
+	        $contact->zip			= (!empty($line[21]))? $line[21]: "";
+	        $contact->town			= (!empty($line[20]))? $line[20]: "";
+	        $contact->country_id	= ($ATMdb->Get_field('rowid')) ? $ATMdb->Get_field('rowid') : 0;;
+	        $contact->socid			= $societe->id;	// fk_soc
+	        $contact->status		= 1;
+	        $contact->email			= (!empty($line[26]))? $line[26]: "";
+			$contact->phone_pro		= (!empty($line[23]))? $line[23]: "";
+			$contact->fax			= (!empty($line[24]))? $line[24]: "";
 	        $contact->priv			= 0;
 			
 			$contact->create($user);
@@ -154,48 +262,67 @@ function _add_equipement($ATMdb,$TGlobal,$line,$produit){
 /*
  * TAB UNITE
  */
-$unite = fgetcsv($unitesfile,0,'|',';');
-while($unite = fgetcsv($unitesfile,0,'|',';')){
+$unite = fgetcsv($unitesfile,0,'|','"');
+while($unite = fgetcsv($unitesfile,0,'|','"')){
 	$TGlobal['unite'][$unite[0]] = $unite[1];
 }
 
 /*
- * TAB FALCON
+ * TAB FLACON
  */
-$flacon = fgetcsv($flaconsfile,0,'|',';');
-while($flacon = fgetcsv($flaconsfile,0,'|',';')){
+$flacon = fgetcsv($flaconsfile,0,'|','"');
+while($flacon = fgetcsv($flaconsfile,0,'|','"')){
 	$TGlobal['flacon'][$flacon[1]] = $flacon[8]; // TGlobal['flacon']['ref_flacon'] = id_produit;
 }
 
 /*
  * TAB LOTS
  */
-$lot = fgetcsv($lotsfile,0,'|',';');
-while($lot = fgetcsv($lotsfile,0,'|',';')){
+$lot = fgetcsv($lotsfile,0,'|','"');
+while($lot = fgetcsv($lotsfile,0,'|','"')){
 	$TGlobal['lot'][$lot[2]] = array('ref_produit'=>$lot[1],'quantite'=>$lot[12]); // TGlobal['lot']['ref_lot'] = array(id_produit,quantite);
 }
 
 /*
+ * TAB TYPE CLIENT 
+ */
+$type_cli = fgetcsv($typeclifile,0,'|','"');
+while($type_cli = fgetcsv($typeclifile,0,'|','"')){
+	if($TGlobal['type_cli'][$type_cli[2]] < $type_cli[1])
+		$TGlobal['type_cli'][$type_cli[2]] = $type_cli[1];
+}
+ 
+/*
  * PRODUITS
  */
-$line = fgetcsv($articlesfile,0,'|',';');
-while($line = fgetcsv($articlesfile,0,'|',';')){
+$line = fgetcsv($articlesfile,0,'|','"');
+while($line = fgetcsv($articlesfile,0,'|','"')){
 	if(empty($TGlobal['product'][$line[2]]) && !empty($line[2])) { // Création du produit la première fois que l'on a la référence
 		echo "<hr>$i - $line[2] - $line[3]<br>";
-	
+		
+		if($line[1] == 1 || $line[1] == 2 || $line[1] == 3 || $line[1] == 4 || $line[1] == 5 || $line[1] == 7 || $line[1] == 11 || $line[1] == 18)
+			$tva_tx = "7";
+		else
+			$tva_tx = "19.6";
+		
 		$produit = new Product($db);
 		$produit->ref 				= $line[2];
 		$produit->libelle 			= $line[3];
 		$produit->description 		= "";
 		$produit->price_base_type 	= 'TTC';
 		$produit->price_ttc 		= 0;
-		$produit->tva_tx 			= '19.6';
+		$produit->tva_tx 			= $tva_tx;
 		$produit->type				= 0;
 		$produit->status 			= 1;
 		$produit->status_buy 		= 1;
 		$produit->finished 			= 1;
+		$produit->ref_ext 			= $line[0];
 		
 		$produit->create($user);
+		
+		$string_unite = explode(" ", $line[35]);
+		
+		$db->Execute('UPDATE '.MAIN_DB_PREFIX.'product SET weight_units = '._unit($string_unite[1]));
 		
 		//Tarifs par conditionnement
 		//Conditionnement 1
@@ -227,10 +354,13 @@ fclose($articlesfile);
 /*
  * CLIENTS
  */
-$line = fgetcsv($societesfile,0,'|',';');
-while($line = fgetcsv($societesfile,0,'|',';')){
+$line = fgetcsv($societesfile,0,'|','"');
+while($line = fgetcsv($societesfile,0,'|','"')){
 	if(empty($TGlobal['societe'][$line[5]]) && !empty($line[5])){
-		$type = "client";
+		if($TGlobal['type_cli'][$line[0]] == 1 || $TGlobal['type_cli'][$line[0]] == 3 || $TGlobal['type_cli'][$line[0]] == 4 ||$TGlobal['type_cli'][$line[0]] == 6)
+			$type = "client";
+		else 
+			$type = "prospect";
 		$societe = _add_tiers($ATMdb,$user, $db, $line,$type);
 		$TGlobal['societe'][$line[5]] = $societe->id;
 	}
@@ -243,8 +373,8 @@ fclose($societesfile);
  /*
  * FOURNISSEURS
  */
-$line = fgetcsv($fournisseursfile,0,'|',';');
-while($line = fgetcsv($fournisseursfile,0,'|',';')){
+$line = fgetcsv($fournisseursfile,0,'|','"');
+while($line = fgetcsv($fournisseursfile,0,'|','"')){
 	if(empty($TGlobal['fournisseur'][$line[0]]) && !empty($line[0])){
 		$type = "fournisseur";
 		$societe = _add_tiers($ATMdb,$user, $db, $line,$type);

@@ -1,44 +1,44 @@
-NumEnr|Libell├®|Commentaires
-1|mg|Vrac
-2|┬Ág|Vrac
-3|g|Vrac
-4|A Pr├®ciser|Valeur par d├®faut
-5|x 10 ┬Ág|Aliquotes
-6|x 25 ┬Ág|Aliquotes
-7|x 50 ┬Ág|Aliquotes
-8|x 100 ┬Ág|Aliquotes
-9|x 10 mg|Aliquotes
-10|x 25 mg|Aliquotes
-11|x 50 mg|Aliquotes
-12|x 100 mg|Aliquotes
-13|x 250 mg|Aliquotes
-14|x 1 mg|Aliquotes
-15|x 1.09 mg|Aliquotes
-16|x 250 ┬Ág|Aliquotes
-17|x 33 ┬Ág|Aliquotes
-18|x 20 ┬Ág|Aliquotes
-19|x 60 ┬Ág|Aliquotes
-20|x 38 ┬Ág|Aliquotes
-21|x 71 ┬Ág|Aliquotes
-22|x 93 ┬Ág|Aliquotes
-23|x 109 ┬Ág|Aliquotes
-24|x 500 ┬Ág|Aliquotes
-25|L|Litre
-26|x 2.5 kg|Jerrycan
-27|x 200 ┬Ág|Aliquotes
-28|x 2 mg|Aliquotes
-29|x bouchons|qt├® de bouchons
-30|x 2.5 L|Litres
-31|x 5 mg|Aliquotes
-32|cachets|Cachets
-33|Unit|├á l'unit├®
-34|Unit├®|├á l'unit├® FR
-35|Unit├®s|unit├®s FR
-36|x plques|Plaques
-37|x kits|Kits
-38|x kg|Kilo
-39|x puits|Puits
-40|x 5 ┬Ág|Aliquotes
-41|x 5 kg|Jerrycan
-42|x 1 kg|Jerrycan
-43|x 10 kg|F├╗t
+"NumEnr"|"Libellé"|"Commentaires"
+"1"|"mg"|"Vrac"
+"2"|"µg"|"Vrac"
+"3"|"g"|"Vrac"
+"4"|"A Préciser"|"Valeur par défaut"
+"5"|"x 10 µg"|"Aliquotes"
+"6"|"x 25 µg"|"Aliquotes"
+"7"|"x 50 µg"|"Aliquotes"
+"8"|"x 100 µg"|"Aliquotes"
+"9"|"x 10 mg"|"Aliquotes"
+"10"|"x 25 mg"|"Aliquotes"
+"11"|"x 50 mg"|"Aliquotes"
+"12"|"x 100 mg"|"Aliquotes"
+"13"|"x 250 mg"|"Aliquotes"
+"14"|"x 1 mg"|"Aliquotes"
+"15"|"x 1.09 mg"|"Aliquotes"
+"16"|"x 250 µg"|"Aliquotes"
+"17"|"x 33 µg"|"Aliquotes"
+"18"|"x 20 µg"|"Aliquotes"
+"19"|"x 60 µg"|"Aliquotes"
+"20"|"x 38 µg"|"Aliquotes"
+"21"|"x 71 µg"|"Aliquotes"
+"22"|"x 93 µg"|"Aliquotes"
+"23"|"x 109 µg"|"Aliquotes"
+"24"|"x 500 µg"|"Aliquotes"
+"25"|"L"|"Litre"
+"26"|"x 2.5 kg"|"Jerrycan"
+"27"|"x 200 µg"|"Aliquotes"
+"28"|"x 2 mg"|"Aliquotes"
+"29"|"x bouchons"|"qté de bouchons"
+"30"|"x 2.5 L"|"Litres"
+"31"|"x 5 mg"|"Aliquotes"
+"32"|"cachets"|"Cachets"
+"33"|"Unit"|"à l'unité"
+"34"|"Unité"|"à l'unité FR"
+"35"|"Unités"|"unités FR"
+"36"|"x plques"|"Plaques"
+"37"|"x kits"|"Kits"
+"38"|"x kg"|"Kilo"
+"39"|"x puits"|"Puits"
+"40"|"x 5 µg"|"Aliquotes"
+"41"|"x 5 kg"|"Jerrycan"
+"42"|"x 1 kg"|"Jerrycan"
+"43"|"x 10 kg"|"Fût"
