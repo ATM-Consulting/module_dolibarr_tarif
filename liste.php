@@ -174,8 +174,9 @@
 	 **********************************/
 	$TConditionnement = array();
 	
-	$sql = "SELECT rowid AS 'id', tva_tx AS tva, price_base_type AS base, quantite as quantite, unite AS unite, prix AS prix, remise_percent AS remise, unite_value AS unite_value, '' AS 'Supprimer'
-			FROM ".MAIN_DB_PREFIX."tarif_conditionnement
+	$sql = "SELECT tc.rowid AS 'id', tc.tva_tx AS tva, tc.price_base_type AS base, tc.quantite as quantite, tc.unite AS unite, tc.prix AS prix, tc.remise_percent AS remise, p.weight_units AS base_poids, tc.unite_value AS unite_value,((tc.quantite * POWER(10,(tc.unite_value-p.weight_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.weight_units))) * tc.prix) * (tc.remise_percent/100)  AS 'Total','' AS 'Supprimer'
+			FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
+				LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)
 			WHERE fk_product = ".$product->id."
 			ORDER BY unite_value, quantite ASC";
 	
@@ -190,11 +191,13 @@
 			,'unite'=>'Unit&eacute;'
 			,'prix'=>'Tarif (€)'
 			,'remise' => 'Remise (%)'
+			,'Total' => 'Total (€)'
 			,'Supprimer' => 'Supprimer'
 		)
 		,'type'=>array('date_debut'=>'date','date_fin'=>'date','tva' => 'float', 'prix'=>'float')
 		,'hide'=>array(
 			'id'
+			,'base_poids'
 			,'unite_value'
 		)
 		,'link'=>array(
