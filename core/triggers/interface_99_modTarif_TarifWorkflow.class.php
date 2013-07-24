@@ -214,8 +214,8 @@ class InterfaceTarifWorkflow
 			$product = new Product($this->db);
 			$product->fetch($idProd);
 			
-			$object->subprice = $prix;
-			$object->price = $prix; // Deprecated in Dolibarr
+			$object->subprice = ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) / $object->qty;
+			$object->price = ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) / $object->qty; // Deprecated in Dolibarr
 			$object->tva_tx = $tva_tx;
 			$object->fk_parent_line = NULL;
 			$object->remise_percent = $remise;
