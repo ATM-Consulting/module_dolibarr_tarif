@@ -243,7 +243,25 @@ function _add_equipement($ATMdb,$TGlobal,$line,$produit){
 			
 			foreach($TGlobal['flacon'] as $ref_flacon=>$flacon_ref_produit){
 				if($flacon_ref_produit == $line[0]){
-					$equipement->serial_number = $ref_flacon;
+					$equipement->serial_number = strtoupper($ref_flacon);
+					switch (strtoupper(substr($ref_flacon,0,1))) {
+						case 'A':
+							$equipement->tare = 10;
+							$equipement->tare_unit = -3;
+							break;
+						case 'B':
+							$equipement->tare = 5;
+							$equipement->tare_unit = -3;
+							break;
+						case 'C':
+							$equipement->tare = 1;
+							$equipement->tare_unit = -3;
+							break;
+						case 'Y':
+							$equipement->tare = 70;
+							$equipement->tare_unit = -3;
+							break;
+					}
 					echo "$ref_flacon<br>";
 					break;
 				}

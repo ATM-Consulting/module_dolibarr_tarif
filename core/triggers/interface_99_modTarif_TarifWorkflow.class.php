@@ -119,7 +119,7 @@ class InterfaceTarifWorkflow
 			
 			$prix = 0;
 			$tva_tx = 0;
-			$remise = !empty($_POST['remise_percent']) ? $_POST['remise_percent'] : 0;
+			$remise = !empty($_REQUEST['remise_percent']) ? $_REQUEST['remise_percent'] : 0;
 			$poids = 0;
 			$weight_units = 0;
 			
@@ -184,8 +184,8 @@ class InterfaceTarifWorkflow
 								
 								if(!empty($res->remise_percent) && empty($remise))
 									$remise = $res->remise_percent;
-								elseif($remise != $res->remise_percent)
-									$remise = $res->remise_percent;
+								/*elseif($remise != $res->remise_percent)
+									$remise = $res->remise_percent;*/
 								
 								$prix = $res->prix;
 								$tva_tx = $res->tva_tx;
