@@ -341,7 +341,7 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 		
 		$string_unite = explode(" ", $line[35]);
 		
-		$db->Execute('UPDATE '.MAIN_DB_PREFIX.'product SET weight_units = '._unit($string_unite[1]));
+		$ATMdb->Execute('UPDATE '.MAIN_DB_PREFIX.'product SET weight_units = '._unit($string_unite[1]));
 		
 		$produit->updatePrice($produit->id, $line[58], 'HT', $user);
 		
