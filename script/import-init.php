@@ -371,7 +371,7 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 	$i++;
 }
 fclose($articlesfile);
-
+exit;
 /*
  * CLIENTS
  */
