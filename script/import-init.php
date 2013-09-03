@@ -57,7 +57,7 @@ function _add_condi($ATMdb,$line,$produit,$nbColUnit,$nbColPrix,$nbColRem=0){
 	$tarif->remise_percent 		= $remise_percent;
 	$tarif->prix 				= $line[$nbColPrix];
 	$tarif->save($ATMdb);
-	echo "$string_unite[0] "._unit($string_unite[1])." ";
+	echo "CONDITIONNEMENT: $string_unite[0] "._unit($string_unite[1])." PRIX: $line[$nbColPrix] REMISE: $remise_percent <br>";
 }
 
 function _add_tiers($ATMdb,$user,$db,$line,$type){
@@ -406,3 +406,4 @@ while($line = fgetcsv($fournisseursfile,0,'|','"')){
 	}
 }
 fclose($fournisseursfile);
+
