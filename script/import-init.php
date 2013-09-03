@@ -42,8 +42,8 @@ function _unit($unite){
 	}
 }
 
-function _add_condi($ATMdb,$line,$produit,$nbColUnit,$nbColPrix,$nbColRem=0){
-	($nbColRem != 0) ? $remise_percent = $line[$bnColRem] : $remise_percent = 0;
+function _add_condi(&$ATMdb,&$line,&$produit,$nbColUnit,$nbColPrix,$nbColRem){
+	($nbColRem != 0) ? $remise_percent = price2num($line[$nbColRem]) : $remise_percent = 0;
 	$string_unite = explode(" ", $line[$nbColUnit]);
 			
 	$tarif = new TTarif;
@@ -55,12 +55,12 @@ function _add_condi($ATMdb,$line,$produit,$nbColUnit,$nbColPrix,$nbColRem=0){
 	$tarif->fk_user_author 		= 1;
 	$tarif->tva_tx 				= 19.6;
 	$tarif->remise_percent 		= $remise_percent;
-	$tarif->prix 				= $line[$nbColPrix];
+	$tarif->prix 				= price2num($line[$nbColPrix]);
 	$tarif->save($ATMdb);
-	echo "CONDITIONNEMENT: $string_unite[0] "._unit($string_unite[1])." PRIX: $line[$nbColPrix] REMISE: $remise_percent <br>";
+	echo "CONDITIONNEMENT: $string_unite[0] "._unit($string_unite[1])." PRIX: ".price2num($line[$nbColPrix])." REMISE: ".$line[$nbColRem]." <br>";
 }
 
-function _add_tiers($ATMdb,$user,$db,$line,$type){
+function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 	$num_ligne = ($type=="client" || $type == "prospect") ? 9: 6;
 	
 	$base_pays = array('JAPAN' => 'Japon',
@@ -152,7 +152,7 @@ function _add_tiers($ATMdb,$user,$db,$line,$type){
 		$societe->ref_ext 			= (!empty($line[0]))? $line[0]: "";
 		$societe->default_lang      = (!empty($line[10]))? $line[10]: "";
 	}
-	elseif($type = "fournisseur"){
+	elseif($type == "fournisseur"){
 		$societe->client 			= 0; //Prospect
 		$societe->fournisseur 		= 1; //fournisseur
 		$societe->particulier 		= 0; //Société/Association
@@ -171,22 +171,24 @@ function _add_tiers($ATMdb,$user,$db,$line,$type){
 		$societe->client 			= 2; //Client/Prospect
 		$societe->fournisseur 		= 0; //fournisseur
 		$societe->particulier 		= 0; //Société/Association
-		$societe->name 				= (!empty($line[1]))? $line[1]: "";
+		$societe->name 				= (!empty($line[5]))? $line[5] : "";
 		$societe->status 			= 1; //En activité
-		$societe->address 			= (!empty($line[2]))? $line[2]: "";
-		$societe->zip 				= (!empty($line[4]))? $line[4]: "";
-		$societe->town 				= (!empty($line[5]))? $line[5]: "";
+		$societe->address 			= (!empty($line[6]))? $line[6]: "";
+		$societe->zip 				= (!empty($line[8]))? $line[8]: "";
+		$societe->town 				= (!empty($line[7]))? $line[7]: "";
 		$societe->country_id 		= ($ATMdb->Get_field('rowid')) ? $ATMdb->Get_field('rowid') : 0;
-		$societe->email 			= (!empty($line[9]))? strtolower($line[9]): "";
-		$societe->phone 			= (!empty($line[7]))? $line[7]: "";
-		$societe->fax 				= (!empty($line[8]))? $line[8]: "";
+		$societe->email 			= (!empty($line[14]))? strtolower($line[14]): "";
+		$societe->phone 			= (!empty($line[11]))? $line[11]: "";
+		$societe->fax 				= (!empty($line[12]))? $line[12]: "";
 		$societe->ref_ext 			= (!empty($line[0]))? $line[0]: "";
 		$societe->default_lang      = (!empty($line[10]))? $line[10]: "";
 	}
 	
 	$societe->create($user);
 	
-	if($type == "client"){
+	echo "SOCIETE : $line[1] TYPE : $type <br>";
+	
+	if($type != "fournisseur"){
 		if(!empty($line[3])){
 			$contact=new Contact($db);
 	        $contact->name			= $line[3];
@@ -203,6 +205,7 @@ function _add_tiers($ATMdb,$user,$db,$line,$type){
 	        $contact->priv			= 0;
 			
 			$contact->create($user);
+			echo "CONTACT 1 : $line[3] $line[2] <br>";
 		}
 		
 		if(!empty($line[17])){
@@ -221,13 +224,14 @@ function _add_tiers($ATMdb,$user,$db,$line,$type){
 	        $contact->priv			= 0;
 			
 			$contact->create($user);
+			echo "CONTACT 2 : $line[17] $line[16] <br>";
 		}
 	}
 	
 	return $societe;
 }
 
-function _add_equipement($ATMdb,$TGlobal,$line,$produit){
+function _add_equipement(&$ATMdb,$TGlobal,&$line,&$produit){
 	foreach($TGlobal['lot'] as $ref_lot=>$Tinfos_lot){
 		if($Tinfos_lot['ref_produit'] == $line[0]){
 			$equipement = new TAsset;
@@ -239,7 +243,7 @@ function _add_equipement($ATMdb,$TGlobal,$line,$produit){
 			$equipement->contenance_units 		= _unit($TGlobal['unite'][$line[8]]);
 			$equipement->contenancereel_units 	= _unit($TGlobal['unite'][$line[8]]);
 			
-			echo $ref_lot." ".$Tinfos_lot['quantite']." "._unit($TGlobal['unite'][$line[8]])." ";
+			echo "LOT : ".$ref_lot." QUANTITE : ".$Tinfos_lot['quantite']." UNITE : "._unit($TGlobal['unite'][$line[8]])." ";
 			
 			foreach($TGlobal['flacon'] as $ref_flacon=>$flacon_ref_produit){
 				if($flacon_ref_produit == $line[0]){
@@ -247,22 +251,22 @@ function _add_equipement($ATMdb,$TGlobal,$line,$produit){
 					switch (strtoupper(substr($ref_flacon,0,1))) {
 						case 'A':
 							$equipement->tare = 10;
-							$equipement->tare_unit = -3;
+							$equipement->tare_units = -3;
 							break;
 						case 'B':
 							$equipement->tare = 5;
-							$equipement->tare_unit = -3;
+							$equipement->tare_units = -3;
 							break;
 						case 'C':
 							$equipement->tare = 1;
-							$equipement->tare_unit = -3;
+							$equipement->tare_units = -3;
 							break;
 						case 'Y':
 							$equipement->tare = 70;
-							$equipement->tare_unit = -3;
+							$equipement->tare_units = -3;
 							break;
 					}
-					echo "$ref_flacon<br>";
+					echo "FLACON : $ref_flacon<br>";
 					break;
 				}
 			}
@@ -343,12 +347,12 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 		
 		$ATMdb->Execute('UPDATE '.MAIN_DB_PREFIX.'product SET weight_units = '._unit($string_unite[1]));
 		
-		$produit->updatePrice($produit->id, $line[58], 'HT', $user);
+		$produit->updatePrice($produit->id, price2num($line[58]), 'HT', $user);
 		
 		//Tarifs par conditionnement
 		//Conditionnement 1
 		if(!empty($line[36]) && $line[36] > 0)
-			_add_condi($ATMdb,$line,$produit,35,58);
+			_add_condi($ATMdb,$line,$produit,35,58,0);
 		
 		//Conditionnement 2
 		if(!empty($line[38]) && $line[38] > 0)
@@ -362,7 +366,7 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 		 * Equitements (Flacons et lots)
 		 */
 		_add_equipement($ATMdb,$TGlobal,$line,$produit);
-		
+		echo "<hr>";
 		$TGlobal['product'][$line[2]] = $produit->id;
 	} else {
 		continue;
@@ -371,7 +375,7 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 	$i++;
 }
 fclose($articlesfile);
-exit;
+
 /*
  * CLIENTS
  */
@@ -391,9 +395,9 @@ while($line = fgetcsv($societesfile,0,'|','"')){
 }
 fclose($societesfile);
 
- /*
- * FOURNISSEURS
- */
+/*
+* FOURNISSEURS
+*/
 $line = fgetcsv($fournisseursfile,0,'|','"');
 while($line = fgetcsv($fournisseursfile,0,'|','"')){
 	if(empty($TGlobal['fournisseur'][$line[0]]) && !empty($line[0])){
