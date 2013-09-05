@@ -61,7 +61,6 @@ function _add_condi(&$ATMdb,&$line,&$produit,$nbColUnit,$nbColPrix,$nbColRem){
 }
 
 function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
-	$num_ligne = ($type=="client" || $type == "prospect") ? 9: 6;
 	
 	$base_pays = array('JAPAN' => 'Japon',
 						'Japan' => 'Japon',
@@ -128,9 +127,9 @@ function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 					);
 	
 	if(in_array(htmlentities($line[$num_ligne],ENT_QUOTES,'UTF-8'), array_keys($base_pays)))
-		$pays = htmlentities($base_pays[$line[$num_ligne]],ENT_QUOTES,'UTF-8');
+		$pays = htmlentities($base_pays[$line[9]],ENT_QUOTES,'UTF-8');
 	else
-		$pays = htmlentities($line[$num_ligne],ENT_QUOTES,'UTF-8');
+		$pays = htmlentities($line[9],ENT_QUOTES,'UTF-8');
 						
 	
 	$ATMdb->Execute('SELECT rowid FROM '.MAIN_DB_PREFIX."c_pays WHERE libelle = '".html_entity_decode($pays,ENT_QUOTES,'ISO-8859-1')."' LIMIT 1");
@@ -273,7 +272,7 @@ function _add_equipement(&$ATMdb,$TGlobal,&$line,&$produit){
 			/*echo '<pre>';
 			print_r($produit);
 			echo '</pre>'; exit;*/
-			$equipement->save($ATMdb);
+			$equipement->save($ATMdb,"Stock Initial");
 			break;
 		}
 	}
@@ -332,7 +331,7 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 		$produit->ref 				= $line[2];
 		$produit->libelle 			= $line[3];
 		$produit->description 		= "";
-		$produit->price_base_type 	= 'TTC';
+		$produit->price_base_type 	= 'HT';
 		$produit->price_ttc 		= 0;
 		$produit->tva_tx 			= $tva_tx;
 		$produit->type				= 0;
@@ -340,6 +339,8 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 		$produit->status_buy 		= 1;
 		$produit->finished 			= 1;
 		$produit->ref_ext 			= $line[0];
+		$produit->price				= price2num($line[58]);
+		$produit->note 				= "";
 		
 		$produit->create($user);
 		
@@ -347,7 +348,7 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 		
 		$ATMdb->Execute('UPDATE '.MAIN_DB_PREFIX.'product SET weight_units = '._unit($string_unite[1]));
 		
-		$produit->updatePrice($produit->id, price2num($line[58]), 'HT', $user);
+		//$produit->updatePrice($produit->id, price2num($line[58]), 'HT', $user);
 		
 		//Tarifs par conditionnement
 		//Conditionnement 1
