@@ -106,6 +106,7 @@ class InterfaceTarifWorkflow
      */
 	function run_trigger($action,$object,$user,$langs,$conf)
 	{
+		
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
 		dol_include_once('/tarif/config.php');
 		dol_include_once('/commande/class/commande.class.php');
@@ -156,8 +157,9 @@ class InterfaceTarifWorkflow
 				$qte_totale = $object->qty * $poids * pow(10, $weight_units);
 			
 			}//Création directement a partir du formulaire pour addline
-			elseif(!empty($_POST['poids'])){ // Si poids renseigné alors recherche prix par conditionnement
-				$poids = $_POST['poids'];
+			else{ // Si poids renseigné alors recherche prix par conditionnement
+				
+				$poids = (!empty($_POST['poids'])) ? $_POST['poids'] : 0;
 				$weight_units = $_POST['weight_units'];
 				$idProd = 0;
 				if(!empty($_POST['idprod'])) $idProd = $_POST['idprod'];
@@ -175,13 +177,14 @@ class InterfaceTarifWorkflow
 							ORDER BY unite_value DESC, quantite DESC";
 					
 					$resql = $this->db->query($sql);
-					if($resql) { // Prix par conditionnement
+					
+					if($resql->num_rows > 0) { // Prix par conditionnement
+						
 						$found = false;
 						while($res = $this->db->fetch_object($resql)){
 							$qte_totale_grille = $res->quantite * pow(10, $res->unite_value);
 							if($qte_totale_grille <= $qte_totale) {
 								//Récupération de la remise
-								
 								if(!empty($res->remise_percent) && empty($remise))
 									$remise = $res->remise_percent;
 								/*elseif($remise != $res->remise_percent)
@@ -202,30 +205,52 @@ class InterfaceTarifWorkflow
 							$object->error = "Quantité trop faible";
 							return -1;
 						}
-					} else { // Pas de grille de tarif, on prend le prix unitaire
-						$prix = $object->price;
-						$tva_tx = $object->tva_tx;
+					} 
+					else{ //test tarif par quantité
+						$sql = "SELECT ppbq.unitprice, ppbq.quantity, ppbq.remise_percent
+								FROM ".MAIN_DB_PREFIX."product_price_by_qty AS ppbq
+									LEFT JOIN ".MAIN_DB_PREFIX."product_price AS pp ON (pp.rowid = ppbq.fk_product_price)
+								WHERE pp.fk_product = ".$idProd." AND ppbq.quantity <= ".$_POST['qty']."
+								ORDER BY ppbq.quantity DESC LIMIT 1";
+								//echo $sql; exit;
+						$resql = $this->db->query($sql);
+						
+						if($resql->num_rows > 0){ //La quantité a été trouvé dans la grille
+							$res = $this->db->fetch_object($resql);
+							$prix = $res->unitprice;
+							$tva_tx = $object->tva_tx;
+							$qte_totale = $_POST['qty'];
+							if(!empty($res->remise_percent) && empty($remise))
+								$remise = $res->remise_percent;
+						}
+						else{// Pas de grille de tarif, on prend le prix unitaire
+							$prix = $object->price;
+							$tva_tx = $object->tva_tx;
+							$qte_totale = $_POST['qty'];
+						}
 					}
 				}
-			}/* else if (false) { // TODO : Prix par quantité
-				
-			}*/
+			}
 			
 			$product = new Product($this->db);
 			$product->fetch($idProd);
 			
-			$object->subprice = ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) / $object->qty;
-			$object->price = ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) / $object->qty; // Deprecated in Dolibarr
+			$object->subprice = ($poids>0) ? ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) / $object->qty : $prix;
+			$object->price = ($poids>0) ? ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) / $object->qty : $prix; // Deprecated in Dolibarr
 			$object->tva_tx = $tva_tx;
 			$object->fk_parent_line = NULL;
 			$object->remise_percent = $remise;
 			$object->remise = $remise; // Deprecated in Dolibarr
 			
+			/*echo '<pre>';
+			print_r($object);
+			echo '</pre>';exit;*/
+			
 			if(get_class($object) == 'FactureLigne') $object->update($user, true);
 			else $object->update(true);
 			
 			//MAJ des totaux de la ligne de commande
-			$object->total_ht = ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100);
+			$object->total_ht = ($poids>0) ? ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) : $prix * $qte_totale * (1 - $remise / 100);
 			$object->total_tva = ($object->total_ht * (1 + ($tva_tx/100))) - $object->total_ht;
 			$object->total_ttc = $object->total_ht + $object->total_tva;
 			$object->update_total();
