@@ -124,7 +124,14 @@ class InterfaceTarifWorkflow
 			$poids = 0;
 			$weight_units = 0;
 			
+			/*echo '<pre>';
+			print_r($object);
+			echo '</pre>';
 			
+			echo '<pre>';
+			print_r($_REQUEST);
+			echo '</pre>';exit;*/
+			 
 			//Création a partir d'un objet d'origine (propale ou commande)
 			if((!empty($object->origin) && !empty($object->origin_id)) || (!empty($_POST['origin']) && !empty($_POST['originid']))){
 				
@@ -235,8 +242,10 @@ class InterfaceTarifWorkflow
 			$product = new Product($this->db);
 			$product->fetch($idProd);
 			
-			$object->subprice = ($poids>0) ? ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) / $object->qty : $prix;
-			$object->price = ($poids>0) ? ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) / $object->qty : $prix; // Deprecated in Dolibarr
+			if((empty($object->origin) || empty($object->origin_id)) && (empty($_POST['origin']) || empty($_POST['originid']))){
+				$object->subprice = ($poids>0) ? ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) / $object->qty : $prix;
+				$object->price = ($poids>0) ? ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) / $object->qty : $prix; // Deprecated in Dolibarr
+			}
 			$object->tva_tx = $tva_tx;
 			$object->fk_parent_line = NULL;
 			$object->remise_percent = $remise;
@@ -250,10 +259,12 @@ class InterfaceTarifWorkflow
 			else $object->update(true);
 			
 			//MAJ des totaux de la ligne de commande
-			$object->total_ht = ($poids>0) ? ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) : $prix * $qte_totale * (1 - $remise / 100);
-			$object->total_tva = ($object->total_ht * (1 + ($tva_tx/100))) - $object->total_ht;
-			$object->total_ttc = $object->total_ht + $object->total_tva;
-			$object->update_total();
+			if((empty($object->origin) || empty($object->origin_id)) && (empty($_POST['origin']) || empty($_POST['originid']))){
+				$object->total_ht = ($poids>0) ? ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) : $prix * $qte_totale * (1 - $remise / 100);
+				$object->total_tva = ($object->total_ht * (1 + ($tva_tx/100))) - $object->total_ht;
+				$object->total_ttc = $object->total_ht + $object->total_tva;
+				$object->update_total();
+			}
 			
 			if(get_class($object) == 'PropaleLigne') $table = 'propaldet';
 			if(get_class($object) == 'OrderLine') $table = 'commandedet';
