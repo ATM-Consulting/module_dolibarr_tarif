@@ -10,6 +10,7 @@ dol_include_once("/custom/tarif/class/tarif.class.php");
 dol_include_once("/custom/asset/class/asset.class.php");
 dol_include_once("/societe/class/societe.class.php");
 dol_include_once("/contact/class/contact.class.php");
+dol_include_once("/categories/class/categorie.class.php");
 
 $ATMdb = new Tdb;
 $articlesfile = fopen('../import/produits.csv', 'r');
@@ -19,6 +20,7 @@ $unitesfile = fopen('../import/unites.csv','r');
 $societesfile = fopen('../import/contacts.csv','r');
 $fournisseursfile = fopen('../import/fournisseurs.csv','r');
 $typeclifile = fopen('../import/type_cli.csv','r');
+$categoriesfile = fopen('../import/categories.csv','r');
 $TGlobal = array();
 $i = 0;
 
@@ -126,14 +128,17 @@ function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 						'Ontario-Canada' => 'Canada'
 					);
 	
-	if(in_array(htmlentities($line[$num_ligne],ENT_QUOTES,'UTF-8'), array_keys($base_pays)))
-		$pays = htmlentities($base_pays[$line[9]],ENT_QUOTES,'UTF-8');
+	$pays = preg_replace("(\r\n|\n|\r|<br>)",'',$line[9]);
+	if(in_array(htmlentities($pays,ENT_QUOTES,'UTF-8'), array_keys($base_pays)))
+		$pays = htmlentities($base_pays[$pays],ENT_QUOTES,'UTF-8');
 	else
-		$pays = htmlentities($line[9],ENT_QUOTES,'UTF-8');
-						
+		$pays = htmlentities($pays,ENT_QUOTES,'UTF-8');
 	
-	$ATMdb->Execute('SELECT rowid FROM '.MAIN_DB_PREFIX."c_pays WHERE libelle = '".html_entity_decode($pays,ENT_QUOTES,'ISO-8859-1')."' LIMIT 1");
+	echo "-------- ".$pays." ------------<br>";					
 	
+	$ATMdb->Execute('SELECT rowid FROM '.MAIN_DB_PREFIX."c_pays WHERE libelle = '".$pays."' LIMIT 1");
+	$ATMdb->Get_line();
+	echo "-------- ".$ATMdb->Get_field('rowid')." ----------------<br>";
 	$societe = new Societe($db);
 	if($type == "client"){
 		$societe->client 			= 1; //Client
@@ -144,7 +149,7 @@ function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 		$societe->address 			= (!empty($line[6]))? $line[6]: "";
 		$societe->zip 				= (!empty($line[8]))? $line[8]: "";
 		$societe->town 				= (!empty($line[7]))? $line[7]: "";
-		$societe->country_id 		= ($ATMdb->Get_field('rowid')) ? $ATMdb->Get_field('rowid') : 0;
+		$societe->country_id 		= $ATMdb->Get_field('rowid');
 		$societe->email 			= (!empty($line[14]))? strtolower($line[14]): "";
 		$societe->phone 			= (!empty($line[11]))? $line[11]: "";
 		$societe->fax 				= (!empty($line[12]))? $line[12]: "";
@@ -160,7 +165,7 @@ function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 		$societe->address 			= (!empty($line[2]))? $line[2]: "";
 		$societe->zip 				= (!empty($line[4]))? $line[4]: "";
 		$societe->town 				= (!empty($line[5]))? $line[5]: "";
-		$societe->country_id 		= ($ATMdb->Get_field('rowid')) ? $ATMdb->Get_field('rowid') : 0;
+		$societe->country_id 		= $ATMdb->Get_field('rowid');
 		$societe->email 			= (!empty($line[9]))? strtolower($line[9]): "";
 		$societe->phone 			= (!empty($line[7]))? $line[7]: "";
 		$societe->fax 				= (!empty($line[8]))? $line[8]: "";
@@ -175,7 +180,7 @@ function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 		$societe->address 			= (!empty($line[6]))? $line[6]: "";
 		$societe->zip 				= (!empty($line[8]))? $line[8]: "";
 		$societe->town 				= (!empty($line[7]))? $line[7]: "";
-		$societe->country_id 		= ($ATMdb->Get_field('rowid')) ? $ATMdb->Get_field('rowid') : 0;
+		$societe->country_id 		= $ATMdb->Get_field('rowid');
 		$societe->email 			= (!empty($line[14]))? strtolower($line[14]): "";
 		$societe->phone 			= (!empty($line[11]))? $line[11]: "";
 		$societe->fax 				= (!empty($line[12]))? $line[12]: "";
@@ -188,6 +193,18 @@ function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 	echo "SOCIETE : $line[1] TYPE : $type <br>";
 	
 	if($type != "fournisseur"){
+		
+		$base_civilites = array('M.' => 'MR',
+								'Pr' => 'PR',
+								'Mme' => 'MME',
+								'Mr.' => 'MR',
+								'Dr' => 'DR',
+								'Ms' => 'MME',
+								'Miss' => 'MME',
+								'Prof Dr' => 'PR',
+								'Melle' => 'MLE',
+								'Prof.' => 'PR');
+		
 		if(!empty($line[3])){
 			$contact=new Contact($db);
 	        $contact->name			= $line[3];
@@ -195,13 +212,21 @@ function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 	        $contact->address		= (!empty($line[6]))? $line[6]: "";
 	        $contact->zip			= (!empty($line[8]))? $line[8]: "";
 	        $contact->town			= (!empty($line[7]))? $line[7]: "";
-	        $contact->country_id	= ($ATMdb->Get_field('rowid')) ? $ATMdb->Get_field('rowid') : 0;;
+	        $contact->country_id	= $ATMdb->Get_field('rowid');
 	        $contact->socid			= $societe->id;	// fk_soc
 	        $contact->status		= 1;
 	        $contact->email			= (!empty($line[14]))? $line[14]: "";
 			$contact->phone_pro		= (!empty($line[11]))? $line[11]: "";
 			$contact->fax			= (!empty($line[12]))? $line[12]: "";
 	        $contact->priv			= 0;
+			
+			$civilite = preg_replace("(\r\n|\n|\r)",'',$line[1]);
+			if(in_array(htmlentities($civilite,ENT_QUOTES,'UTF-8'), array_keys($base_civilites)))
+				$civilite = htmlentities($base_civilites[$civilite],ENT_QUOTES,'UTF-8');
+			else
+				$civilite = htmlentities($civilite,ENT_QUOTES,'UTF-8'); 
+			
+			$contact->civilite_id  = $civilite;
 			
 			$contact->create($user);
 			echo "CONTACT 1 : $line[3] $line[2] <br>";
@@ -214,13 +239,23 @@ function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 	        $contact->address		= (!empty($line[19]))? $line[19]: "";
 	        $contact->zip			= (!empty($line[21]))? $line[21]: "";
 	        $contact->town			= (!empty($line[20]))? $line[20]: "";
-	        $contact->country_id	= ($ATMdb->Get_field('rowid')) ? $ATMdb->Get_field('rowid') : 0;;
+	        $contact->country_id	= $ATMdb->Get_field('rowid');
 	        $contact->socid			= $societe->id;	// fk_soc
 	        $contact->status		= 1;
 	        $contact->email			= (!empty($line[26]))? $line[26]: "";
 			$contact->phone_pro		= (!empty($line[23]))? $line[23]: "";
 			$contact->fax			= (!empty($line[24]))? $line[24]: "";
 	        $contact->priv			= 0;
+			
+			$civilite = preg_replace("(\r\n|\n|\r)",'',$line[1]);
+			if(in_array(htmlentities($civilite,ENT_QUOTES,'UTF-8'), array_keys($base_civilites)))
+				$civilite = htmlentities($base_civilites[$civilite],ENT_QUOTES,'UTF-8');
+			else
+				$civilite = htmlentities($civilite,ENT_QUOTES,'UTF-8');
+			
+			$contact->civilite_id  = $civilite;
+			
+			echo "-------- ".$civilite." ------------<br>";
 			
 			$contact->create($user);
 			echo "CONTACT 2 : $line[17] $line[16] <br>";
@@ -313,11 +348,31 @@ while($type_cli = fgetcsv($typeclifile,0,'|','"')){
 	if($TGlobal['type_cli'][$type_cli[2]] < $type_cli[1])
 		$TGlobal['type_cli'][$type_cli[2]] = $type_cli[1];
 }
+
+/*
+ * CATEGORIES DE PRODUITS
+ */ 
+
+/*while($line = fgetcsv($categoriesfile,0,'|','"')){
+	
+	$categorie = new Categorie($db);
+	$categorie->label = preg_replace("(\r\n|\n|\r|<br>)",' ',$line[1]);
+	$categorie->description = preg_replace("(\r\n|\n|\r|<br>)",' ',$line[1]);
+	$categorie->import_key = "1";
+	$categorie->type = 0;
+	
+	$id_cate = $categorie->create($user);
+	
+	$TGlobal['categorie'][$line[0]] = $id_cate;
+	
+	echo "CATEGORIE : ".$categorie->label."<br>";
+}
+fclose($categoriesfile);*/
  
 /*
  * PRODUITS
  */
-$line = fgetcsv($articlesfile,0,'|','"');
+/*$line = fgetcsv($articlesfile,0,'|','"');
 while($line = fgetcsv($articlesfile,0,'|','"')){
 	if(empty($TGlobal['product'][$line[2]]) && !empty($line[2])) { // Création du produit la première fois que l'on a la référence
 		echo "<hr>$i - $line[2] - $line[3]<br>";
@@ -344,6 +399,13 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 		
 		$produit->create($user);
 		
+		//Association à la catégorie correspondante
+		if(!empty($line[1])){
+			$cat = new Categorie($db);
+			$cat->fetch($TGlobal['categorie'][$line[1]]);
+			$cat->add_type($produit,"product");
+		}
+		
 		$string_unite = explode(" ", $line[35]);
 		
 		$ATMdb->Execute('UPDATE '.MAIN_DB_PREFIX.'product SET weight_units = '._unit($string_unite[1]));
@@ -365,7 +427,6 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 		
 		/*
 		 * Equitements (Flacons et lots)
-		 */
 		_add_equipement($ATMdb,$TGlobal,$line,$produit);
 		echo "<hr>";
 		$TGlobal['product'][$line[2]] = $produit->id;
@@ -375,13 +436,13 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 	
 	$i++;
 }
-fclose($articlesfile);
+fclose($articlesfile);*/
 
 /*
  * CLIENTS
  */
-$line = fgetcsv($societesfile,0,'|','"');
-while($line = fgetcsv($societesfile,0,'|','"')){
+$line = fgetcsv($societesfile,0,'|','`');
+while($line = fgetcsv($societesfile,0,'|','`')){
 	if(empty($TGlobal['societe'][$line[5]]) && !empty($line[5])){
 		if($TGlobal['type_cli'][$line[0]] == 1 || $TGlobal['type_cli'][$line[0]] == 3 || $TGlobal['type_cli'][$line[0]] == 4 ||$TGlobal['type_cli'][$line[0]] == 6)
 			$type = "client";
@@ -399,8 +460,8 @@ fclose($societesfile);
 /*
 * FOURNISSEURS
 */
-$line = fgetcsv($fournisseursfile,0,'|','"');
-while($line = fgetcsv($fournisseursfile,0,'|','"')){
+$line = fgetcsv($fournisseursfile,0,'|','`');
+while($line = fgetcsv($fournisseursfile,0,'|','`')){
 	if(empty($TGlobal['fournisseur'][$line[0]]) && !empty($line[0])){
 		$type = "fournisseur";
 		$societe = _add_tiers($ATMdb,$user, $db, $line,$type);
