@@ -194,7 +194,7 @@
 			,'Total' => 'Total (€)'
 			,'Supprimer' => 'Supprimer'
 		)
-		,'type'=>array('date_debut'=>'date','date_fin'=>'date','tva' => 'float', 'prix'=>'float')
+		,'type'=>array('date_debut'=>'date','date_fin'=>'date','tva' => 'money', 'prix'=>'money')
 		,'hide'=>array(
 			'id'
 			,'base_poids'
