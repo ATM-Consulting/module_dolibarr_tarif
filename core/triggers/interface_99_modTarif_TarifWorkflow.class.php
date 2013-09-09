@@ -123,14 +123,6 @@ class InterfaceTarifWorkflow
 			$remise = !empty($_REQUEST['remise_percent']) ? $_REQUEST['remise_percent'] : 0;
 			$poids = 0;
 			$weight_units = 0;
-			
-			/*echo '<pre>';
-			print_r($object);
-			echo '</pre>';
-			
-			echo '<pre>';
-			print_r($_REQUEST);
-			echo '</pre>';exit;*/
 			 
 			//Création a partir d'un objet d'origine (propale ou commande)
 			if((!empty($object->origin) && !empty($object->origin_id)) || (!empty($_POST['origin']) && !empty($_POST['originid']))){
@@ -166,7 +158,7 @@ class InterfaceTarifWorkflow
 			}//Création directement a partir du formulaire pour addline
 			else{ // Si poids renseigné alors recherche prix par conditionnement
 				
-				$poids = (!empty($_POST['poids'])) ? $_POST['poids'] : 0;
+				$poids = (!empty($_POST['poids'])) ? floatval($_POST['poids']) : 0;
 				$weight_units = $_POST['weight_units'];
 				$idProd = 0;
 				if(!empty($_POST['idprod'])) $idProd = $_POST['idprod'];

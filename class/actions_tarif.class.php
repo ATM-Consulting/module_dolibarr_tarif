@@ -61,7 +61,7 @@ class ActionsTarif
 							
 							if($line->rowid == $_REQUEST['lineid']){
 								?>
-								$('input[name=qty]').parent().after('<td align="right"><input id="poidsAff" type="text" value="<?php if(!is_null($res->tarif_poids)) echo $res->tarif_poids; ?>" name="poidsAff" size="6"><select class="flat" name="weight_unitsAff" id="weight_unitsAff"><option value="-6" <?php if($unite == "mg") echo ' selected="selected" '; ?>>mg</option><option value="-3" <?php if($unite == "g") echo ' selected="selected" '; ?>>g</option><option value="0" <?php if($unite == "kg") echo ' selected="selected" '; ?>>kg</option></select></td>');
+								$('input[name=qty]').parent().after('<td align="right"><input id="poidsAff" type="text" value="<?php if(!is_null($res->tarif_poids)) echo number_format($res->tarif_poids,2,",",""); ?>" name="poidsAff" size="6"><select class="flat" name="weight_unitsAff" id="weight_unitsAff"><option value="-6" <?php if($unite == "mg") echo ' selected="selected" '; ?>>mg</option><option value="-3" <?php if($unite == "g") echo ' selected="selected" '; ?>>g</option><option value="0" <?php if($unite == "kg") echo ' selected="selected" '; ?>>kg</option></select></td>');
 								$('input[name=token]').prev().append('<input id="poids" type="hidden" value="0" name="poids" size="3">');
 					         	$('input[name=token]').prev().append('<input id="weight_units" type="hidden" value="0" name="weight_units" size="3">');
 					         	$('#savelinebutton').click(function() {
@@ -109,11 +109,6 @@ class ActionsTarif
 	        	$instance->fetch((isset($_GET['facid']))?$_GET['facid']:$_GET['id']);
 				$table = "facturedet";
         	}
-			//echo count($instance->lines);
-			
-			/*echo '<pre>';
-			print_r($object);
-			echo '</pre>';*/
 			
 			if($object->line->error)
 				dol_htmloutput_mesg($object->line->error,'', 'error');
@@ -135,7 +130,7 @@ class ActionsTarif
 								$unite = "kg";
 								break;
 						}
-						echo "$('#row-".$line->rowid."').children().eq(3).after('<td align=\"right\">".((!is_null($res->tarif_poids))? number_format($res->tarif_poids,2)." ".$unite : "")."</td>');";
+						echo "$('#row-".$line->rowid."').children().eq(3).after('<td align=\"right\">".((!is_null($res->tarif_poids))? number_format($res->tarif_poids,2,",","")." ".$unite : "")."</td>');";
 						if($line->error != '') echo "alert('".$line->error."');";
          			}
          		?>
