@@ -18,8 +18,10 @@ class TTarif extends TObjetStd {
 }
 
 class TTarifCommandedet extends TObjetStdDolibarr {
-	function __construct() { /* declaration */
+	function __construct($db) { /* declaration */
 		global $langs;
+		
+		$this->db = $db;
 		
 		parent::set_table(MAIN_DB_PREFIX.'commandedet');
 		parent::add_champs('poids','type=entier;');
@@ -31,8 +33,10 @@ class TTarifCommandedet extends TObjetStdDolibarr {
 }
 
 class TTarifPropaldet extends TObjetStdDolibarr {
-	function __construct() { /* declaration */
+	function __construct($db) { /* declaration */
 		global $langs;
+		
+		$this->db = $db;
 		
 		parent::set_table(MAIN_DB_PREFIX.'propaldet');
 		parent::add_champs('poids','type=entier;');
@@ -44,8 +48,10 @@ class TTarifPropaldet extends TObjetStdDolibarr {
 }
 
 class TTarifFacturedet extends TObjetStdDolibarr {
-	function __construct() { /* declaration */
+	function __construct($db) { /* declaration */
 		global $langs;
+		
+		$this->db = $db;
 		
 		parent::set_table(MAIN_DB_PREFIX.'facturedet');
 		parent::add_champs('poids','type=entier;');
