@@ -44,6 +44,63 @@ function _unit($unite){
 	}
 }
 
+//Création de tableau intermédiaire
+//Pour optimisation du traitement
+
+/*
+ * TAB UNITE
+ */
+$unite = fgetcsv($unitesfile,0,'|','"');
+while($unite = fgetcsv($unitesfile,0,'|','"')){
+	$TGlobal['unite'][$unite[0]] = preg_replace("(\r\n|\n|\r|<br>)",'',$unite[1]);;
+}
+
+/*
+ * TAB FLACON
+ */
+$flacon = fgetcsv($flaconsfile,0,'|','"');
+while($flacon = fgetcsv($flaconsfile,0,'|','"')){
+	$TGlobal['flacon'][$flacon[1]] = $flacon[8]; // TGlobal['flacon']['ref_flacon'] = id_produit;
+}
+
+/*
+ * TAB LOTS
+ */
+$lot = fgetcsv($lotsfile,0,'|','"');
+while($lot = fgetcsv($lotsfile,0,'|','"')){
+	$TGlobal['lot'][$lot[2]] = array('ref_produit'=>$lot[1],'quantite'=>$lot[12]); // TGlobal['lot']['ref_lot'] = array(id_produit,quantite);
+}
+
+/*
+ * TAB TYPE CLIENT 
+ */
+$type_cli = fgetcsv($typeclifile,0,'|','"');
+while($type_cli = fgetcsv($typeclifile,0,'|','"')){
+	if($TGlobal['type_cli'][$type_cli[2]] < $type_cli[1])
+		$TGlobal['type_cli'][$type_cli[2]] = $type_cli[1];
+}
+
+/*
+ * CATEGORIES DE PRODUITS
+ */ 
+
+while($line = fgetcsv($categoriesfile,0,'|','"')){
+	
+	$categorie = new Categorie($db);
+	$categorie->label = preg_replace("(\r\n|\n|\r|<br>)",' ',$line[1]);
+	$categorie->description = preg_replace("(\r\n|\n|\r|<br>)",' ',$line[1]);
+	$categorie->import_key = "1";
+	$categorie->type = 0;
+	
+	$id_cate = $categorie->create($user);
+	
+	$TGlobal['categorie'][$line[0]] = $id_cate;
+	
+	echo "CATEGORIE : ".$categorie->label."<br>";
+}
+fclose($categoriesfile);
+
+
 function _add_condi(&$ATMdb,&$line,&$produit,$nbColUnit,$nbColPrix,$nbColRem){
 	($nbColRem != 0) ? $remise_percent = price2num($line[$nbColRem]) : $remise_percent = 0;
 	$string_unite = explode(" ", $line[$nbColUnit]);
@@ -313,66 +370,10 @@ function _add_equipement(&$ATMdb,$TGlobal,&$line,&$produit){
 	}
 }
 
-//Création de tableau intermédiaire
-//Pour optimisation du traitement
-
-/*
- * TAB UNITE
- */
-$unite = fgetcsv($unitesfile,0,'|','"');
-while($unite = fgetcsv($unitesfile,0,'|','"')){
-	$TGlobal['unite'][$unite[0]] = $unite[1];
-}
-
-/*
- * TAB FLACON
- */
-$flacon = fgetcsv($flaconsfile,0,'|','"');
-while($flacon = fgetcsv($flaconsfile,0,'|','"')){
-	$TGlobal['flacon'][$flacon[1]] = $flacon[8]; // TGlobal['flacon']['ref_flacon'] = id_produit;
-}
-
-/*
- * TAB LOTS
- */
-$lot = fgetcsv($lotsfile,0,'|','"');
-while($lot = fgetcsv($lotsfile,0,'|','"')){
-	$TGlobal['lot'][$lot[2]] = array('ref_produit'=>$lot[1],'quantite'=>$lot[12]); // TGlobal['lot']['ref_lot'] = array(id_produit,quantite);
-}
-
-/*
- * TAB TYPE CLIENT 
- */
-$type_cli = fgetcsv($typeclifile,0,'|','"');
-while($type_cli = fgetcsv($typeclifile,0,'|','"')){
-	if($TGlobal['type_cli'][$type_cli[2]] < $type_cli[1])
-		$TGlobal['type_cli'][$type_cli[2]] = $type_cli[1];
-}
-
-/*
- * CATEGORIES DE PRODUITS
- */ 
-
-/*while($line = fgetcsv($categoriesfile,0,'|','"')){
-	
-	$categorie = new Categorie($db);
-	$categorie->label = preg_replace("(\r\n|\n|\r|<br>)",' ',$line[1]);
-	$categorie->description = preg_replace("(\r\n|\n|\r|<br>)",' ',$line[1]);
-	$categorie->import_key = "1";
-	$categorie->type = 0;
-	
-	$id_cate = $categorie->create($user);
-	
-	$TGlobal['categorie'][$line[0]] = $id_cate;
-	
-	echo "CATEGORIE : ".$categorie->label."<br>";
-}
-fclose($categoriesfile);*/
- 
 /*
  * PRODUITS
  */
-/*$line = fgetcsv($articlesfile,0,'|','"');
+$line = fgetcsv($articlesfile,0,'|','"');
 while($line = fgetcsv($articlesfile,0,'|','"')){
 	if(empty($TGlobal['product'][$line[2]]) && !empty($line[2])) { // Création du produit la première fois que l'on a la référence
 		echo "<hr>$i - $line[2] - $line[3]<br>";
@@ -427,6 +428,7 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 		
 		/*
 		 * Equitements (Flacons et lots)
+		 */
 		_add_equipement($ATMdb,$TGlobal,$line,$produit);
 		echo "<hr>";
 		$TGlobal['product'][$line[2]] = $produit->id;
@@ -436,7 +438,7 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 	
 	$i++;
 }
-fclose($articlesfile);*/
+fclose($articlesfile);
 
 /*
  * CLIENTS
