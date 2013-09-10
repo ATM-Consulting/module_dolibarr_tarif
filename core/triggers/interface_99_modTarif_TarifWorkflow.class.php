@@ -114,9 +114,10 @@ class InterfaceTarifWorkflow
 		dol_include_once('/compta/facture/class/facture.class.php');
 		dol_include_once('/comm/propal/class/propal.class.php');
 		
-		if ($action == 'LINEORDER_INSERT' || $action == 'LINEORDER_UPDATE' ||
+		if (($action == 'LINEORDER_INSERT' || $action == 'LINEORDER_UPDATE' ||
 			$action == 'LINEPROPAL_INSERT' || $action == 'LINEPROPAL_UPDATE' ||
-			$action == 'LINEBILL_INSERT' || $action == 'LINEBILL_UPDATE') {
+			$action == 'LINEBILL_INSERT' || $action == 'LINEBILL_UPDATE') 
+			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
 			
 			$prix = 0;
 			$tva_tx = 0;
