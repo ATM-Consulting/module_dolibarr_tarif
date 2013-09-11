@@ -61,6 +61,7 @@ while($unite = fgetcsv($unitesfile,0,'|','"')){
 $flacon = fgetcsv($flaconsfile,0,'|','"');
 while($flacon = fgetcsv($flaconsfile,0,'|','"')){
 	$TGlobal['flacon'][$flacon[1]] = $flacon[8]; // TGlobal['flacon']['ref_flacon'] = id_produit;
+	$TGlobal['tare'][$flacon[8]] = $flacon[2]; // TGlobal['tare']['ref_flacon'] = tare;
 }
 
 /*
@@ -329,9 +330,9 @@ function _add_equipement(&$ATMdb,$TGlobal,&$line,&$produit){
 			$equipement->fk_product 			= $produit->id;
 			$equipement->entity 				= 0;
 			$equipement->lot_number 			= $ref_lot;
-			$equipement->contenance_value 		= $Tinfos_lot['quantite'];
+			$equipement->tare 					= $TGlobal['tare'][$line[0]];
 			$equipement->contenancereel_value 	= $Tinfos_lot['quantite'];
-			$equipement->contenance_units 		= _unit($TGlobal['unite'][$line[8]]);
+			$equipement->tare_units 			= -3;
 			$equipement->contenancereel_units 	= _unit($TGlobal['unite'][$line[8]]);
 			
 			echo "LOT : ".$ref_lot." QUANTITE : ".$Tinfos_lot['quantite']." UNITE : "._unit($TGlobal['unite'][$line[8]])." ";
@@ -341,20 +342,20 @@ function _add_equipement(&$ATMdb,$TGlobal,&$line,&$produit){
 					$equipement->serial_number = strtoupper($ref_flacon);
 					switch (strtoupper(substr($ref_flacon,0,1))) {
 						case 'A':
-							$equipement->tare = 10;
-							$equipement->tare_units = -3;
+							$equipement->contenance_value = 10;
+							$equipement->contenance_units = -3;
 							break;
 						case 'B':
-							$equipement->tare = 5;
-							$equipement->tare_units = -3;
+							$equipement->contenance_value = 5;
+							$equipement->contenance_units = -3;
 							break;
 						case 'C':
-							$equipement->tare = 1;
-							$equipement->tare_units = -3;
+							$equipement->contenance_value = 1;
+							$equipement->contenance_units = -3;
 							break;
 						case 'Y':
-							$equipement->tare = 70;
-							$equipement->tare_units = -3;
+							$equipement->contenance_value = 70;
+							$equipement->contenance_units = -3;
 							break;
 					}
 					echo "FLACON : $ref_flacon<br>";
