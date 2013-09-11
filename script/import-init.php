@@ -97,7 +97,7 @@ while($line = fgetcsv($categoriesfile,0,'|','"')){
 	
 	$TGlobal['categorie'][$line[0]] = $id_cate;
 	
-	echo "CATEGORIE : ".$categorie->label."<br>";
+	echo "CATEGORIE : ".$categorie->label." ID : ".$id_cate."<br>";
 }
 fclose($categoriesfile);
 
@@ -332,7 +332,7 @@ function _add_equipement(&$ATMdb,$TGlobal,&$line,&$produit){
 			$equipement->lot_number 			= $ref_lot;
 			$equipement->tare 					= $TGlobal['tare'][$line[0]];
 			$equipement->contenancereel_value 	= $Tinfos_lot['quantite'];
-			$equipement->tare_units 			= -3;
+			$equipement->tare_units 			= -6;
 			$equipement->contenancereel_units 	= _unit($TGlobal['unite'][$line[8]]);
 			
 			echo "LOT : ".$ref_lot." QUANTITE : ".$Tinfos_lot['quantite']." UNITE : "._unit($TGlobal['unite'][$line[8]])." ";
@@ -354,7 +354,7 @@ function _add_equipement(&$ATMdb,$TGlobal,&$line,&$produit){
 							$equipement->contenance_units = -3;
 							break;
 						case 'Y':
-							$equipement->contenance_value = 70;
+							$equipement->contenance_value = 80;
 							$equipement->contenance_units = -3;
 							break;
 					}
