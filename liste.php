@@ -135,6 +135,9 @@
 	}
 	elseif(isset($_REQUEST['action']) && !empty($_REQUEST['action']) && $_REQUEST['action'] == 'add_conditionnement' && isset($_REQUEST['save'])) {
 		switch($_POST['weight_units']){
+			case -9:
+				$unite = "μg";
+				break;
 			case -6:
 				$unite = "mg";
 				break;
