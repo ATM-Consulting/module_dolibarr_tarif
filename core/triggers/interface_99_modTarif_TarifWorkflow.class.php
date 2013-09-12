@@ -267,6 +267,22 @@ class InterfaceTarifWorkflow
 			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
 		}
 
+
+		elseif($action == 'PRODUCT_PRICE_MODIFY'){
+			/*echo '<pre>';
+			print_r($object);
+			echo '</pre>';exit;*/
+			
+			$resql = $this->db->query("SELECT rowid FROM ".MAIN_DB_PREFIX."tarif_conditionnement WHERE fk_product = ".$object->id);
+			
+			if($resql->num_rows > 0){
+				$res = $this->db->fetch_object($resql);
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX."tarif_conditionnement 
+									  SET tva_tx = ".$object->tva_tx.", price_base_type = '".$object->price_base_type."', prix = ".$object->price." 
+									  WHERE fk_product = ".$object->id);
+			}
+		}
+
 		return 1;
 	}
 }
