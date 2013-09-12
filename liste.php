@@ -108,7 +108,7 @@
 		// Price
 		print '<tr><td width="20%">';
 		print 'Prix de vente';
-		print '</td><td><input value="" size="10" name="prix"></td></tr>';
+		print '</td><td><input type="hidden" name="prix" value="'.number_format($object->price,2,",","").'"><input size="10" name="prix_visu" value="'.number_format($object->price,2,",","").'" readonly></td></tr>';
 		
 		// Remise
 		print '<tr><td width="20%">';
