@@ -123,6 +123,9 @@ class ActionsTarif
          				$resql = $db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$line->rowid);
 						$res = $db->fetch_object($resql);
 						switch($res->poids){
+							case -9:
+								$unite = "μg";
+								break;
 							case -6:
 								$unite = "mg";
 								break;
@@ -142,7 +145,7 @@ class ActionsTarif
 	         			$(this).after('<td align="right" width="140">Poids</td>');
 	         	});
 	         	$('#np_desc').parent().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff" size="6"><select class="flat weight_unitsAff" name="weight_unitsAff"><option value="-9">μg</option><option value="-6">mg</option><option value="-3">g</option><option selected="selected" value="0">kg</option></select></td>');
-	         	$('#dp_desc').parent().next().next().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff" size="6"><select class="flat weight_unitsAff" name="weight_unitsAff"><option value="-6">mg</option><option value="-3">g</option><option value="0">kg</option></select></td>');
+	         	$('#dp_desc').parent().next().next().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff" size="6"><select class="flat weight_unitsAff" name="weight_unitsAff"><option value="-9">μg</option><option value="-6">mg</option><option value="-3">g</option><option value="0">kg</option></select></td>');
 	         	$('#addpredefinedproduct').append('<input class="poids" type="hidden" value="0" name="poids" size="3">');
 	         	$('#addpredefinedproduct').append('<input class="weight_units" type="hidden" value="0" name="weight_units" size="3">');
 	         	$('#addproduct').append('<input class="poids" type="hidden" value="0" name="poids" size="3">');
