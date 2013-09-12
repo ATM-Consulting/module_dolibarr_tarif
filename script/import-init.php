@@ -113,7 +113,7 @@ function _add_condi(&$ATMdb,&$line,&$produit,$nbColUnit,$nbColPrix,$nbColRem){
 	$tarif->price_base_type 	= "HT";
 	$tarif->fk_product 			= $produit->id;
 	$tarif->fk_user_author 		= 1;
-	$tarif->tva_tx 				= 19.6;
+	$tarif->tva_tx 				= $produit->tva_tx;
 	$tarif->remise_percent 		= $remise_percent;
 	$tarif->prix 				= price2num($line[$nbColPrix]);
 	$tarif->save($ATMdb);
@@ -396,7 +396,7 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 		$produit->status_buy 		= 1;
 		$produit->finished 			= 1;
 		$produit->ref_ext 			= $line[0];
-		$produit->price				= price2num($line[58]);
+		$produit->price				= price2num($line[59]);
 		$produit->note 				= "";
 		
 		$produit->create($user);
@@ -412,20 +412,20 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 		
 		$ATMdb->Execute('UPDATE '.MAIN_DB_PREFIX.'product SET weight_units = '._unit($string_unite[1]));
 		
-		//$produit->updatePrice($produit->id, price2num($line[58]), 'HT', $user);
+		//$produit->updatePrice($produit->id, price2num($line[59]), 'HT', $user);
 		
 		//Tarifs par conditionnement
 		//Conditionnement 1
 		if(!empty($line[36]) && $line[36] > 0)
-			_add_condi($ATMdb,$line,$produit,35,58,0);
+			_add_condi($ATMdb,$line,$produit,35,59,0);
 		
 		//Conditionnement 2
 		if(!empty($line[38]) && $line[38] > 0)
-			_add_condi($ATMdb,$line,$produit,37,58,41);
+			_add_condi($ATMdb,$line,$produit,37,59,41);
 		
 		//Conditionnement 3
 		if(!empty($line[40]) && $line[40] > 0)
-			_add_condi($ATMdb,$line,$produit,39,58,42);
+			_add_condi($ATMdb,$line,$produit,39,59,42);
 		
 		/*
 		 * Equitements (Flacons et lots)
