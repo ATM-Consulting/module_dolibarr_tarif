@@ -61,7 +61,8 @@ while($unite = fgetcsv($unitesfile,0,'|','"')){
 $flacon = fgetcsv($flaconsfile,0,'|','"');
 while($flacon = fgetcsv($flaconsfile,0,'|','"')){
 	$TGlobal['flacon'][$flacon[1]] = $flacon[8]; // TGlobal['flacon']['ref_flacon'] = id_produit;
-	$TGlobal['tare'][$flacon[8]] = $flacon[2]; // TGlobal['tare']['ref_flacon'] = tare;
+	$TGlobal['tare'][$flacon[8]] = $flacon[2]; // TGlobal['tare']['id_produit'] = tare;
+	$TGlobal['emplacement'][$flacon[8]] = $flacon[7]; // TGlobal['tare']['id_produit'] = emplacement;
 }
 
 /*
@@ -334,6 +335,7 @@ function _add_equipement(&$ATMdb,$TGlobal,&$line,&$produit){
 			$equipement->contenancereel_value 	= $Tinfos_lot['quantite'];
 			$equipement->tare_units 			= -6;
 			$equipement->contenancereel_units 	= _unit($TGlobal['unite'][$line[8]]);
+			$equipement->emplacement			= $TGlobal['emplacement'][$line[0]];
 			
 			echo "LOT : ".$ref_lot." QUANTITE : ".$Tinfos_lot['quantite']." UNITE : "._unit($TGlobal['unite'][$line[8]])." ";
 			

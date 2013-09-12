@@ -174,7 +174,7 @@
 	 **********************************/
 	$TConditionnement = array();
 	
-	$sql = "SELECT tc.rowid AS 'id', tc.tva_tx AS tva, tc.price_base_type AS base, tc.quantite as quantite, tc.unite AS unite, tc.prix AS prix, tc.remise_percent AS remise, p.weight_units AS base_poids, tc.unite_value AS unite_value,((tc.quantite * POWER(10,(tc.unite_value-p.weight_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.weight_units))) * tc.prix) * (tc.remise_percent/100)  AS 'Total','' AS 'Supprimer'
+	$sql = "SELECT tc.rowid AS 'id', tc.tva_tx AS tva, tc.price_base_type AS base, tc.quantite as quantite, tc.unite AS unite, tc.remise_percent AS remise, tc.prix AS prix, p.weight_units AS base_poids, tc.unite_value AS unite_value,((tc.quantite * POWER(10,(tc.unite_value-p.weight_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.weight_units))) * tc.prix) * (tc.remise_percent/100)  AS 'Total','' AS 'Supprimer'
 			FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
 				LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)
 			WHERE fk_product = ".$product->id."
@@ -199,6 +199,8 @@
 			'id'
 			,'base_poids'
 			,'unite_value'
+			,'tva'
+			,'base'
 		)
 		,'link'=>array(
 			'Supprimer'=>'<a href="?id=@id@&action=delete&fk_product='.$object->id.'" onclick="return confirm(\'Êtes-vous sûr de vouloir supprimer ce conditionnement?\');"><img src="img/delete.png"></a>'
