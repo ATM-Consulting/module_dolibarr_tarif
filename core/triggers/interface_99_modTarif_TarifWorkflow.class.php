@@ -158,7 +158,6 @@ class InterfaceTarifWorkflow
 			
 			}//Création directement a partir du formulaire pour addline
 			else{ // Si poids renseigné alors recherche prix par conditionnement
-				
 				$poids = (!empty($_POST['poids'])) ? floatval($_POST['poids']) : 0;
 				$weight_units = $_POST['weight_units'];
 				$idProd = 0;
@@ -229,21 +228,40 @@ class InterfaceTarifWorkflow
 							$qte_totale = $_POST['qty'];
 						}
 					}
+					
 				}
+				else{ //Ligne Libre
+					$prix = $_POST['price_ht'];
+					$tva_tx = $_POST['tva_tx'];
+					$qte_totale = $_POST['qty'] * $poids * pow(10, $weight_units);
+					$object->subprice = ($poids>0) ? ($qte_totale * $prix / pow(10, $weight_units)) * (1 - $remise / 100) / $_POST['qty'] : $prix;
+					$object->price = ($poids>0) ? ($qte_totale * $prix / pow(10, $weight_units)) * (1 - $remise / 100) / $_POST['qty'] : $prix; // Deprecated in Dolibarr
+				}
+
 			}
-			
-			$product = new Product($this->db);
-			$product->fetch($idProd);
-			
-			if((empty($object->origin) || empty($object->origin_id)) && (empty($_POST['origin']) || empty($_POST['originid']))){
-				$object->subprice = ($poids>0) ? ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) / $object->qty : $prix;
-				$object->price = ($poids>0) ? ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) / $object->qty : $prix; // Deprecated in Dolibarr
+
+			if($idProd > 0 ){
+				$product = new Product($this->db);
+				$product->fetch($idProd);
+				
+				if((empty($object->origin) || empty($object->origin_id)) && (empty($_POST['origin']) || empty($_POST['originid']))){
+					$object->subprice = ($poids>0) ? ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) / $object->qty : $prix;
+					$object->price = ($poids>0) ? ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) / $object->qty : $prix; // Deprecated in Dolibarr
+				}
+				$object->tva_tx = $tva_tx;
+				$object->fk_parent_line = NULL;
+				$object->remise_percent = $remise;
+				$object->remise = $remise; // Deprecated in Dolibarr
 			}
-			$object->tva_tx = $tva_tx;
-			$object->fk_parent_line = NULL;
-			$object->remise_percent = $remise;
-			$object->remise = $remise; // Deprecated in Dolibarr
-			
+			/*echo "poids  : ".$poids."<br>";
+			echo "unite  : ".$weight_units."<br>";
+			echo "qte_totale  : ".$qte_totale."<br>";
+			echo "prix  : ".$prix."<br>";
+			echo "tva  : ".$tva_tx."<br>";
+			echo "remise  : ".$remise."<br><br>";
+			$res = (($qte_totale * $prix) / pow(10, $weight_units)) * (1 - $remise / 100);
+			echo " $res = ($qte_totale * $prix / pow(10, $weight_units)) * (1 - $remise / 100)";
+			exit;*/
 			/*echo '<pre>';
 			print_r($object);
 			echo '</pre>';exit;*/
@@ -253,7 +271,18 @@ class InterfaceTarifWorkflow
 			
 			//MAJ des totaux de la ligne de commande
 			if((empty($object->origin) || empty($object->origin_id)) && (empty($_POST['origin']) || empty($_POST['originid']))){
-				$object->total_ht = ($poids>0) ? ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) : $prix * $qte_totale * (1 - $remise / 100);
+				if($idprod > 0){
+					$object->total_ht = ($poids>0) ? ($qte_totale * $prix / pow(10, $product->weight_units)) * (1 - $remise / 100) : $prix * $qte_totale * (1 - $remise / 100);
+				}
+				else{
+					$object->total_ht = ($poids>0) ? ($qte_totale * $prix / pow(10, $weight_units)) * (1 - $remise / 100) : $prix * $qte_totale * (1 - $remise / 100);
+				}
+				$object->total_tva = ($object->total_ht * (1 + ($tva_tx/100))) - $object->total_ht;
+				$object->total_ttc = $object->total_ht + $object->total_tva;
+				$object->update_total();
+			}
+			else{ //Création à partir d'un objecto d'origine
+				$object->total_ht = $object->subprice * $object->qty;
 				$object->total_tva = ($object->total_ht * (1 + ($tva_tx/100))) - $object->total_ht;
 				$object->total_ttc = $object->total_ht + $object->total_tva;
 				$object->update_total();
@@ -264,14 +293,11 @@ class InterfaceTarifWorkflow
 			if(get_class($object) == 'FactureLigne') $table = 'facturedet'; 
 			$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 			
-			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->rowid);
+			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
 		}
 
 
 		elseif($action == 'PRODUCT_PRICE_MODIFY'){
-			/*echo '<pre>';
-			print_r($object);
-			echo '</pre>';exit;*/
 			
 			$resql = $this->db->query("SELECT rowid FROM ".MAIN_DB_PREFIX."tarif_conditionnement WHERE fk_product = ".$object->id);
 			
