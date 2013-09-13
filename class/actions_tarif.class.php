@@ -69,7 +69,7 @@ class ActionsTarif
 					         	$('input[name=token]').prev().append('<input id="weight_units" type="hidden" value="0" name="weight_units" size="3">');
 					         	$('#savelinebutton').click(function() {
 					         		$('#poids').val( $('#poidsAff').val() );
-					         		$('#weight_units').val( $('#weight_unitsAff option:selected').val() );
+					         		$('#weight_units').val( $('select[name=weight_unitsAff] option:selected').val() );
 					         		return true;
 					         	});
 								<?php
@@ -144,8 +144,9 @@ class ActionsTarif
 	         		if($(this).html() == "Qté")
 	         			$(this).after('<td align="right" width="140">Poids</td>');
 	         	});
-	         	$('#np_desc').parent().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff" size="6"><select class="flat weight_unitsAff" name="weight_unitsAff"><option value="-9">μg</option><option value="-6">mg</option><option value="-3">g</option><option selected="selected" value="0">kg</option></select></td>');
-	         	$('#dp_desc').parent().next().next().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff" size="6"><select class="flat weight_unitsAff" name="weight_unitsAff"><option value="-9">μg</option><option value="-6">mg</option><option value="-3">g</option><option value="0">kg</option></select></td>');
+	         	$('#np_desc').parent().next().after('<td align="right"><span id="AffUnite" style="display:none;">unité</span><input class="poidsAff" type="text" value="0" name="poidsAff" id="poidsAffProduct" size="6"><select class="flat weight_unitsAff" name="weight_unitsAff" id="weight_unitsAff_product"><option value="-9">μg</option><option value="-6">mg</option><option value="-3">g</option><option value="0">kg</option></select></td>');
+	         	$('#dp_desc').parent().next().next().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff" size="6"><select class="flat weight_unitsAff" name="weight_unitsAff" id="weight_unitsAff_freeline"><option value="-9">μg</option><option value="-6">mg</option><option value="-3">g</option><option value="0">kg</option></select></td>');
+	         	$('select[name=weight_unitsAff]').val(-6);
 	         	$('#addpredefinedproduct').append('<input class="poids" type="hidden" value="0" name="poids" size="3">');
 	         	$('#addpredefinedproduct').append('<input class="weight_units" type="hidden" value="0" name="weight_units" size="3">');
 	         	$('#addproduct').append('<input class="poids" type="hidden" value="0" name="poids" size="3">');
@@ -165,12 +166,15 @@ class ActionsTarif
 						,data: {fk_product: $('#idprod').val()}
 						},"json").then(function(select){
 							if(select.unite != ""){
-								$('.weight_unitsAff:last option:selected').removeAttr('selected');
-								$('.weight_unitsAff:last option[value='+select.unite+']').attr('selected','selected');
+								$('#weight_unitsAff_product').val(select.unite);
+								$('#weight_unitsAff_product').prev().show();
+								$('#weight_unitsAff_product').show();
+								$('#AffUnite').hide();
 							}
 							else{
-								$('.weight_unitsAff:last option:selected').removeAttr('selected');
-								$('.weight_unitsAff:last option[value=0]').attr('selected','selected');
+								$('#weight_unitsAff_product').prev().hide();
+								$('#weight_unitsAff_product').hide();
+								$('#AffUnite').show();
 							}
 						});
 				});

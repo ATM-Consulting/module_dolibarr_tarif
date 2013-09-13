@@ -190,14 +190,14 @@
 		,'title'=>array(
 			'tva'=>'Taux TVA'
 			,'base' => 'Type du Prix'
-			,'quantite'=>'Quantit&eacute;'
+			,'quantite'=>'Quantité'
 			,'unite'=>'Unit&eacute;'
 			,'prix'=>'Tarif (€)'
 			,'remise' => 'Remise (%)'
 			,'Total' => 'Total (€)'
 			,'Supprimer' => 'Supprimer'
 		)
-		,'type'=>array('date_debut'=>'date','date_fin'=>'date','tva' => 'number', 'prix'=>'money', 'Total' => 'money')
+		,'type'=>array('date_debut'=>'date','date_fin'=>'date','tva' => 'number', 'prix'=>'money', 'Total' => 'money' , 'quantite' => 'number')
 		,'hide'=>array(
 			'id'
 			,'base_poids'

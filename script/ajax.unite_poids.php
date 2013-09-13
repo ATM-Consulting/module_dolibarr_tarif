@@ -13,8 +13,7 @@ $sql = "SELECT weight_units
 
 $ATMdb->Execute($sql);
 
-while($ATMdb->Get_line()){
-	$Tres["unite"] = $ATMdb->Get_field('weight_units');
-}
+$ATMdb->Get_line();
+$Tres["unite"] = $ATMdb->Get_field('weight_units');
 
 echo json_encode($Tres);
