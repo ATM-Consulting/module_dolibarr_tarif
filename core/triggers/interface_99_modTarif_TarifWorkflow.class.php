@@ -116,6 +116,7 @@ class InterfaceTarifWorkflow
 			}
 			return -1;
 		}
+		//return 0;
 	}
 	
 	function _updateLineProduct(&$object,&$user,$idProd,$poids,$weight_units,$remise){
@@ -125,16 +126,16 @@ class InterfaceTarifWorkflow
 		$object_parent = $this->_getObjectParent($object);
 		
 		/*echo '<pre>';
-		print_r($object_parent);
-		echo '</pre>';exit;*/
-		
+		print_r($product);
+		echo '</pre>'; exit;*/
 		if($product->weight_units < $weight_units)
 			$poids = $poids * pow(10, ($weight_units - $product->weight_units ));
-		
+			
+		//echo $product->price; exit;
 		$object->remise_percent = $remise;
-		//$object->subprice = $product->price * $poids;
-		$object->subprice = $product->multiprices[$object_parent->client->price_level] * $poids;
-		//echo $product->price." * ".$poids; exit;
+		$object->subprice = (!empty($product->multiprices[$object_parent->client->price_level])) ? $product->multiprices[$object_parent->client->price_level] * $poids : $product->price * $poids;
+		$object->price = $object->subprice;
+		//echo $object->subprice; exit;
 		
 		if(get_class($object) == 'FactureLigne') $object->update($user, true);
 		else $object->update(true);
@@ -152,19 +153,19 @@ class InterfaceTarifWorkflow
 		switch (get_class($object)) {
 			case 'PropaleLigne':
 				$object_parent = new Propal($this->db);
-				$object_parent->fetch($object->fk_propal);
+				$object_parent->fetch((!empty($object->fk_propal)) ? $object->fk_propal : $object->oldline->fk_propal);
 				$object_parent->fetch_thirdparty();
 				return $object_parent;
 				break;
 			case 'OrderLine':
 				$object_parent = new Commande($this->db);
-				$object_parent->fetch($object->fk_commande);
+				$object_parent->fetch((!empty($object->fk_commande)) ? $object->fk_commande : $object->oldline->fk_commande);
 				$object_parent->fetch_thirdparty();
 				return $object_parent;
 				break;
 			case 'FactureLigne':
 				$object_parent = new Facture($this->db);
-				$object_parent->fetch($object->fk_facture);
+				$object_parent->fetch((!empty($object->fk_facture)) ? $object->fk_facture : $object->oldline->fk_facture);
 				$object_parent->fetch_thirdparty();
 				return $object_parent;
 				break;
@@ -197,6 +198,9 @@ class InterfaceTarifWorkflow
 		if (($action == 'LINEORDER_INSERT' || $action == 'LINEPROPAL_INSERT' || $action == 'LINEBILL_INSERT') 
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
 			
+			/*echo '<pre>';
+			print_r($object);
+			echo '</pre>';exit;*/
 			$idProd = 0;
 			if(!empty($_POST['idprod'])) $idProd = $_POST['idprod'];
 			if(!empty($_POST['productid'])) $idProd = $_POST['productid'];
@@ -237,10 +241,19 @@ class InterfaceTarifWorkflow
 			elseif(   ((!empty($object->origin) && !empty($object->origin_id)) 
 					|| (!empty($_POST['origin']) && !empty($_POST['originid'])))
 					&& ($_POST['origin'] == "propal" || $object->origin == "commande")){
-				
+					
+				/*echo '<pre>';
+				print_r($_POST);
+				echo '</pre>'; exit;*/
 				//Cas propal on charge la ligne correspondante car non passé dans le post
 				if($_POST['origin'] == "propal"){
-					$table = "propaldet";
+					$table_origin = "propaldet";
+					
+					if(isset($_POST['facnumber']))
+						$table = "facturedet";
+					else
+						$table = "commandedet";
+					
 					$propal = new Propal($this->db);
 					$propal->fetch($_POST['originid']);
 					
@@ -251,17 +264,18 @@ class InterfaceTarifWorkflow
 	        	}
 				//Cas commande la ligne d'origine est déjà chargé dans l'objet
 				elseif($object->origin == "commande"){
-					$table = "commandedet";
+					$table_origin = "commandedet";	
+					$table = "facturedet";
 					$originid = $object->origin_id;
 				}
 				
-				$resql = $this->db->query("SELECT poids, tarif_poids FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$originid);
+				$resql = $this->db->query("SELECT poids, tarif_poids FROM ".MAIN_DB_PREFIX.$table_origin." WHERE rowid = ".$originid);
 				$res = $this->db->fetch_object($resql);
 				
 				$poids = $res->tarif_poids;
 				$weight_units = $res->poids;
 				
-				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$originid);
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
@@ -270,15 +284,6 @@ class InterfaceTarifWorkflow
 		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE') 
 				&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
 			
-			
-			/*echo '<pre>';
-			print_r($object);
-			echo '</pre>';
-			echo '<pre>';
-			print_r($_POST);
-			echo '</pre>';exit;*/
-			
-			
 			$idProd = 0;
 			if(!empty($_POST['idprod'])) $idProd = $_POST['idprod'];
 			if(!empty($_POST['productid'])) $idProd = $_POST['productid'];
@@ -286,15 +291,14 @@ class InterfaceTarifWorkflow
 			if(get_class($object) == 'PropaleLigne') $table = 'propaldet';
 			if(get_class($object) == 'OrderLine') $table = 'commandedet';
 			if(get_class($object) == 'FactureLigne') $table = 'facturedet';
-			$resql = $this->db->query("SELECT tarif_poids FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$object->rowid);
+			$resql = $this->db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$object->rowid);
 			
 			$res = $this->db->fetch_object($resql);
 			
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
 			// ET si la quantité ou le poids a changé
-			if(GETPOST('poids', 'int') && ($object->oldline->qty != $_POST['qty'] || floatval($res->tarif_poids) != floatval($_POST['poids']))){
+			if(GETPOST('poids', 'int') && ($object->oldline->qty != $_POST['qty'] || floatval($res->tarif_poids * pow(10, $res->poids)) != floatval($_POST['poids'] * pow(10, $_POST['weight_units'])))){
 				
-				//echo "1<br>";
 				$poids = (!empty($_POST['poids'])) ? floatval($_POST['poids']) : 0;
 				$weight_units = $_POST['weight_units'];
 				
@@ -322,7 +326,7 @@ class InterfaceTarifWorkflow
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 
 			}
-			//exit;
+			
 			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
 						
 		}
