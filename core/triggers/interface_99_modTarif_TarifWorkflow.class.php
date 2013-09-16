@@ -126,7 +126,7 @@ class InterfaceTarifWorkflow
 		$object_parent = $this->_getObjectParent($object);
 		
 		/*echo '<pre>';
-		print_r($product);
+		print_r($object_parent);
 		echo '</pre>'; exit;*/
 		if($product->weight_units < $weight_units)
 			$poids = $poids * pow(10, ($weight_units - $product->weight_units ));
@@ -137,6 +137,12 @@ class InterfaceTarifWorkflow
 		$object->price = $object->subprice;
 		//echo $object->subprice; exit;
 		
+ 		if(get_class($object_parent) == "Facture" && $object_parent->type == 2){ // facture d'avoir
+ 			$object->remise_percent = $object->remise_percent * (-1);
+			$object->subprice = $object->subprice * (-1);
+			$object->price = $object->subprice;
+		}
+		
 		if(get_class($object) == 'FactureLigne') $object->update($user, true);
 		else $object->update(true);
 	}
@@ -144,7 +150,7 @@ class InterfaceTarifWorkflow
 	function _updateTotauxLine(&$object,$qty){
 		//MAJ des totaux de la ligne
 		$object->total_ht = $object->subprice * $qty * (1 - $object->remise_percent / 100);
-		$object->total_tva = ($object->total_ht * (1 + ($tva_tx/100))) - $object->total_ht;
+		$object->total_tva = ($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht;
 		$object->total_ttc = $object->total_ht + $object->total_tva;
 		$object->update_total();
 	}
