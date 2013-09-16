@@ -122,11 +122,18 @@ class InterfaceTarifWorkflow
 		$product = new Product($this->db);
 		$product->fetch($idProd);
 		
+		$object_parent = $this->_getObjectParent($object);
+		
+		/*echo '<pre>';
+		print_r($object_parent);
+		echo '</pre>';exit;*/
+		
 		if($product->weight_units < $weight_units)
 			$poids = $poids * pow(10, ($weight_units - $product->weight_units ));
 		
 		$object->remise_percent = $remise;
-		$object->subprice = $product->price * $poids;
+		//$object->subprice = $product->price * $poids;
+		$object->subprice = $product->multiprices[$object_parent->client->price_level] * $poids;
 		//echo $product->price." * ".$poids; exit;
 		
 		if(get_class($object) == 'FactureLigne') $object->update($user, true);
@@ -139,6 +146,30 @@ class InterfaceTarifWorkflow
 		$object->total_tva = ($object->total_ht * (1 + ($tva_tx/100))) - $object->total_ht;
 		$object->total_ttc = $object->total_ht + $object->total_tva;
 		$object->update_total();
+	}
+	
+	function _getObjectParent(&$object){
+		switch (get_class($object)) {
+			case 'PropaleLigne':
+				$object_parent = new Propal($this->db);
+				$object_parent->fetch($object->fk_propal);
+				$object_parent->fetch_thirdparty();
+				return $object_parent;
+				break;
+			case 'OrderLine':
+				$object_parent = new Commande($this->db);
+				$object_parent->fetch($object->fk_commande);
+				$object_parent->fetch_thirdparty();
+				return $object_parent;
+				break;
+			case 'FactureLigne':
+				$object_parent = new Facture($this->db);
+				$object_parent->fetch($object->fk_facture);
+				$object_parent->fetch_thirdparty();
+				return $object_parent;
+				break;
+		}
+		return $object_parent;
 	}
 	
     /**
@@ -245,7 +276,7 @@ class InterfaceTarifWorkflow
 			echo '</pre>';
 			echo '<pre>';
 			print_r($_POST);
-			echo '</pre>';*/
+			echo '</pre>';exit;*/
 			
 			
 			$idProd = 0;
