@@ -65,6 +65,10 @@ while($flacon = fgetcsv($flaconsfile,0,'|','"')){
 	$TGlobal['emplacement'][$flacon[8]] = $flacon[7]; // TGlobal['tare']['id_produit'] = emplacement;
 }
 
+/*echo '<pre>';
+print_r($TGlobal['flacon']);
+echo '</pre>';/*
+
 /*
  * TAB LOTS
  */
@@ -327,20 +331,19 @@ function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 function _add_equipement(&$ATMdb,$TGlobal,&$line,&$produit){
 	foreach($TGlobal['lot'] as $ref_lot=>$Tinfos_lot){
 		if($Tinfos_lot['ref_produit'] == $line[0]){
-			$equipement = new TAsset;
-			$equipement->fk_product 			= $produit->id;
-			$equipement->entity 				= 0;
-			$equipement->lot_number 			= $ref_lot;
-			$equipement->tare 					= $TGlobal['tare'][$line[0]];
-			$equipement->contenancereel_value 	= $Tinfos_lot['quantite'];
-			$equipement->tare_units 			= -6;
-			$equipement->contenancereel_units 	= _unit($TGlobal['unite'][$line[8]]);
-			$equipement->emplacement			= $TGlobal['emplacement'][$line[0]];
-			
-			echo "LOT : ".$ref_lot." QUANTITE : ".$Tinfos_lot['quantite']." UNITE : "._unit($TGlobal['unite'][$line[8]])." ";
-			
 			foreach($TGlobal['flacon'] as $ref_flacon=>$flacon_ref_produit){
 				if($flacon_ref_produit == $line[0]){
+					$equipement = new TAsset;
+					$equipement->fk_product 			= $produit->id;
+					$equipement->entity 				= $conf->entity;
+					$equipement->lot_number 			= $ref_lot;
+					$equipement->tare 					= $TGlobal['tare'][$line[0]];
+					$equipement->contenancereel_value 	= $Tinfos_lot['quantite'];
+					$equipement->tare_units 			= -6;
+					$equipement->contenancereel_units 	= _unit($TGlobal['unite'][$line[8]]);
+					$equipement->emplacement			= $TGlobal['emplacement'][$line[0]];
+					
+					echo "LOT : ".$ref_lot." QUANTITE : ".$Tinfos_lot['quantite']." UNITE : "._unit($TGlobal['unite'][$line[8]])." <br>";
 					$equipement->serial_number = strtoupper($ref_flacon);
 					switch (strtoupper(substr($ref_flacon,0,1))) {
 						case 'A':
@@ -361,13 +364,13 @@ function _add_equipement(&$ATMdb,$TGlobal,&$line,&$produit){
 							break;
 					}
 					echo "FLACON : $ref_flacon<br>";
-					break;
+					$equipement->save($ATMdb,"Stock Initial");
 				}
 			}
 			/*echo '<pre>';
 			print_r($produit);
 			echo '</pre>'; exit;*/
-			$equipement->save($ATMdb,"Stock Initial");
+			//$equipement->save($ATMdb,"Stock Initial");
 			break;
 		}
 	}
@@ -446,7 +449,7 @@ fclose($articlesfile);
 /*
  * CLIENTS
  */
-$line = fgetcsv($societesfile,0,'|','`');
+/*$line = fgetcsv($societesfile,0,'|','`');
 while($line = fgetcsv($societesfile,0,'|','`')){
 	if(empty($TGlobal['societe'][$line[5]]) && !empty($line[5])){
 		if($TGlobal['type_cli'][$line[0]] == 1 || $TGlobal['type_cli'][$line[0]] == 3 || $TGlobal['type_cli'][$line[0]] == 4 ||$TGlobal['type_cli'][$line[0]] == 6)
@@ -460,12 +463,12 @@ while($line = fgetcsv($societesfile,0,'|','`')){
 		continue;
 	}
 }
-fclose($societesfile);
+fclose($societesfile);*/
 
 /*
 * FOURNISSEURS
 */
-$line = fgetcsv($fournisseursfile,0,'|','`');
+/*$line = fgetcsv($fournisseursfile,0,'|','`');
 while($line = fgetcsv($fournisseursfile,0,'|','`')){
 	if(empty($TGlobal['fournisseur'][$line[0]]) && !empty($line[0])){
 		$type = "fournisseur";
@@ -476,5 +479,5 @@ while($line = fgetcsv($fournisseursfile,0,'|','`')){
 		continue;
 	}
 }
-fclose($fournisseursfile);
+fclose($fournisseursfile);*/
 
