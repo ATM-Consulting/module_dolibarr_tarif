@@ -414,7 +414,7 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 		
 		$ATMdb->Execute('UPDATE '.MAIN_DB_PREFIX.'product SET weight_units = '._unit($string_unite[1]));
 		
-		//$produit->updatePrice($produit->id, price2num($line[59]), 'HT', $user);
+		$produit->updatePrice($produit->id, price2num($line[59]) * (1-0.15), 'HT', $user);
 		
 		//Tarifs par conditionnement
 		//Conditionnement 1

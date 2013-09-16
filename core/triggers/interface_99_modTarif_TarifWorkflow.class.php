@@ -91,7 +91,55 @@ class InterfaceTarifWorkflow
         elseif ($this->version) return $this->version;
         else return $langs->trans("Unknown");
     }
-
+	
+	function _getRemise($idProd,$qty,$poids,$weight_units){
+		//chargement des prix par conditionnement associé au produit
+		$sql = "SELECT quantite, unite, prix, unite_value, tva_tx, remise_percent
+				FROM ".MAIN_DB_PREFIX."tarif_conditionnement
+				WHERE fk_product = ".$idProd."
+				ORDER BY unite_value DESC, quantite DESC";
+		
+		$resql = $this->db->query($sql);
+		
+		// Quantité totale de produit ajoutée dans la ligne
+		$qte_totale = $qty * $poids * pow(10, $weight_units);
+		
+		//Si il existe au moin un prix par conditionnement
+		if($resql->num_rows > 0) {
+			while($res = $this->db->fetch_object($resql)){
+				$qte_totale_grille = $res->quantite * pow(10, $res->unite_value);
+				
+				if($qte_totale_grille <= $qte_totale) {
+					//Récupération de la remise
+					return $res->remise_percent;
+				}
+			}
+			return -1;
+		}
+	}
+	
+	function _updateLineProduct(&$object,&$user,$idProd,$poids,$weight_units,$remise){
+		$product = new Product($this->db);
+		$product->fetch($idProd);
+		
+		if($product->weight_units < $weight_units)
+			$poids = $poids * pow(10, ($weight_units - $product->weight_units ));
+		
+		$object->remise_percent = $remise;
+		$object->subprice = $product->price * $poids;
+		//echo $product->price." * ".$poids; exit;
+		
+		if(get_class($object) == 'FactureLigne') $object->update($user, true);
+		else $object->update(true);
+	}
+	
+	function _updateTotauxLine(&$object,$qty){
+		//MAJ des totaux de la ligne
+		$object->total_ht = $object->subprice * $qty * (1 - $object->remise_percent / 100);
+		$object->total_tva = ($object->total_ht * (1 + ($tva_tx/100))) - $object->total_ht;
+		$object->total_ttc = $object->total_ht + $object->total_tva;
+		$object->update_total();
+	}
 	
     /**
      *      Function called when a Dolibarrr business event is done.
@@ -114,106 +162,37 @@ class InterfaceTarifWorkflow
 		dol_include_once('/compta/facture/class/facture.class.php');
 		dol_include_once('/comm/propal/class/propal.class.php');
 		
-		
-		//Création ou modification d'une ligne de facture, propale ou commande
-		if (($action == 'LINEORDER_INSERT' || $action == 'LINEORDER_UPDATE' ||
-			$action == 'LINEPROPAL_INSERT' || $action == 'LINEPROPAL_UPDATE' ||
-			$action == 'LINEBILL_INSERT' || $action == 'LINEBILL_UPDATE') 
+		//Création d'une ligne de facture, propale ou commande
+		if (($action == 'LINEORDER_INSERT' || $action == 'LINEPROPAL_INSERT' || $action == 'LINEBILL_INSERT') 
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
 			
-			//init des variables utiles
-			$prix = 0;
-			$tva_tx = 0;
-			$remise = !empty($_REQUEST['remise_percent']) ? $_REQUEST['remise_percent'] : 0;
-			$poids = 0;
-			$weight_units = 0;
+			$idProd = 0;
+			if(!empty($_POST['idprod'])) $idProd = $_POST['idprod'];
+			if(!empty($_POST['productid'])) $idProd = $_POST['productid'];
 			
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
-			
 			if(GETPOST('poids', 'int')){
 				
 				$poids = (!empty($_POST['poids'])) ? floatval($_POST['poids']) : 0;
 				$weight_units = $_POST['weight_units'];
-				$idprod = 0;
-				if(!empty($_POST['idprod'])) $idProd = $_POST['idprod'];
-				if(!empty($_POST['productid'])) $idProd = $_POST['productid'];
 				
-				//Si la ligne à insérer est liée à un produit
 				if(!empty($idProd)){
 					
-					//chargement des prix par conditionnement associé au produit
-					$sql = "SELECT quantite, unite, prix, unite_value, tva_tx, remise_percent
-							FROM ".MAIN_DB_PREFIX."tarif_conditionnement
-							WHERE fk_product = ".$idProd."
-							ORDER BY unite_value DESC, quantite DESC";
+					$remise = $this->_getRemise($idProd,$_POST['qty'],$poids,$weight_units);
 					
-					$resql = $this->db->query($sql);
-					
-					// Quantité totale de produit ajoutée dans la ligne
-					$qte_totale = $_POST['qty'] * $poids * pow(10, $weight_units);
-					
-					//Si il existe au moin un prix par conditionnement
-					if($resql->num_rows > 0) {
-						
-						$found = false;
-						while($res = $this->db->fetch_object($resql)){
-							$qte_totale_grille = $res->quantite * pow(10, $res->unite_value);
-							if($qte_totale_grille <= $qte_totale) {
-								//Récupération de la remise
-								if(!empty($res->remise_percent) && empty($remise))
-									$remise = $res->remise_percent;
-								
-								$prix = $res->prix;
-								$tva_tx = $res->tva_tx;
-								
-								$found = true;
-								break;
-							}
-						}
-						
-						//Quantité en dehors de la grille alors retourner erreur
-						if(!$found) {
-							$this->db->rollback();
-							$this->db->rollback();
-							$object->error = "Quantité trop faible";
-							return -1;
-						}
+					//Quantité en dehors de la grille alors retourner erreur
+					if($remise == -1){
+						$this->db->rollback();
+						$this->db->rollback();
+						$object->error = "Quantité trop faible";
+						return -1;
 					}
 					
-					//MAJ de la ligne
-					//$object->tva_tx = $tva_tx;
-					$object->remise_percent = $remise;
-					//$object->qty = $_POST['qty'];
-					$object->subprice = $prix;
-					
-					if(get_class($object) == 'FactureLigne') $object->update($user, true);
-					else $object->update(true);
-					
-					//echo $poids / pow(10, $weight_units); exit;
-					$product = new Product($this->db);
-					$product->fetch($idProd);
-					
-					//echo $product->weight_units; exit;
-					if($product->weight_units < $weight_units)
-						$poids = $poids * pow(10, ($weight_units - $product->weight_units ));
-										
-					//MAJ des totaux de la ligne
-					$object->total_ht = $object->subprice * $_POST['qty'] * $poids * (1 - $object->remise_percent / 100);
-					$object->total_tva = ($object->total_ht * (1 + ($tva_tx/100))) - $object->total_ht;
-					$object->total_ttc = $object->total_ht + $object->total_tva;
-					$object->update_total();
+					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise);
+					$this->_updateTotauxLine($object,$_POST['qty']);
 					
 				}
-				else{
-					//MAJ des totaux d'une ligne libre
-					$object->total_ht = $object->subprice * $_POST['qty'] * $poids * (1 - $object->remise_percent / 100);
-					$object->total_tva = ($object->total_ht * (1 + ($tva_tx/100))) - $object->total_ht;
-					$object->total_ttc = $object->total_ht + $object->total_tva;
-					$object->update_total();
-				}
-				//On remet le poids originale transmis en POST dans le cas ou
-				$poids = (!empty($_POST['poids'])) ? floatval($_POST['poids']) : 0;
-				
+
 				//MAJ du poids et de l'unité de la ligne
 				if(get_class($object) == 'PropaleLigne') $table = 'propaldet';
 				if(get_class($object) == 'OrderLine') $table = 'commandedet';
@@ -245,24 +224,78 @@ class InterfaceTarifWorkflow
 					$originid = $object->origin_id;
 				}
 				
-				$prix = $object->subprice;
-				$tva_tx = $object->tva_tx;
-				$remise = $object->remise_percent;
-				$idProd = $object->fk_product;
-				
 				$resql = $this->db->query("SELECT poids, tarif_poids FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$originid);
 				$res = $this->db->fetch_object($resql);
 				
 				$poids = $res->tarif_poids;
 				$weight_units = $res->poids;
 				
-				$qte_totale = $object->qty * $poids * pow(10, $weight_units);
-						
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$originid);
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
 		}
+		
+		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE') 
+				&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
+			
+			
+			/*echo '<pre>';
+			print_r($object);
+			echo '</pre>';
+			echo '<pre>';
+			print_r($_POST);
+			echo '</pre>';*/
+			
+			
+			$idProd = 0;
+			if(!empty($_POST['idprod'])) $idProd = $_POST['idprod'];
+			if(!empty($_POST['productid'])) $idProd = $_POST['productid'];
+			
+			if(get_class($object) == 'PropaleLigne') $table = 'propaldet';
+			if(get_class($object) == 'OrderLine') $table = 'commandedet';
+			if(get_class($object) == 'FactureLigne') $table = 'facturedet';
+			$resql = $this->db->query("SELECT tarif_poids FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$object->rowid);
+			
+			$res = $this->db->fetch_object($resql);
+			
+			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
+			// ET si la quantité ou le poids a changé
+			if(GETPOST('poids', 'int') && ($object->oldline->qty != $_POST['qty'] || floatval($res->tarif_poids) != floatval($_POST['poids']))){
+				
+				//echo "1<br>";
+				$poids = (!empty($_POST['poids'])) ? floatval($_POST['poids']) : 0;
+				$weight_units = $_POST['weight_units'];
+				
+				if(!empty($idProd)){
+					
+					$remise = $this->_getRemise($idProd,$_POST['qty'],$poids,$weight_units);
+					
+					//Quantité en dehors de la grille alors retourner erreur
+					if($remise == -1){
+						$this->db->rollback();
+						$this->db->rollback();
+						$object->error = "Quantité trop faible";
+						return -1;
+					}
+					
+					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise);
+					$this->_updateTotauxLine($object,$_POST['qty']);
+					
+				}
 
+				//MAJ du poids et de l'unité de la ligne
+				if(get_class($object) == 'PropaleLigne') $table = 'propaldet';
+				if(get_class($object) == 'OrderLine') $table = 'commandedet';
+				if(get_class($object) == 'FactureLigne') $table = 'facturedet'; 
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
+
+			}
+			//exit;
+			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
+						
+		}
+		
 		//MAJ des différents prix de la grille de tarif par conditionnement lors d'une modification du prix produit
 		elseif($action == 'PRODUCT_PRICE_MODIFY'){
 			
