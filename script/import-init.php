@@ -329,6 +329,8 @@ function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 }
 
 function _add_equipement(&$ATMdb,$TGlobal,&$line,&$produit){
+	global $user;
+	
 	foreach($TGlobal['lot'] as $ref_lot=>$Tinfos_lot){
 		if($Tinfos_lot['ref_produit'] == $line[0]){
 			foreach($TGlobal['flacon'] as $ref_flacon=>$flacon_ref_produit){
@@ -364,7 +366,7 @@ function _add_equipement(&$ATMdb,$TGlobal,&$line,&$produit){
 							break;
 					}
 					echo "FLACON : $ref_flacon<br>";
-					$equipement->save($ATMdb,"Stock Initial");
+					$equipement->save($ATMdb,$user,"Stock Initial");
 				}
 			}
 			/*echo '<pre>';
