@@ -200,6 +200,15 @@ class InterfaceTarifWorkflow
 		dol_include_once('/compta/facture/class/facture.class.php');
 		dol_include_once('/comm/propal/class/propal.class.php');
 		
+		
+		/*echo '<pre>';
+		print_r($object);
+		echo '</pre>';
+		
+		echo '<pre>';
+		print_r($_REQUEST);
+		echo '</pre>';exit;*/
+		
 		//Création d'une ligne de facture, propale ou commande
 		if (($action == 'LINEORDER_INSERT' || $action == 'LINEPROPAL_INSERT' || $action == 'LINEBILL_INSERT') 
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
