@@ -29,6 +29,9 @@ function _unit($unite){
 		case 'µg':
 			return -9;
 			break;
+		case 'µg':
+			return -9;
+			break;
 		case 'mg':
 			return -6;
 			break;
@@ -90,7 +93,7 @@ while($type_cli = fgetcsv($typeclifile,0,'|','"')){
  * CATEGORIES DE PRODUITS
  */ 
 
-while($line = fgetcsv($categoriesfile,0,'|','"')){
+while($line = fgetcsv($categoriesfile,0,'|','`')){
 	
 	$categorie = new Categorie($db);
 	$categorie->label = preg_replace("(\r\n|\n|\r|<br>)",' ',$line[1]);
@@ -128,6 +131,7 @@ function _add_condi(&$ATMdb,&$line,&$produit,$nbColUnit,$nbColPrix,$nbColRem){
 function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 	
 	$base_pays = array('JAPAN' => 'Japon',
+						'JAPON' => 'Japon',
 						'Japan' => 'Japon',
 						'Poland' => 'Pologne',
 						'United Kindom' => 'United Kingdom',
@@ -158,6 +162,7 @@ function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 						'Lebanon' => 'Liban',
 						'Puerto Rico' => 'Porto Rico',
 						'TAIWAN ROC' => 'Taïwan',
+						'Taiwan R.O.C' => 'Taïwan',
 						'New Zealand' => 'Nouvelle-Zélande',
 						'Croatia' => 'Croatie',
 						'Brasil' => 'Brazil',
@@ -165,6 +170,7 @@ function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 						'Vietnam' => 'Viêt Nam',
 						'South Korea' => 'South Corea',
 						'South Africa' => 'Afrique du Sud',
+						'AFRIQUE DU SUD' => 'Afrique du Sud',
 						'MALAYSIA' => 'Malaisie',
 						'Malaysia' => 'Malaisie',
 						'New Mexico' => 'United States',
@@ -188,14 +194,66 @@ function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 						'PR CHINA' => 'China',
 						'PR China' => 'China',
 						'Québec, Canada' => 'Canada',
-						'Ontario-Canada' => 'Canada'
+						'Ontario-Canada' => 'Canada',
+						'Armenia'=>'Arménie',
+						'BELARUS'=> 'Biélorussie',
+						'Burkina-Faso'=> 'Burkina Faso',
+						'Bosnia ana Herzegovina'=>'Bosnie-Herzégovine',
+						'California'=>'United States',
+						'Colombia'=>'Colombie',
+						'COSTA RICA'=>'Costa Rica',
+						'Cyprus'=>'Chypre',
+						'Czech Republic'=>'République Tchèque',
+						'CZECH Republik'=>'République Tchèque',
+						'Denmark'=>'Danemark',
+						'INDIA'=>'India',
+						'Indonesia'=>'Indonésie',
+						'Israël'=>'Israel',
+						'Jordan'=>'Jordanie',
+						'Korea South'=>'South Corea',
+						'NIGER'=>'Niger',
+						'Northern Ireland-UK'=>'Irland',
+						'Northern Ireland'=>'Irland',
+						'Norway'=>'Norvège',
+						'Ontario-Canada'=>'Canada',
+						'Philipines'=>'Philippines',
+						'PORTUGAL'=>'Portugal',
+						'Romania'=>'Roumanie',
+						'Selangor'=>'Malaisie',
+						'Selangor Darul Ehsan-MALAYSIA'=>'Malaisie',
+						'Serbia'=>'Serbie',
+						'Slovenia'=>'Slovénie',
+						'Sudan'=>'Soudan',
+						'Suisse'=>'Switzerland',
+						'Sultanate de Oman'=>'Oman',
+						'Syria'=>'Syrie',
+						'Taiwan' => 'Taïwan',
+						'Thailand'=>'Thaïlande',
+						'Turkey'=>'Turquie',
+						'UKRAINE'=>'Ukraine',
+						'URUGUAY'=>'Uruguay',
+						'Uzbekistan'=>'Ouzbékistan',
+						'Venezuela'=>'Vénézuela',
+						'Vicenza Italia'=>'Italy',
+						'Vietnam'=>'Viêt Nam',
+						'Western Australia'=>'Australia',
+						'FRANCE'=>'France',
+						'GEORGIA'=>'Georgia',
+						'Géorgie'=>'Georgia',
+						'ISRAEL'=>'Israel',
+						'Republic South Africa'=>'Afrique du Sud',
+						'RUSSIA'=>'Russia',
+						'TAÏWAN'=>'Taïwan'
 					);
 	
 	$pays = preg_replace("(\r\n|\n|\r|<br>)",'',$line[9]);
 	if(in_array(htmlentities($pays,ENT_QUOTES,'UTF-8'), array_keys($base_pays)))
 		$pays = htmlentities($base_pays[$pays],ENT_QUOTES,'UTF-8');
-	else
+	elseif(!empty($pays))
 		$pays = htmlentities($pays,ENT_QUOTES,'UTF-8');
+	else
+		$pays = "France";
+	
 	
 	echo "-------- ".$pays." ------------<br>";					
 	
@@ -372,7 +430,6 @@ function _add_equipement(&$ATMdb,$TGlobal,&$line,&$produit){
 			/*echo '<pre>';
 			print_r($produit);
 			echo '</pre>'; exit;*/
-			//$equipement->save($ATMdb,"Stock Initial");
 			break;
 		}
 	}
@@ -419,7 +476,7 @@ while($line = fgetcsv($articlesfile,0,'|','"')){
 		
 		$ATMdb->Execute('UPDATE '.MAIN_DB_PREFIX.'product SET weight_units = '._unit($string_unite[1]));
 		
-		$produit->updatePrice($produit->id, price2num($line[59]) * (1-0.15), 'HT', $user);
+		$produit->updatePrice($produit->id, price2num($line[59]) * (1-0.15), 'HT', $user,'','',2);
 		
 		//Tarifs par conditionnement
 		//Conditionnement 1
@@ -451,7 +508,7 @@ fclose($articlesfile);
 /*
  * CLIENTS
  */
-/*$line = fgetcsv($societesfile,0,'|','`');
+$line = fgetcsv($societesfile,0,'|','`');
 while($line = fgetcsv($societesfile,0,'|','`')){
 	if(empty($TGlobal['societe'][$line[5]]) && !empty($line[5])){
 		if($TGlobal['type_cli'][$line[0]] == 1 || $TGlobal['type_cli'][$line[0]] == 3 || $TGlobal['type_cli'][$line[0]] == 4 ||$TGlobal['type_cli'][$line[0]] == 6)
@@ -465,12 +522,12 @@ while($line = fgetcsv($societesfile,0,'|','`')){
 		continue;
 	}
 }
-fclose($societesfile);*/
+fclose($societesfile);
 
 /*
 * FOURNISSEURS
 */
-/*$line = fgetcsv($fournisseursfile,0,'|','`');
+$line = fgetcsv($fournisseursfile,0,'|','`');
 while($line = fgetcsv($fournisseursfile,0,'|','`')){
 	if(empty($TGlobal['fournisseur'][$line[0]]) && !empty($line[0])){
 		$type = "fournisseur";
@@ -481,5 +538,5 @@ while($line = fgetcsv($fournisseursfile,0,'|','`')){
 		continue;
 	}
 }
-fclose($fournisseursfile);*/
+fclose($fournisseursfile);
 
