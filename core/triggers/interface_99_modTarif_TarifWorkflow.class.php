@@ -199,13 +199,11 @@ class InterfaceTarifWorkflow
 		dol_include_once('/fourn/class/fournisseur.commande.class.php');
 		dol_include_once('/compta/facture/class/facture.class.php');
 		dol_include_once('/comm/propal/class/propal.class.php');
+		dol_include_once('/dispatch/class/dispatchdetail.class.php');
 		
+		global $user;
 		
 		/*echo '<pre>';
-		print_r($object);
-		echo '</pre>';
-		
-		echo '<pre>';
 		print_r($_REQUEST);
 		echo '</pre>';exit;*/
 		
@@ -213,9 +211,6 @@ class InterfaceTarifWorkflow
 		if (($action == 'LINEORDER_INSERT' || $action == 'LINEPROPAL_INSERT' || $action == 'LINEBILL_INSERT') 
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
 			
-			/*echo '<pre>';
-			print_r($object);
-			echo '</pre>';exit;*/
 			$idProd = 0;
 			if(!empty($_POST['idprod'])) $idProd = $_POST['idprod'];
 			if(!empty($_POST['productid'])) $idProd = $_POST['productid'];
@@ -227,6 +222,7 @@ class InterfaceTarifWorkflow
 				$weight_units = $_POST['weight_units'];
 				
 				if(!empty($idProd)){
+					
 					
 					$remise = $this->_getRemise($idProd,$_POST['qty'],$poids,$weight_units);
 					
@@ -255,14 +251,10 @@ class InterfaceTarifWorkflow
 			// => filtre sur propale ou commande car confli éventuel avec le trigger sur expédition
 			elseif(   ((!empty($object->origin) && !empty($object->origin_id)) 
 					|| (!empty($_POST['origin']) && !empty($_POST['originid'])))
-					&& ($_POST['origin'] == "propal" || $object->origin == "commande")){
-					
-				/*echo '<pre>';
-				print_r($_POST);
-				echo '</pre>'; exit;*/
+					&& ($_POST['origin'] == "propal" || $object->origin == "commande" || $object->origin == "shipping")){
+
 				//Cas propal on charge la ligne correspondante car non passé dans le post
 				if($_POST['origin'] == "propal"){
-					$table_origin = "propaldet";
 					
 					if(isset($_POST['facnumber']))
 						$table = "facturedet";
@@ -276,19 +268,34 @@ class InterfaceTarifWorkflow
 						if($line->rang == $object->rang)
 							$originid = $line->rowid;
 					}
+					
+					$sql = "SELECT weight, weight_unit FROM ".MAIN_DB_PREFIX."propaldet WHERE fk_expeditiondet = ".$originid;
 	        	}
 				//Cas commande la ligne d'origine est déjà chargé dans l'objet
 				elseif($object->origin == "commande"){
-					$table_origin = "commandedet";	
 					$table = "facturedet";
 					$originid = $object->origin_id;
+					$sql = "SELECT weight, weight_unit FROM ".MAIN_DB_PREFIX."commandedet WHERE fk_expeditiondet = ".$originid;
 				}
 				
-				$resql = $this->db->query("SELECT poids, tarif_poids FROM ".MAIN_DB_PREFIX.$table_origin." WHERE rowid = ".$originid);
+				elseif($object->origin == "shipping"){
+					$table = "facturedet";
+					$originid = $object->origin_id;
+					
+					$sql = "SELECT SUM(eda.weight) as weight, eda.weight_units as weight_unit
+							FROM ".MAIN_DB_PREFIX."expeditiondet_asset eda
+								LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (ed.rowid = eda.fk_expeditiondet)
+								LEFT JOIN ".MAIN_DB_PREFIX."commandedet as cd ON (cd.rowid = fk_origin_line)
+								LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = cd.fk_product)
+							WHERE eda.fk_expeditiondet = ".$originid."
+							GROUP BY cd.fk_product = ".$object->fk_product;
+ 				}
+				
+				$resql = $this->db->query($sql);
 				$res = $this->db->fetch_object($resql);
 				
-				$poids = $res->tarif_poids;
-				$weight_units = $res->poids;
+				$poids = $res->weight;
+				$weight_units = $res->weight_unit;
 				
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 			}
@@ -343,21 +350,47 @@ class InterfaceTarifWorkflow
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
-						
+
 		}
 		
 		//MAJ des différents prix de la grille de tarif par conditionnement lors d'une modification du prix produit
 		elseif($action == 'PRODUCT_PRICE_MODIFY'){
 			
-			$resql = $this->db->query("SELECT rowid FROM ".MAIN_DB_PREFIX."tarif_conditionnement WHERE fk_product = ".$object->id);
-			
-			if($resql->num_rows > 0){
-				$res = $this->db->fetch_object($resql);
-				$this->db->query("UPDATE ".MAIN_DB_PREFIX."tarif_conditionnement 
+				$resql = $this->db->query("SELECT rowid FROM ".MAIN_DB_PREFIX."tarif_conditionnement WHERE fk_product = ".$object->id);
+				
+				if($resql->num_rows > 0){
+					$res = $this->db->fetch_object($resql);
+					//MAJ des tarifs par conditionnement
+					$this->db->query("UPDATE ".MAIN_DB_PREFIX."tarif_conditionnement 
 									  SET tva_tx = ".$object->tva_tx.", price_base_type = '".$object->price_base_type."', prix = ".$object->price." 
 									  WHERE fk_product = ".$object->id);
+				}
+
+				//MAJ du prix 2
+				if(isset($_REQUEST['price_1'])){
+					$level = 2;	
+					$price = $_REQUEST['price_1'] * (1 - 0.15);
+					$price_ttc = $price * (1 + ($_REQUEST['tva_tx_1'] / 100));
+					$base = $_REQUEST['multiprices_base_type_1'];
+					$tva_tx = $_REQUEST['tva_tx_1'];
+				}
+				//MAJ du prix 1
+				else{
+					$level = 1;
+					$price = $_REQUEST['price_2'] * (1 + 0.15);
+					$price_ttc = $price * (1 + ($_REQUEST['tva_tx_2'] / 100));
+					$base = $_REQUEST['multiprices_base_type_2'];
+					$tva_tx = $_REQUEST['tva_tx_2'];
+				}
+				$now=dol_now();
+				
+				$sql = "INSERT INTO ".MAIN_DB_PREFIX."product_price
+					(price_level,date_price,fk_product,fk_user_author,price,price_ttc,price_base_type,tosell,tva_tx,recuperableonly,localtax1_tx, localtax2_tx, price_min,price_min_ttc,price_by_qty,entity) 
+					VALUES
+					(".$level.",'".$this->db->idate($now)."',".$object->id.",".$user->id.",".$price.",".$price_ttc.",'".$base."',".$object->status.",".$tva_tx.",".$object->tva_npr.",".$object->localtax1_tx.",".$object->localtax2_tx.",".$object->price_min.",".$object->price_min_ttc.",0,".$conf->entity.")";
+				
+				$this->db->query($sql);
 			}
-		}
 
 		return 1;
 	}
