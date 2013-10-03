@@ -282,7 +282,7 @@ class InterfaceTarifWorkflow
 					$table = "facturedet";
 					$originid = $object->origin_id;
 					
-					$sql = "SELECT SUM(eda.weight) as weight, eda.weight_unit as weight_unit
+					$sql = "SELECT SUM(eda.weight) as weight, eda.weight_unit as weight_unit, cd.price, cd.tarif_poids, cd.poids
 							FROM ".MAIN_DB_PREFIX."expeditiondet_asset eda
 								LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (ed.rowid = eda.fk_expeditiondet)
 								LEFT JOIN ".MAIN_DB_PREFIX."commandedet as cd ON (cd.rowid = fk_origin_line)
@@ -304,6 +304,10 @@ class InterfaceTarifWorkflow
 				
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 				
+				$object->subprice = number_format((($res->weight * $res->price) / $res->tarif_poids) * pow(10, $res->weight_unit - $res->poids),2,'.','');
+				$object->update($user);
+				$this->_updateTotauxLine($object,$object->qty);
+				
 				//Si plusieurs flacons avec des unités différentes ont été envoyé
 				//on ajoute des lignes de facture suplémentaire
 				while($res = $this->db->fetch_object($resql)){
@@ -311,7 +315,11 @@ class InterfaceTarifWorkflow
 					$poids = $res->weight;
 					$weight_units = $res->weight_unit;
 					
-					$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);	
+					$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
+					
+					$object->subprice = number_format((($res->weight * $res->price) / $res->tarif_poids) * pow(10, $res->weight_unit - $res->poids),2,'.','');
+					$object->update($user);	
+					$this->_updateTotauxLine($object,$object->qty);
 				}
 			}
 			
@@ -371,41 +379,41 @@ class InterfaceTarifWorkflow
 		//MAJ des différents prix de la grille de tarif par conditionnement lors d'une modification du prix produit
 		elseif($action == 'PRODUCT_PRICE_MODIFY'){
 			
-				$resql = $this->db->query("SELECT rowid FROM ".MAIN_DB_PREFIX."tarif_conditionnement WHERE fk_product = ".$object->id);
-				
-				if($resql->num_rows > 0){
-					$res = $this->db->fetch_object($resql);
-					//MAJ des tarifs par conditionnement
-					$this->db->query("UPDATE ".MAIN_DB_PREFIX."tarif_conditionnement 
-									  SET tva_tx = ".$object->tva_tx.", price_base_type = '".$object->price_base_type."', prix = ".$object->price." 
-									  WHERE fk_product = ".$object->id);
-				}
-
-				//MAJ du prix 2
-				if(isset($_REQUEST['price_1'])){
-					$level = 2;	
-					$price = $_REQUEST['price_1'] * (1 - 0.15);
-					$price_ttc = $price * (1 + ($_REQUEST['tva_tx_1'] / 100));
-					$base = $_REQUEST['multiprices_base_type_1'];
-					$tva_tx = $_REQUEST['tva_tx_1'];
-				}
-				//MAJ du prix 1
-				else{
-					$level = 1;
-					$price = $_REQUEST['price_2'] * (1 + 0.15);
-					$price_ttc = $price * (1 + ($_REQUEST['tva_tx_2'] / 100));
-					$base = $_REQUEST['multiprices_base_type_2'];
-					$tva_tx = $_REQUEST['tva_tx_2'];
-				}
-				$now=dol_now();
-				
-				$sql = "INSERT INTO ".MAIN_DB_PREFIX."product_price
-					(price_level,date_price,fk_product,fk_user_author,price,price_ttc,price_base_type,tosell,tva_tx,recuperableonly,localtax1_tx, localtax2_tx, price_min,price_min_ttc,price_by_qty,entity) 
-					VALUES
-					(".$level.",'".$this->db->idate($now)."',".$object->id.",".$user->id.",".$price.",".$price_ttc.",'".$base."',".$object->status.",".$tva_tx.",".$object->tva_npr.",".$object->localtax1_tx.",".$object->localtax2_tx.",".$object->price_min.",".$object->price_min_ttc.",0,".$conf->entity.")";
-				
-				$this->db->query($sql);
+			$resql = $this->db->query("SELECT rowid FROM ".MAIN_DB_PREFIX."tarif_conditionnement WHERE fk_product = ".$object->id);
+			
+			if($resql->num_rows > 0){
+				$res = $this->db->fetch_object($resql);
+				//MAJ des tarifs par conditionnement
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX."tarif_conditionnement 
+								  SET tva_tx = ".$object->tva_tx.", price_base_type = '".$object->price_base_type."', prix = ".$object->price." 
+								  WHERE fk_product = ".$object->id);
 			}
+
+			//MAJ du prix 2
+			if(isset($_REQUEST['price_1'])){
+				$level = 2;	
+				$price = $_REQUEST['price_1'] * (1 - 0.15);
+				$price_ttc = $price * (1 + ($_REQUEST['tva_tx_1'] / 100));
+				$base = $_REQUEST['multiprices_base_type_1'];
+				$tva_tx = $_REQUEST['tva_tx_1'];
+			}
+			//MAJ du prix 1
+			else{
+				$level = 1;
+				$price = $_REQUEST['price_2'] * (1 + 0.15);
+				$price_ttc = $price * (1 + ($_REQUEST['tva_tx_2'] / 100));
+				$base = $_REQUEST['multiprices_base_type_2'];
+				$tva_tx = $_REQUEST['tva_tx_2'];
+			}
+			$now=dol_now();
+			
+			$sql = "INSERT INTO ".MAIN_DB_PREFIX."product_price
+				(price_level,date_price,fk_product,fk_user_author,price,price_ttc,price_base_type,tosell,tva_tx,recuperableonly,localtax1_tx, localtax2_tx, price_min,price_min_ttc,price_by_qty,entity) 
+				VALUES
+				(".$level.",'".$this->db->idate($now)."',".$object->id.",".$user->id.",".$price.",".$price_ttc.",'".$base."',".$object->status.",".$tva_tx.",".$object->tva_npr.",".$object->localtax1_tx.",".$object->localtax2_tx.",".$object->price_min.",".$object->price_min_ttc.",0,".$conf->entity.")";
+			
+			$this->db->query($sql);
+		}
 
 		return 1;
 	}
