@@ -11,3 +11,10 @@
 	Ligne 1360 => création d'une propriété rowid dans l'objet ExpeditionLigne 
 	
 		var $rowid;
+		
+
+	//AJOUTER LES MICRO-GRAMMES COMME UNITE DANS DOLIBARR 
+	
+	htdocs -> langs -> fr_FR -> ajouter WeightUnitμg=μg
+	htdocs -> core -> lib -> product.lib.php -> measuring_units_string -> ajouter $measuring_units[-9] = $langs->trans(""WeightUnitμg"");
+	htdocs -> product -> class -> html.formproduct.class.php -> ajouter -9 => 1 dans le tableau if ($measuring_style == 'weight')"
