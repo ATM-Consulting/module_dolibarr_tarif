@@ -18,14 +18,14 @@ $flaconsfile = fopen('../import/flaconsOK.csv','r');
 /*
  * TAB FLACON
  */
-$flacon = fgetcsv($flaconsfile,0,'|','"');
+$TInfo = fgetcsv($flaconsfile,0,'|','"');
 while($TInfo = fgetcsv($flaconsfile,0,'|','"')){
 	$emp = $TInfo[0];
 	$numflacon = $TInfo[1];
 	$refproduit = $TInfo[2];
 	$lot = $TInfo[3];
 	$tare = $TInfo[5];
-	$poids = $TInfo[6];
+	$poids = price2num($TInfo[6]);
 	
 	echo "Flacon ".$numflacon;
 	
@@ -36,6 +36,7 @@ while($TInfo = fgetcsv($flaconsfile,0,'|','"')){
 		if($produit->id == $flacon->fk_product) {
 			$flacon->emplacement = $emp;
 			$flacon->contenancereel_value = $poids;
+			$flacon->old_contenancereel = $poids;
 			$flacon->lot_number = $lot;
 			if(!empty($flacon->TStock[0])) {
 				$flacon->TStock[0]->qty = $poids;
@@ -51,8 +52,5 @@ while($TInfo = fgetcsv($flaconsfile,0,'|','"')){
 	}
 	
 	echo "<br />";
-	
-	
-	break;
 }
 
