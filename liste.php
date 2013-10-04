@@ -39,30 +39,6 @@
 	print '</tr>';
 	// TVA
     print '<tr><td>'.$langs->trans("VATRate").'</td><td>'.vatrate($object->tva_tx.($object->tva_npr?'*':''),true).'</td></tr>';
-
-    // Price
-	print '<tr><td>'.$langs->trans("SellingPrice").'</td><td>';
-	if ($object->price_base_type == 'TTC')
-	{
-		print price($object->price_ttc).' '.$langs->trans($object->price_base_type);
-	}
-	else
-	{
-		print price($object->price).' '.$langs->trans($object->price_base_type);
-	}
-	print '</td></tr>';
-	
-	// Price minimum
-	print '<tr><td>'.$langs->trans("MinPrice").'</td><td>';
-	if ($object->price_base_type == 'TTC')
-	{
-		print price($object->price_min_ttc).' '.$langs->trans($object->price_base_type);
-	}
-	else
-	{
-		print price($object->price_min).' '.$langs->trans($object->price_base_type);
-	}
-	print '</td></tr>';
 	
 	// Status (to sell)
 	print '<tr><td>'.$langs->trans("Status").' ('.$langs->trans("Sell").')</td><td>';
