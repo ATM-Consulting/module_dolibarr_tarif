@@ -27,9 +27,32 @@ while($TInfo = fgetcsv($flaconsfile,0,'|','"')){
 	$tare = $TInfo[5];
 	$poids = $TInfo[6];
 	
+	echo "Flacon ".$numflacon;
+	
 	$flacon = new TAsset();
-	$flacon->loadReference($ATMdb, $numflacon);
-	pre($flacon);
+	if($flacon->loadReference($ATMdb, $numflacon)) {
+		$produit = new Product($db);
+		$produit->fetch(0, $refproduit);
+		if($produit->id == $flacon->fk_product) {
+			$flacon->emplacement = $emp;
+			$flacon->contenancereel_value = $poids;
+			$flacon->lot_number = $lot;
+			if(!empty($flacon->TStock[0])) {
+				$flacon->TStock[0]->qty = $poids;
+			}
+			//$flacon->save($ATMdb);
+			echo " OK";
+		} else {
+			echo " mauvais produit";
+		}
+		
+	} else {
+		echo " non trouvé";
+	}
+	
+	echo "<br />";
+	
+	
 	break;
 }
 
