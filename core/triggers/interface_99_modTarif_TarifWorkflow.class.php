@@ -269,13 +269,13 @@ class InterfaceTarifWorkflow
 							$originid = $line->rowid;
 					}
 					
-					$sql = "SELECT weight, weight_unit FROM ".MAIN_DB_PREFIX."propaldet WHERE fk_expeditiondet = ".$originid;
+					$sql = "SELECT tarif_poids as weight, poids as weight_unit FROM ".MAIN_DB_PREFIX."propaldet WHERE rowid = ".$originid;
 	        	}
 				//Cas commande la ligne d'origine est déjà chargé dans l'objet
 				elseif($object->origin == "commande"){
 					$table = "facturedet";
 					$originid = $object->origin_id;
-					$sql = "SELECT weight, weight_unit FROM ".MAIN_DB_PREFIX."commandedet WHERE fk_expeditiondet = ".$originid;
+					$sql = "SELECT tarif_poids as weight, poids as weight_unit FROM ".MAIN_DB_PREFIX."commandedet WHERE rowid = ".$originid;
 				}
 				
 				elseif($object->origin == "shipping"){
@@ -301,25 +301,27 @@ class InterfaceTarifWorkflow
 				
 				$poids = $res->weight;
 				$weight_units = $res->weight_unit;
-				
+
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 				
-				$object->subprice = number_format((($res->weight * $res->price) / $res->tarif_poids) * pow(10, $res->weight_unit - $res->poids),2,'.','');
-				$object->update($user);
-				$this->_updateTotauxLine($object,$object->qty);
-				
-				//Si plusieurs flacons avec des unités différentes ont été envoyé
-				//on ajoute des lignes de facture suplémentaire
-				while($res = $this->db->fetch_object($resql)){
-					$newrowid = $object->insert(true);
-					$poids = $res->weight;
-					$weight_units = $res->weight_unit;
-					
-					$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
-					
+				if($object->origin == "shipping"){
 					$object->subprice = number_format((($res->weight * $res->price) / $res->tarif_poids) * pow(10, $res->weight_unit - $res->poids),2,'.','');
-					$object->update($user);	
+					$object->update($user);
 					$this->_updateTotauxLine($object,$object->qty);
+					
+					//Si plusieurs flacons avec des unités différentes ont été envoyé
+					//on ajoute des lignes de facture suplémentaire
+					while($res = $this->db->fetch_object($resql)){
+						$newrowid = $object->insert(true);
+						$poids = $res->weight;
+						$weight_units = $res->weight_unit;
+						
+						$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
+						
+						$object->subprice = number_format((($res->weight * $res->price) / $res->tarif_poids) * pow(10, $res->weight_unit - $res->poids),2,'.','');
+						$object->update($user);	
+						$this->_updateTotauxLine($object,$object->qty);
+					}
 				}
 			}
 			
