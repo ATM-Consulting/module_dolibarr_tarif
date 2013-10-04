@@ -387,7 +387,7 @@ function _add_tiers(&$ATMdb,&$user,&$db,&$line,$type){
 }
 
 function _add_equipement(&$ATMdb,$TGlobal,&$line,&$produit){
-	global $user;
+	global $user, $conf;
 	
 	foreach($TGlobal['lot'] as $ref_lot=>$Tinfos_lot){
 		if($Tinfos_lot['ref_produit'] == $line[0]){
