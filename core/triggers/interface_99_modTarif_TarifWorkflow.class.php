@@ -116,10 +116,13 @@ class InterfaceTarifWorkflow
 			}
 			return -1;
 		}
-		return -2;
+		//return -2;
 	}
 	
 	function _updateLineProduct(&$object,&$user,$idProd,$poids,$weight_units,$remise){
+		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
+		dol_include_once('/tarif/config.php');
+		
 		$product = new Product($this->db);
 		$product->fetch($idProd);
 		
@@ -132,8 +135,8 @@ class InterfaceTarifWorkflow
 			$poids = $poids * pow(10, ($weight_units - $product->weight_units ));
 			
 		//echo $product->price; exit;
-		$object->remise_percent = ($remise < 0) ? 0 : $remise;
-		if($remise != -2)
+		$object->remise_percent = $remise;
+		if(CALCULATE_PRICE_ON_WEIGHT)
 			$object->subprice = (!empty($product->multiprices[$object_parent->client->price_level])) ? $product->multiprices[$object_parent->client->price_level] * $poids : $product->price * $poids;
 		else
 			$object->subprice = $product->price;

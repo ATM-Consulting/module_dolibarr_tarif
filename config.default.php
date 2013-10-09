@@ -5,23 +5,29 @@
 	define('COREHTTP','http://127.0.0.1/ATM/atm-core/');
 	define('HTTP','http://localhost/dolibarr/');
 
-if(!defined('INC_FROM_DOLIBARR') && defined('INC_FROM_CRON_SCRIPT')) {
-	include(ROOT."master.inc.php");
-}
-elseif(!defined('INC_FROM_DOLIBARR')) {
-	include(ROOT."main.inc.php");
-} else {
-	global $dolibarr_main_db_host, $dolibarr_main_db_name, $dolibarr_main_db_user, $dolibarr_main_db_pass;
-}
-
-if(!empty($dolibarr_main_db_host)) {
-	define('DB_HOST',$dolibarr_main_db_host);
-	define('DB_NAME',$dolibarr_main_db_name);
-	define('DB_USER',$dolibarr_main_db_user);
-	define('DB_PASS',$dolibarr_main_db_pass);
-	define('DB_DRIVER','mysqli');
-}
+	if(!defined('INC_FROM_DOLIBARR') && defined('INC_FROM_CRON_SCRIPT')) {
+		include(ROOT."master.inc.php");
+	}
+	elseif(!defined('INC_FROM_DOLIBARR')) {
+		include(ROOT."main.inc.php");
+	} else {
+		global $dolibarr_main_db_host, $dolibarr_main_db_name, $dolibarr_main_db_user, $dolibarr_main_db_pass;
+	}
+	
+	if(!empty($dolibarr_main_db_host)) {
+		define('DB_HOST',$dolibarr_main_db_host);
+		define('DB_NAME',$dolibarr_main_db_name);
+		define('DB_USER',$dolibarr_main_db_user);
+		define('DB_PASS',$dolibarr_main_db_pass);
+		define('DB_DRIVER','mysqli');
+	}
+	
 	define('DOL_PACKAGE', true);
 	define('USE_TBS', true);
 
 	require(COREROOT.'inc.core.php');
+	
+	//Défini la manière de calculer le PU d 'une ligne
+	// TRUE => PU ligne = poids ligne * PU produit (Latoxan)
+	// FALSE => PU ligne = PU produit (Tunougates)
+	define('CALCULATE_PRICE_ON_WEIGHT',TRUE);
