@@ -116,7 +116,7 @@ class InterfaceTarifWorkflow
 			}
 			return -1;
 		}
-		//return 0;
+		return -2;
 	}
 	
 	function _updateLineProduct(&$object,&$user,$idProd,$poids,$weight_units,$remise){
@@ -132,8 +132,11 @@ class InterfaceTarifWorkflow
 			$poids = $poids * pow(10, ($weight_units - $product->weight_units ));
 			
 		//echo $product->price; exit;
-		$object->remise_percent = $remise;
-		$object->subprice = (!empty($product->multiprices[$object_parent->client->price_level])) ? $product->multiprices[$object_parent->client->price_level] * $poids : $product->price * $poids;
+		$object->remise_percent = ($remise < 0) ? 0 : $remise;
+		if($remise != -2)
+			$object->subprice = (!empty($product->multiprices[$object_parent->client->price_level])) ? $product->multiprices[$object_parent->client->price_level] * $poids : $product->price * $poids;
+		else
+			$object->subprice = $product->price;
 		$object->price = $object->subprice;
 		//echo $object->subprice; exit;
 		
