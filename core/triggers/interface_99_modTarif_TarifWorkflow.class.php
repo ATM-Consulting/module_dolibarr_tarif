@@ -136,10 +136,7 @@ class InterfaceTarifWorkflow
 			
 		//echo $product->price; exit;
 		$object->remise_percent = $remise;
-		if(CALCULATE_PRICE_ON_WEIGHT)
-			$object->subprice = (!empty($product->multiprices[$object_parent->client->price_level])) ? $product->multiprices[$object_parent->client->price_level] * $poids : $product->price * $poids;
-		else
-			$object->subprice = $product->price;
+		$object->subprice = (!empty($product->multiprices[$object_parent->client->price_level])) ? $product->multiprices[$object_parent->client->price_level] * $poids : $product->price * $poids;
 		$object->price = $object->subprice;
 		//echo $object->subprice; exit;
 		

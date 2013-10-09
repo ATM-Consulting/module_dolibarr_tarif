@@ -26,8 +26,3 @@
 	define('USE_TBS', true);
 
 	require(COREROOT.'inc.core.php');
-	
-	//Défini la manière de calculer le PU d 'une ligne
-	// TRUE => PU ligne = poids ligne * PU produit (Latoxan)
-	// FALSE => PU ligne = PU produit (Tunougates)
-	define('CALCULATE_PRICE_ON_WEIGHT',TRUE);

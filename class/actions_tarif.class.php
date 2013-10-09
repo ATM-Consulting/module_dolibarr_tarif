@@ -168,6 +168,7 @@ class ActionsTarif
 							if(select.unite != ""){
 								$('#weight_unitsAff_product').val(select.unite);
 								$('#weight_unitsAff_product').prev().show();
+								$('#poidsAffProduct').val(select.poids);
 								$('#weight_unitsAff_product').show();
 								$('#AffUnite').hide();
 							}
