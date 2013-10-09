@@ -15,6 +15,8 @@ class ActionsTarif
 		include_once(DOL_DOCUMENT_ROOT."/commande/class/commande.class.php");
 		include_once(DOL_DOCUMENT_ROOT."/compta/facture/class/facture.class.php");
 		include_once(DOL_DOCUMENT_ROOT."/comm/propal/class/propal.class.php");
+		include_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
+		include_once(DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php');
 		
     	if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context'])))
         {
@@ -44,27 +46,13 @@ class ActionsTarif
 				<script type="text/javascript">
 					$(document).ready(function(){
 						<?php
+						$formproduct = new FormProduct($db);
 						foreach($instance->lines as $line){
 	         				$resql = $db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$line->rowid);
 							$res = $db->fetch_object($resql);
-							switch($res->poids){
-								case -9:
-									$unite = "μg";
-									break;
-								case -6:
-									$unite = "mg";
-									break;
-								case -3:
-									$unite = "g";
-									break;
-								case 0:
-									$unite = "kg";
-									break;
-							}
-							
 							if($line->rowid == $_REQUEST['lineid']){
 								?>
-								$('input[name=qty]').parent().after('<td align="right"><input id="poidsAff" type="text" value="<?php if(!is_null($res->tarif_poids)) echo number_format($res->tarif_poids,2,",",""); ?>" name="poidsAff" size="6"><select class="flat" name="weight_unitsAff" id="weight_unitsAff"><option value="-9" <?php if($unite == "μg") echo ' selected="selected" '; ?>>μg</option><option value="-6" <?php if($unite == "mg") echo ' selected="selected" '; ?>>mg</option><option value="-3" <?php if($unite == "g") echo ' selected="selected" '; ?>>g</option><option value="0" <?php if($unite == "kg") echo ' selected="selected" '; ?>>kg</option></select></td>');
+								$('input[name=qty]').parent().after('<td align="right"><input id="poidsAff" type="text" value="<?php if(!is_null($res->tarif_poids)) echo number_format($res->tarif_poids,2,",",""); ?>" name="poidsAff" size="6"><?php $formproduct->select_measuring_units("weight_unitsAff", "weight", $res->poids); ?></td>');
 								$('input[name=token]').prev().append('<input id="poids" type="hidden" value="0" name="poids" size="3">');
 					         	$('input[name=token]').prev().append('<input id="weight_units" type="hidden" value="0" name="weight_units" size="3">');
 					         	$('#savelinebutton').click(function() {
@@ -94,6 +82,8 @@ class ActionsTarif
 		include_once(DOL_DOCUMENT_ROOT."/compta/facture/class/facture.class.php");
 		include_once(DOL_DOCUMENT_ROOT."/comm/propal/class/propal.class.php");
 		include_once(DOL_DOCUMENT_ROOT."/core/lib/functions.lib.php");
+		include_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
+		include_once(DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php');
 		
 		if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
         {
@@ -118,24 +108,11 @@ class ActionsTarif
         	?>
          	<script type="text/javascript">
          		<?php
+         			$formproduct = new FormProduct($db);
          			//echo (count($instance->lines) >0)? "$('#tablelines').children().first().children().first().children().last().prev().prev().prev().prev().prev().after('<td align=\"right\" width=\"50\">Poids</td>');" : '' ;
          			foreach($instance->lines as $line){
          				$resql = $db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$line->rowid);
 						$res = $db->fetch_object($resql);
-						switch($res->poids){
-							case -9:
-								$unite = "μg";
-								break;
-							case -6:
-								$unite = "mg";
-								break;
-							case -3:
-								$unite = "g";
-								break;
-							case 0:
-								$unite = "kg";
-								break;
-						}
 						echo "$('#row-".$line->rowid."').children().eq(3).after('<td align=\"right\">".((!is_null($res->tarif_poids))? number_format($res->tarif_poids,2,",","")." ".$unite : "")."</td>');";
 						if($line->error != '') echo "alert('".$line->error."');";
          			}
@@ -144,16 +121,17 @@ class ActionsTarif
 	         		if($(this).html() == "Qté")
 	         			$(this).after('<td align="right" width="140">Poids</td>');
 	         	});
-	         	$('#np_desc').parent().next().after('<td align="right"><span id="AffUnite" style="display:none;">unité</span><input class="poidsAff" type="text" value="0" name="poidsAff" id="poidsAffProduct" size="6"><select class="flat weight_unitsAff" name="weight_unitsAff" id="weight_unitsAff_product"><option value="-9">μg</option><option value="-6">mg</option><option value="-3">g</option><option value="0">kg</option></select></td>');
-	         	$('#dp_desc').parent().next().next().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff" size="6"><select class="flat weight_unitsAff" name="weight_unitsAff" id="weight_unitsAff_freeline"><option value="-9">μg</option><option value="-6">mg</option><option value="-3">g</option><option value="0">kg</option></select></td>');
-	         	$('select[name=weight_unitsAff]').val(-6);
-	         	$('#addpredefinedproduct').append('<input class="poids" type="hidden" value="0" name="poids" size="3">');
-	         	$('#addpredefinedproduct').append('<input class="weight_units" type="hidden" value="0" name="weight_units" size="3">');
-	         	$('#addproduct').append('<input class="poids" type="hidden" value="0" name="poids" size="3">');
-	         	$('#addproduct').append('<input class="weight_units" type="hidden" value="0" name="weight_units" size="3">');
+	         	$('#np_desc').parent().next().after('<td align="right"><span id="AffUnite" style="display:none;">unité</span><input class="poidsAff" type="text" value="0" name="poidsAff_product" id="poidsAffProduct" size="6"><?php $formproduct->select_measuring_units("weight_unitsAff_product", "weight",-6); ?></td>');
+	         	$('#dp_desc').parent().next().next().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff_libre" size="6"><?php $formproduct->select_measuring_units("weight_unitsAff_libre", "weight",-6); ?></td>');
+	         	$('#addpredefinedproduct').append('<input class="poids_product" type="hidden" value="0" name="poids" size="3">');
+	         	$('#addpredefinedproduct').append('<input class="weight_units_product" type="hidden" value="0" name="weight_units" size="3">');
+	         	$('#addproduct').append('<input class="poids_libre" type="hidden" value="0" name="poids" size="3">');
+	         	$('#addproduct').append('<input class="weight_units_libre" type="hidden" value="0" name="weight_units" size="3">');
 	         	$('input[name=addline]').click(function() {
-	         		$('.poids').val( $(this).parent().prev().prev().find('> .poidsAff').val() );
-	         		$('.weight_units').val( $(this).parent().prev().prev().find('> .weight_unitsAff option:selected').val() );
+	         		$('.poids_libre').val( $(this).parent().prev().prev().find('> .poidsAff').val() );
+	         		$('.weight_units_libre').val( $(this).parent().prev().prev().find('> input[name=weight_unitsAff_libre] option:selected').val() );
+	         		$('.poids_product').val( $(this).parent().prev().prev().find('> .poidsAff').val() );
+	         		$('.weight_units_product').val( $(this).parent().prev().prev().find('> select[name=weight_unitsAff_product] option:selected').val() );
 	         		return true;
 	         	});
 	         	
@@ -166,15 +144,16 @@ class ActionsTarif
 						,data: {fk_product: $('#idprod').val()}
 						},"json").then(function(select){
 							if(select.unite != ""){
-								$('#weight_unitsAff_product').val(select.unite);
-								$('#weight_unitsAff_product').prev().show();
+								$('select[name=weight_unitsAff_product]').val(select.unite);
+								$('select[name=weight_unitsAff_product]').prev().show();
 								$('#poidsAffProduct').val(select.poids);
-								$('#weight_unitsAff_product').show();
+								$('input[name=poids]').val(select.poids);
+								$('select[name=weight_unitsAff_product]').show();
 								$('#AffUnite').hide();
 							}
 							else{
-								$('#weight_unitsAff_product').prev().hide();
-								$('#weight_unitsAff_product').hide();
+								$('select[name=weight_unitsAff_product]').prev().hide();
+								$('select[name=weight_unitsAff_product]').hide();
 								$('#AffUnite').show();
 							}
 						});
