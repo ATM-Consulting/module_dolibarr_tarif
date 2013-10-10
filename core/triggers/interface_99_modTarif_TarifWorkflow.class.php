@@ -182,6 +182,14 @@ class InterfaceTarifWorkflow
 		return $object_parent;
 	}
 	
+	
+	//Calcule le prix de la ligne de facture
+	private function calcule_prix_facture($res){
+		$poids_exedie = $res->weight * pow(10, $res->weight_unit);
+		$poids_commande = $res->tarif_poids * pow(10, $res->poids);
+		return number_format(($poids_expedie * $res->price) / ($poids_commande * $res->qty),2,'.','');
+	}
+	
     /**
      *      Function called when a Dolibarrr business event is done.
      *      All functions "run_trigger" are triggered if file is inside directory htdocs/core/triggers
@@ -285,7 +293,7 @@ class InterfaceTarifWorkflow
 					$table = "facturedet";
 					$originid = $object->origin_id;
 					
-					$sql = "SELECT SUM(eda.weight) as weight, eda.weight_unit as weight_unit, cd.price, cd.tarif_poids, cd.poids
+					$sql = "SELECT SUM(eda.weight) as weight, eda.weight_unit as weight_unit, cd.price, cd.tarif_poids, cd.poids, cd.qty
 							FROM ".MAIN_DB_PREFIX."expeditiondet_asset eda
 								LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (ed.rowid = eda.fk_expeditiondet)
 								LEFT JOIN ".MAIN_DB_PREFIX."commandedet as cd ON (cd.rowid = fk_origin_line)
@@ -308,7 +316,8 @@ class InterfaceTarifWorkflow
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 				
 				if($object->origin == "shipping"){
-					$object->subprice = number_format((($res->weight * $res->price) / $res->tarif_poids) * pow(10, $res->weight_unit - $res->poids),2,'.','');
+					$object->subprice = $this->calcule_prix_facture($res);
+					//$object->subprice = number_format((($res->weight * $res->price) / $res->tarif_poids) * pow(10, $res->weight_unit - $res->poids),2,'.','');
 					$object->update($user);
 					$this->_updateTotauxLine($object,$object->qty);
 					
@@ -321,7 +330,8 @@ class InterfaceTarifWorkflow
 						
 						$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 						
-						$object->subprice = number_format((($res->weight * $res->price) / $res->tarif_poids) * pow(10, $res->weight_unit - $res->poids),2,'.','');
+						$object->subprice = $this->calcule_prix_facture($res);
+						//$object->subprice = number_format((($res->weight * $res->price) / $res->tarif_poids) * pow(10, $res->weight_unit - $res->poids),2,'.','');
 						$object->update($user);	
 						$this->_updateTotauxLine($object,$object->qty);
 					}
