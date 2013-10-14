@@ -184,10 +184,11 @@ class InterfaceTarifWorkflow
 	
 	
 	//Calcule le prix de la ligne de facture
-	private function calcule_prix_facture($res){
-		$poids_exedie = $res->weight * pow(10, $res->weight_unit);
-		$poids_commande = $res->tarif_poids * pow(10, $res->poids);
-		return number_format(($poids_expedie * $res->price) / ($poids_commande * $res->qty),2,'.','');
+	private function calcule_prix_facture(&$res){
+		$poids_exedie = ($res->weight * pow(10, $res->weight_unit))* $res->price;
+		$poids_commande = ($res->tarif_poids * pow(10, $res->poids)) * $res->qty;
+		$prix = $poids_exedie / $poids_commande;
+		return floatval($prix);
 	}
 	
     /**
@@ -317,7 +318,7 @@ class InterfaceTarifWorkflow
 				
 				if($object->origin == "shipping"){
 					$object->subprice = $this->calcule_prix_facture($res);
-					//$object->subprice = number_format((($res->weight * $res->price) / $res->tarif_poids) * pow(10, $res->weight_unit - $res->poids),2,'.','');
+
 					$object->update($user);
 					$this->_updateTotauxLine($object,$object->qty);
 					
@@ -331,7 +332,6 @@ class InterfaceTarifWorkflow
 						$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 						
 						$object->subprice = $this->calcule_prix_facture($res);
-						//$object->subprice = number_format((($res->weight * $res->price) / $res->tarif_poids) * pow(10, $res->weight_unit - $res->poids),2,'.','');
 						$object->update($user);	
 						$this->_updateTotauxLine($object,$object->qty);
 					}
