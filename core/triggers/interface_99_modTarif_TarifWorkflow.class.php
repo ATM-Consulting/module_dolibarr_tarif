@@ -184,9 +184,9 @@ class InterfaceTarifWorkflow
 	
 	
 	//Calcule le prix de la ligne de facture
-	private function calcule_prix_facture(&$res){
+	private function calcule_prix_facture(&$res,&$object){
 		$poids_exedie = ($res->weight * pow(10, $res->weight_unit))* $res->price;
-		$poids_commande = ($res->tarif_poids * pow(10, $res->poids)) * $res->qty;
+		$poids_commande = ($res->tarif_poids * pow(10, $res->poids)) * $object->qty;
 		$prix = $poids_exedie / $poids_commande;
 		return floatval($prix);
 	}
@@ -294,7 +294,7 @@ class InterfaceTarifWorkflow
 					$table = "facturedet";
 					$originid = $object->origin_id;
 					
-					$sql = "SELECT SUM(eda.weight) as weight, eda.weight_unit as weight_unit, cd.price, cd.tarif_poids, cd.poids, cd.qty
+					$sql = "SELECT SUM(eda.weight) as weight, eda.weight_unit as weight_unit, cd.price, cd.tarif_poids, cd.poids, COUNT(eda.weight_unit) as qty
 							FROM ".MAIN_DB_PREFIX."expeditiondet_asset eda
 								LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (ed.rowid = eda.fk_expeditiondet)
 								LEFT JOIN ".MAIN_DB_PREFIX."commandedet as cd ON (cd.rowid = fk_origin_line)
@@ -304,7 +304,7 @@ class InterfaceTarifWorkflow
 							GROUP BY eda.weight_unit, cd.fk_product
 							ORDER BY eda.weight_unit ASC";
  				}
- 				
+				
 				/*echo '<pre>';
 				print_r($object);
 				echo '</pre>';exit;*/
@@ -313,12 +313,13 @@ class InterfaceTarifWorkflow
 				
 				$poids = $res->weight;
 				$weight_units = $res->weight_unit;
-
-				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
+				$object->qty = $res->qty;
+				
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".($poids / $object->qty).", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 				
 				if($object->origin == "shipping"){
-					$object->subprice = $this->calcule_prix_facture($res);
-
+					$object->subprice = $this->calcule_prix_facture($res,$object);
+					
 					$object->update($user);
 					$this->_updateTotauxLine($object,$object->qty);
 					
@@ -328,14 +329,16 @@ class InterfaceTarifWorkflow
 						$newrowid = $object->insert(true);
 						$poids = $res->weight;
 						$weight_units = $res->weight_unit;
+						$object->qty = $res->qty;
 						
-						$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
+						$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".($poids / $object->qty).", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 						
-						$object->subprice = $this->calcule_prix_facture($res);
+						$object->subprice = $this->calcule_prix_facture($res,$object);
 						$object->update($user);	
 						$this->_updateTotauxLine($object,$object->qty);
 					}
 				}
+				//exit;
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
