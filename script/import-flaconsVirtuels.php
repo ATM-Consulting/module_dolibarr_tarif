@@ -34,16 +34,19 @@ while($TInfo = fgetcsv($flaconsfile,0,';','"')){
 		echo ' existe deja';
 	} else {
 		$produit = new Product($db);
-		$produit->fetch(0, $refproduit);
-		
-		$flacon->fk_product = $produit->id;
-		$flacon->serial_number = $numflacon;
-		$flacon->emplacement = $emp;
-		$flacon->contenancereel_value = $poids;
-		$flacon->lot_number = $lot;
-		$flacon->contenancereel_units = 100; // 'unit'
-		
-		$flacon->save($ATMdb, $user, 'Stock initial');
+		if($produit->fetch(0, $refproduit)) {
+			$flacon->fk_product = $produit->id;
+			$flacon->serial_number = $numflacon;
+			$flacon->emplacement = $emp;
+			$flacon->contenancereel_value = $poids;
+			$flacon->lot_number = $lot;
+			$flacon->contenancereel_units = 100; // 'unit'
+			
+			$flacon->save($ATMdb, $user, 'Stock initial');
+			echo ' => OK';
+		} else {
+			echo ' produit '.$refproduit.' KO';
+		}
 	}
 	
 	echo "<br />";
