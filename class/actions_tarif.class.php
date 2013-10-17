@@ -57,7 +57,7 @@ class ActionsTarif
 					         	$('input[name=token]').prev().append('<input id="weight_units" type="hidden" value="0" name="weight_units" size="3">');
 					         	$('#savelinebutton').click(function() {
 					         		$('#poids').val( $('#poidsAff').val() );
-					         		$('#weight_units').val( $('#weight_unitsAff option:selected').val() );
+					         		$('#weight_units').val( $('select[name=weight_unitsAff] option:selected').val() );
 					         		return true;
 					         	});
 								<?php
