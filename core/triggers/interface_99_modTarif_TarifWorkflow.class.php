@@ -281,13 +281,17 @@ class InterfaceTarifWorkflow
 							$originid = $line->rowid;
 					}
 					
-					$sql = "SELECT tarif_poids as weight, poids as weight_unit FROM ".MAIN_DB_PREFIX."propaldet WHERE rowid = ".$originid;
+					$sql = "SELECT tarif_poids as weight, 1 as qty, poids as weight_unit 
+							FROM ".MAIN_DB_PREFIX."propaldet
+							WHERE rowid = ".$originid;
 	        	}
 				//Cas commande la ligne d'origine est déjà chargé dans l'objet
 				elseif($object->origin == "commande"){
 					$table = "facturedet";
 					$originid = $object->origin_id;
-					$sql = "SELECT tarif_poids as weight, poids as weight_unit FROM ".MAIN_DB_PREFIX."commandedet WHERE rowid = ".$originid;
+					$sql = "SELECT tarif_poids as weight, 1 as qty, poids as weight_unit 
+							FROM ".MAIN_DB_PREFIX."commandedet
+							WHERE rowid = ".$originid;
 				}
 				
 				elseif($object->origin == "shipping"){
@@ -305,21 +309,18 @@ class InterfaceTarifWorkflow
 							ORDER BY eda.weight_unit ASC";
  				}
 				
-				/*echo '<pre>';
-				print_r($object);
-				echo '</pre>';exit;*/
 				$resql = $this->db->query($sql);
 				$res = $this->db->fetch_object($resql);
-				
+
 				$poids = $res->weight;
 				$weight_units = $res->weight_unit;
 				$object->qty = $res->qty;
-				
+
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".($poids / $object->qty).", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
-				
+
 				if($object->origin == "shipping"){
 					$object->subprice = $this->calcule_prix_facture($res,$object);
-					
+
 					$object->update($user);
 					$this->_updateTotauxLine($object,$object->qty);
 					
