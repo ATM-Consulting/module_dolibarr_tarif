@@ -77,13 +77,14 @@ class ActionsTarif
 
 	function formBuilddocOptions ($parameters, &$object, &$action, $hookmanager) {
 		
-		global $db;
+		global $db,$langs;
 		include_once(DOL_DOCUMENT_ROOT."/commande/class/commande.class.php");
 		include_once(DOL_DOCUMENT_ROOT."/compta/facture/class/facture.class.php");
 		include_once(DOL_DOCUMENT_ROOT."/comm/propal/class/propal.class.php");
 		include_once(DOL_DOCUMENT_ROOT."/core/lib/functions.lib.php");
 		include_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
 		include_once(DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php');
+		$langs->load("other");
 		
 		if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
         {
@@ -113,7 +114,7 @@ class ActionsTarif
          			foreach($instance->lines as $line){
          				$resql = $db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$line->rowid);
 						$res = $db->fetch_object($resql);
-						echo "$('#row-".$line->rowid."').children().eq(3).after('<td align=\"right\">".((!is_null($res->tarif_poids))? number_format($res->tarif_poids,2,",","")." ".$unite : "")."</td>');";
+						echo "$('#row-".$line->rowid."').children().eq(3).after('<td align=\"right\">".((!is_null($res->tarif_poids))? number_format($res->tarif_poids,2,",","")." ".measuring_units_string($res->poids,'weight') : "")."</td>');";
 						if($line->error != '') echo "alert('".$line->error."');";
          			}
          		?>
