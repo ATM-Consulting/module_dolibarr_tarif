@@ -421,13 +421,13 @@ class InterfaceTarifWorkflow
 				$tva_tx = $_REQUEST['tva_tx_1'];
 			}
 			//MAJ du prix 1
-			else{
+			/*else{
 				$level = 1;
 				$price = $_REQUEST['price_2'] * (1 + 0.15);
 				$price_ttc = $price * (1 + ($_REQUEST['tva_tx_2'] / 100));
 				$base = $_REQUEST['multiprices_base_type_2'];
 				$tva_tx = $_REQUEST['tva_tx_2'];
-			}
+			}*/
 			$now=dol_now();
 			
 			/*echo '<pre>';
@@ -435,6 +435,7 @@ class InterfaceTarifWorkflow
 			echo '</pre>';exit;*/
 			//echo $object->fk_product_type;exit;
 			
+			//seulement si produit
 			if($object->type == 0){
 				$sql = "INSERT INTO ".MAIN_DB_PREFIX."product_price
 					(price_level,date_price,fk_product,fk_user_author,price,price_ttc,price_base_type,tosell,tva_tx,recuperableonly,localtax1_tx, localtax2_tx, price_min,price_min_ttc,price_by_qty,entity) 
