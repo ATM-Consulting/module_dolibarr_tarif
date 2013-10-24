@@ -130,7 +130,7 @@ class ActionsTarif
 	         	$('#addproduct').append('<input class="weight_units_libre" type="hidden" value="0" name="weight_units" size="3">');
 	         	$('input[name=addline]').click(function() {
 	         		$('.poids_libre').val( $(this).parent().prev().prev().find('> .poidsAff').val() );
-	         		$('.weight_units_libre').val( $(this).parent().prev().prev().find('> input[name=weight_unitsAff_libre] option:selected').val() );
+	         		$('.weight_units_libre').val( $(this).parent().prev().prev().find('> select[name=weight_unitsAff_libre] option:selected').val() );
 	         		$('.poids_product').val( $(this).parent().prev().prev().find('> .poidsAff').val() );
 	         		$('.weight_units_product').val( $(this).parent().prev().prev().find('> select[name=weight_unitsAff_product] option:selected').val() );
 	         		return true;
