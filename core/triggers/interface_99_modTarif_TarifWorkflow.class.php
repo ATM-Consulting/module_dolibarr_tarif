@@ -398,6 +398,10 @@ class InterfaceTarifWorkflow
 		//MAJ des différents prix de la grille de tarif par conditionnement lors d'une modification du prix produit
 		elseif($action == 'PRODUCT_PRICE_MODIFY'){
 			
+			/*echo '<pre>';
+			print_r($object);
+			echo '</pre>'; exit;*/
+			
 			$resql = $this->db->query("SELECT rowid FROM ".MAIN_DB_PREFIX."tarif_conditionnement WHERE fk_product = ".$object->id);
 			
 			if($resql->num_rows > 0){
@@ -426,12 +430,19 @@ class InterfaceTarifWorkflow
 			}
 			$now=dol_now();
 			
-			$sql = "INSERT INTO ".MAIN_DB_PREFIX."product_price
-				(price_level,date_price,fk_product,fk_user_author,price,price_ttc,price_base_type,tosell,tva_tx,recuperableonly,localtax1_tx, localtax2_tx, price_min,price_min_ttc,price_by_qty,entity) 
-				VALUES
-				(".$level.",'".$this->db->idate($now)."',".$object->id.",".$user->id.",".$price.",".$price_ttc.",'".$base."',".$object->status.",".$tva_tx.",".$object->tva_npr.",".$object->localtax1_tx.",".$object->localtax2_tx.",".$object->price_min.",".$object->price_min_ttc.",0,".$conf->entity.")";
+			/*echo '<pre>';
+			print_r($object);
+			echo '</pre>';exit;*/
+			//echo $object->fk_product_type;exit;
 			
-			$this->db->query($sql);
+			if($object->type == 0){
+				$sql = "INSERT INTO ".MAIN_DB_PREFIX."product_price
+					(price_level,date_price,fk_product,fk_user_author,price,price_ttc,price_base_type,tosell,tva_tx,recuperableonly,localtax1_tx, localtax2_tx, price_min,price_min_ttc,price_by_qty,entity) 
+					VALUES
+					(".$level.",'".$this->db->idate($now)."',".$object->id.",".$user->id.",".$price.",".$price_ttc.",'".$base."',".$object->status.",".$tva_tx.",".$object->tva_npr.",".$object->localtax1_tx.",".$object->localtax2_tx.",".$object->price_min.",".$object->price_min_ttc.",0,".$conf->entity.")";
+				
+				$this->db->query($sql);
+			}
 		}
 
 		return 1;
