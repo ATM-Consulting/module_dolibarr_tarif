@@ -359,9 +359,10 @@ class InterfaceTarifWorkflow
 			
 			$res = $this->db->fetch_object($resql);
 			
+			//echo floatval($res->tarif_poids * pow(10, $res->poids))." ".floatval($_POST['poids'] * pow(10, $_POST['weight_units']));exit;
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
 			// ET si la quantité ou le poids a changé
-			if(GETPOST('poids', 'int') && ($object->oldline->qty != $_POST['qty'] || floatval($res->tarif_poids * pow(10, $res->poids)) != floatval($_POST['poids'] * pow(10, $_POST['weight_units'])))){
+			if($object->oldline->qty != $_POST['qty'] || floatval($res->tarif_poids * pow(10, $res->poids)) != floatval($_POST['poids'] * pow(10, $_POST['weight_units']))){
 				
 				$poids = (!empty($_POST['poids'])) ? floatval($_POST['poids']) : 0;
 				$weight_units = $_POST['weight_units'];
