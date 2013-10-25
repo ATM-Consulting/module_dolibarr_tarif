@@ -26,17 +26,17 @@ class ActionsTarif
 			 */
         	if(in_array('propalcard',explode(':',$parameters['context']))){
         		$instance = new Propal($db);
-				$instance->fetch($_GET['id']);
+				$instance->fetch($object->id);
 				$table = "propaldet";
         	}
 			elseif(in_array('ordercard',explode(':',$parameters['context']))){
 				$instance = new Commande($db);
-				$instance->fetch($_GET['id']);
+				$instance->fetch($object->id);
 				$table = "commandedet";
 			}
         	elseif(in_array('invoicecard',explode(':',$parameters['context']))){
         		$instance = new Facture($db);
-				$instance->fetch($_GET['id']);
+				$instance->fetch($object->id);
 				$table = "facturedet";
         	}
 			
@@ -90,17 +90,17 @@ class ActionsTarif
         {
         	if(in_array('propalcard',explode(':',$parameters['context']))){
         		$instance = new Propal($db);
-	        	$instance->fetch($_GET['id']);
+	        	$instance->fetch($object->id);
 				$table = "propaldet";
         	}
 			elseif(in_array('ordercard',explode(':',$parameters['context']))){
 				$instance = new Commande($db);
-	        	$instance->fetch($_GET['id']);
+	        	$instance->fetch($object->id);
 				$table = "commandedet";
 			}
         	elseif(in_array('invoicecard',explode(':',$parameters['context']))){
         		$instance = new Facture($db);
-	        	$instance->fetch((isset($_GET['facid']))?$_GET['facid']:$_GET['id']);
+	        	$instance->fetch($object->id);
 				$table = "facturedet";
         	}
 			
