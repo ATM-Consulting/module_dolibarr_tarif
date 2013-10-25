@@ -20,26 +20,6 @@ class ActionsTarif
 		
     	if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context'])))
         {
-        	
-			/*
-			 * AJOUT DU CHAMPS POIDS
-			 */
-        	if(in_array('propalcard',explode(':',$parameters['context']))){
-        		$instance = new Propal($db);
-				$instance->fetch($object->id);
-				$table = "propaldet";
-        	}
-			elseif(in_array('ordercard',explode(':',$parameters['context']))){
-				$instance = new Commande($db);
-				$instance->fetch($object->id);
-				$table = "commandedet";
-			}
-        	elseif(in_array('invoicecard',explode(':',$parameters['context']))){
-        		$instance = new Facture($db);
-				$instance->fetch($object->id);
-				$table = "facturedet";
-        	}
-			
 			if($action == "editline"){
 				
 				?>
@@ -47,8 +27,8 @@ class ActionsTarif
 					$(document).ready(function(){
 						<?php
 						$formproduct = new FormProduct($db);
-						foreach($instance->lines as $line){
-	         				$resql = $db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$line->rowid);
+						foreach($object->lines as $line){
+	         				$resql = $db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$object->table_element_line." WHERE rowid = ".$line->rowid);
 							$res = $db->fetch_object($resql);
 							if($line->rowid == $_REQUEST['lineid']){
 								?>
@@ -87,23 +67,7 @@ class ActionsTarif
 		$langs->load("other");
 		
 		if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
-        {
-        	if(in_array('propalcard',explode(':',$parameters['context']))){
-        		$instance = new Propal($db);
-	        	$instance->fetch($object->id);
-				$table = "propaldet";
-        	}
-			elseif(in_array('ordercard',explode(':',$parameters['context']))){
-				$instance = new Commande($db);
-	        	$instance->fetch($object->id);
-				$table = "commandedet";
-			}
-        	elseif(in_array('invoicecard',explode(':',$parameters['context']))){
-        		$instance = new Facture($db);
-	        	$instance->fetch($object->id);
-				$table = "facturedet";
-        	}
-			
+        {			
 			if($object->line->error)
 				dol_htmloutput_mesg($object->line->error,'', 'error');
         	?>
@@ -111,8 +75,8 @@ class ActionsTarif
          		<?php
          			$formproduct = new FormProduct($db);
          			//echo (count($instance->lines) >0)? "$('#tablelines').children().first().children().first().children().last().prev().prev().prev().prev().prev().after('<td align=\"right\" width=\"50\">Poids</td>');" : '' ;
-         			foreach($instance->lines as $line){
-         				$resql = $db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$line->rowid);
+         			foreach($object->lines as $line){
+         				$resql = $db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$object->table_element_line." WHERE rowid = ".$line->rowid);
 						$res = $db->fetch_object($resql);
 						echo "$('#row-".$line->rowid."').children().eq(3).after('<td align=\"right\">".((!is_null($res->tarif_poids))? number_format($res->tarif_poids,2,",","")." ".measuring_units_string($res->poids,'weight') : "")."</td>');";
 						if($line->error != '') echo "alert('".$line->error."');";
