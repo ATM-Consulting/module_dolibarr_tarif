@@ -30,7 +30,7 @@ class ActionsTarif
 						foreach($object->lines as $line){
 	         				$resql = $db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$object->table_element_line." WHERE rowid = ".$line->rowid);
 							$res = $db->fetch_object($resql);
-							if($line->rowid == $_REQUEST['lineid']){
+							if($line->rowid == $_REQUEST['lineid'] && $line->product_type == 0){
 								?>
 								$('input[name=qty]').parent().after('<td align="right"><input id="poidsAff" type="text" value="<?php if(!is_null($res->tarif_poids)) echo number_format($res->tarif_poids,2,",",""); ?>" name="poidsAff" size="6"><?php $formproduct->select_measuring_units("weight_unitsAff", "weight", $res->poids); ?></td>');
 								$('input[name=token]').prev().append('<input id="poids" type="hidden" value="0" name="poids" size="3">');
