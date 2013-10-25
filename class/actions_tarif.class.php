@@ -119,7 +119,7 @@ class ActionsTarif
 							else{
 								$('select[name=weight_unitsAff_product]').prev().hide();
 								$('select[name=weight_unitsAff_product]').hide();
-								$('#AffUnite').show();
+								//$('#AffUnite').show();
 							}
 						});
 				});
