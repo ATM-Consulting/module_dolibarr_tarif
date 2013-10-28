@@ -17,8 +17,10 @@ $ATMdb->Get_line();
 $Tres["unite"] = '';
 $Tres["poids"] = '';
 if($ATMdb->Get_field('fk_product_type') == 0) { // On ne renvoie un poids que s'il s'agit d'un produit
-	$Tres["unite"] = ($ATMdb->Get_field('weight_units')) ? $ATMdb->Get_field('weight_units') : -3;
-	$Tres["poids"] = ($ATMdb->Get_field('weight')) ? $ATMdb->Get_field('weight') : 1;
+	$unite = $ATMdb->Get_field('weight_units');
+	$poids = $ATMdb->Get_field('weight');
+	$Tres["unite"] = !is_null($unite) ? $unite : -3;
+	$Tres["poids"] = !is_null($poids) ? $poids : 1;
 }
 
 echo json_encode($Tres);
