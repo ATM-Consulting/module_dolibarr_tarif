@@ -20,7 +20,7 @@ if($ATMdb->Get_field('fk_product_type') == 0) { // On ne renvoie un poids que s'
 	$unite = $ATMdb->Get_field('weight_units');
 	$poids = $ATMdb->Get_field('weight');
 	$Tres["unite"] = !is_null($unite) ? $unite : -3;
-	$Tres["poids"] = !is_null($poids) ? $poids : 1;
+	$Tres["poids"] = !empty($poids) ? $poids : 1;
 }
 
 echo json_encode($Tres);
