@@ -178,7 +178,7 @@ class InterfaceTarifWorkflow
 			
 		//echo $product->price; exit;
 		$object->remise_percent = $remise;
-		$object->subprice = (!empty($product->multiprices[$object_parent->client->price_level])) ? $product->multiprices[$object_parent->client->price_level] * $poids : $product->price * $poids;
+		//$object->subprice = (!empty($product->multiprices[$object_parent->client->price_level])) ? $product->multiprices[$object_parent->client->price_level] * $poids : $product->price * $poids;
 		$object->price = $object->subprice;
 		//echo $object->subprice; exit;
 		
@@ -195,8 +195,6 @@ class InterfaceTarifWorkflow
 	function _updateTotauxLine(&$object,$qty){
 		//MAJ des totaux de la ligne
 		$object->total_ht = $object->subprice * $qty * (1 - $object->remise_percent / 100);
-		echo $object->remise_percent;
-		exit;
 		$object->total_tva = ($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht;
 		$object->total_ttc = $object->total_ht + $object->total_tva;
 		$object->update_total();
@@ -290,9 +288,8 @@ class InterfaceTarifWorkflow
 						return -1;
 					}*/
 					
-					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise);
+					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise); //--- $poids = conditionnement !
 					$this->_updateTotauxLine($object,$_POST['qty']);
-					
 				}
 
 				//MAJ du poids et de l'unité de la ligne
@@ -324,7 +321,6 @@ class InterfaceTarifWorkflow
 						if($line->rang == $object->rang)
 							$originid = $line->rowid;
 					}
-					
 					$sql = "SELECT tarif_poids as weight, 1 as qty, poids as weight_unit 
 							FROM ".MAIN_DB_PREFIX."propaldet
 							WHERE rowid = ".$originid;
@@ -383,11 +379,23 @@ class InterfaceTarifWorkflow
 						$this->_updateTotauxLine($object,$object->qty);
 					}
 				}
-				//exit;
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
 		}
+
+
+
+
+
+
+
+
+
+
+
+
+
 		
 		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE') 
 				&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {

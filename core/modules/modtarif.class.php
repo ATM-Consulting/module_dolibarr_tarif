@@ -253,6 +253,11 @@ class modtarif extends DolibarrModules
 		$url ='http://'.$_SERVER['SERVER_NAME']. DOL_URL_ROOT_ALT."/tarif/script/create-maj-base.php";
 		file_get_contents($url);
 
+
+		require_once(DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php');
+        $extrafields=new ExtraFields($this->db);
+		$res = $extrafields->addExtraField('type_remise', 'Type remise', 'select', 0, '', 'product', 0, 0, '', array("options"=> array("conditionnement" => "conditionnement", "qte" => "quantite")));		
+
 		return $this->_init($sql, $options);
 	}
 
