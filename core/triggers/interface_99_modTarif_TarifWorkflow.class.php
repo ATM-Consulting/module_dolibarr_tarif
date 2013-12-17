@@ -92,22 +92,59 @@ class InterfaceTarifWorkflow
         else return $langs->trans("Unknown");
     }
 	
-	function _getRemise($idProd,$qty,$poids,$weight_units){
-		//chargement des prix par conditionnement associé au produit
-		$sql = "SELECT quantite, unite, prix, unite_value, tva_tx, remise_percent
-				FROM ".MAIN_DB_PREFIX."tarif_conditionnement
-				WHERE fk_product = ".$idProd."
-				ORDER BY unite_value DESC, quantite DESC";
+	function _getRemise($idProd,$qty,$conditionnement,$weight_units){
+		//--- Aide ---
+		//$qty = quantité testée (champs quantité dans l'ajout d'un produit à une propale par exemple)
+		//$contitionnement = champs entre "Qté" et "Poids" dans l'ajout d'un produit à une propale
+		//$weight_units = champs "Poids" dans l'ajout d'un produit à une propale
+		
+		/*echo "\$idProd : ".$idProd."<br />";
+		echo "\$qty : ".$qty."<br />";
+		echo "\$conditionnement : ".$conditionnement."<br />";
+		echo "\$weight_units : ".$weight_units."<br />";*/
+
+		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure !!!)
+		$sql = "SELECT p.type_remise as type_remise, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent";
+		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product";
+		$sql.= " WHERE fk_product = ".$idProd;
+		$sql.= " ORDER BY quantite DESC"; //unite_value DESC, 
 		
 		$resql = $this->db->query($sql);
 		
 		// Quantité totale de produit ajoutée dans la ligne
-		$qte_totale = $qty * $poids * pow(10, $weight_units);
+		//$qte_totale = $qty * $conditionnement * pow(10, $weight_units);
+		
+		
+		
+		
+		
+		
+		if($resql->num_rows > 0) {
+			$pallier = 0;
+			while($res = $this->db->fetch_object($resql)) {
+				if($qty>=$res->quantite && $res->type_remise == "qte"){
+					//Ici on récupère le pourcentage correspondant et on arrête la boucle
+					return $res->remise_percent;
+				} else if($conditionnement>=$res->quantite && $res->type_remise == "conditionnement") {
+					return $res->remise_percent;
+				}
+			}
+			//return -1;
+		}
+		
+		
+		
+		/*
+		
+		
+		$conditionnement_total = $qty * $conditionnement;
 		
 		//Si il existe au moin un prix par conditionnement
 		if($resql->num_rows > 0) {
 			while($res = $this->db->fetch_object($resql)){
-				$qte_totale_grille = $res->quantite * pow(10, $res->unite_value);
+				
+				$qte_totale_grille = $res->quantite * pow(10, $res->unite_value); // latoxan !!
 				
 				if($qte_totale_grille <= $qte_totale) {
 					//Récupération de la remise
@@ -115,7 +152,14 @@ class InterfaceTarifWorkflow
 				}
 			}
 			return -1;
-		}
+		}*/
+		
+		
+		
+		
+		
+		
+		
 		//return -2;
 	}
 	
@@ -131,8 +175,6 @@ class InterfaceTarifWorkflow
 		/*echo '<pre>';
 		print_r($object_parent);
 		echo '</pre>'; exit;*/
-		if($product->weight_units < $weight_units)
-			$poids = $poids * pow(10, ($weight_units - $product->weight_units ));
 			
 		//echo $product->price; exit;
 		$object->remise_percent = $remise;
@@ -153,6 +195,8 @@ class InterfaceTarifWorkflow
 	function _updateTotauxLine(&$object,$qty){
 		//MAJ des totaux de la ligne
 		$object->total_ht = $object->subprice * $qty * (1 - $object->remise_percent / 100);
+		echo $object->remise_percent;
+		exit;
 		$object->total_tva = ($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht;
 		$object->total_ttc = $object->total_ht + $object->total_tva;
 		$object->update_total();
@@ -239,12 +283,12 @@ class InterfaceTarifWorkflow
 					$remise = $this->_getRemise($idProd,$_POST['qty'],$poids,$weight_units);
 					
 					//Quantité en dehors de la grille alors retourner erreur
-					if($remise == -1){
+					/*if($remise == -1){
 						$this->db->rollback();
 						$this->db->rollback();
 						$object->error = "Quantité trop faible";
 						return -1;
-					}
+					}*/
 					
 					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise);
 					$this->_updateTotauxLine($object,$_POST['qty']);

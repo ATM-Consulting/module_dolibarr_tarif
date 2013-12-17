@@ -4,6 +4,7 @@
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 	
 	llxHeader('','Liste des tarifs par conditionnement','','');
 	
@@ -24,6 +25,17 @@
 	$object = $product;
 	$form = new Form($db);
 	$formproduct = new FormProduct($db);
+	
+	$extrafields = new ExtraFields($db);
+	$extralabels=$extrafields->fetch_name_optionals_label($object->table_element);
+	$ret = $extrafields->setOptionalsFromPost($extralabels,$object);	
+	$object->fetch($rowid);
+	$object->fetch_optionals($rowid,$extralabels);
+	$reshook=$hookmanager->executeHooks('formObjectOptions',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
+	if (empty($reshook) && ! empty($extrafields->attribute_label))
+	{
+	      print $object->showOptionals($extrafields);
+	}
 	
 	print '<table class="border" width="100%">';
 	
@@ -84,7 +96,7 @@
 		// Price
 		print '<tr><td width="20%">';
 		print 'Prix de vente';
-		print '</td><td><input type="hidden" name="prix" value="'.$object->multiprices[1].'"><input size="10" name="prix_visu" value="'.number_format($object->multiprices[1],2,",","").'" readonly></td></tr>';
+		print '</td><td><input type="hidden" name="prix" value="'.$object->multiprices[1].'"><input size="10" name="prix_visu" value="'.number_format($object->multiprices[1],2,",","").'"></td></tr>';
 		
 		// Remise
 		print '<tr><td width="20%">';
@@ -132,8 +144,10 @@
 		$Ttarif->tva_tx = $_POST['tva_tx'];
 		$Ttarif->price_base_type = 'HT';
 		$Ttarif->fk_user_author = $user->id;
-		$Ttarif->prix = number_format(str_replace(",", ".", $_POST['prix']),2,".","");
-		$Ttarif->quantite =  number_format(str_replace(",", ".", $_POST['quantite']),2,".","");
+		$Ttarif->prix = $_POST['prix'];
+		//$Ttarif->prix = number_format(str_replace(",", ".", $_POST['prix']),2,".","");
+		$Ttarif->quantite = $_POST['quantite'];
+		//$Ttarif->quantite =  number_format(str_replace(",", ".", $_POST['quantite']),2,".","");
 		$Ttarif->unite = $unite;
 		(isset($_POST['remise']) && !empty($_POST['remise'])) ? $Ttarif->remise_percent = $_POST['remise'] : "" ;
 		$Ttarif->unite_value = $_POST['weight_units'];
