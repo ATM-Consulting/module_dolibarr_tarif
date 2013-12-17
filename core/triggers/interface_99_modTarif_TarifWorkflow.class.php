@@ -126,7 +126,7 @@ class InterfaceTarifWorkflow
 				if($qty>=$res->quantite && $res->type_remise == "qte"){
 					//Ici on récupère le pourcentage correspondant et on arrête la boucle
 					return $res->remise_percent;
-				} else if($conditionnement>=$res->quantite && $res->type_remise == "conditionnement") {
+				} else if($conditionnement>=$res->quantite && $res->type_remise == "conditionnement" && $res->unite_value == $weight_units) {
 					return $res->remise_percent;
 				}
 			}
