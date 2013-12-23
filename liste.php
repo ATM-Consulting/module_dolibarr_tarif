@@ -70,6 +70,7 @@
 	 ***********************************/
 	if(isset($_REQUEST['action']) && !empty($_REQUEST['action']) && $_REQUEST['action'] == 'add'){
 		
+
 		print '<table class="notopnoleftnoright" width="100%" border="0" style="margin-bottom: 2px;" summary="">';
 		print '<tbody><tr>';
 		print '<td class="nobordernopadding" valign="middle"><div class="titre">Nouveau conditionnement</div></td>';
@@ -96,12 +97,44 @@
 		// Price
 		print '<tr><td width="20%">';
 		print 'Prix de vente';
-		print '</td><td><input type="hidden" name="prix" value="'.$object->multiprices[1].'"><input size="10" name="prix_visu" value="'.number_format($object->multiprices[1],2,",","").'"></td></tr>';
-		
+		print '</td><td><input type="hidden" name="prix" id="prix" value="'.$object->multiprices[1].'"><input size="10" name="prix_visu" value="'.number_format($object->multiprices[1],2,",","").'"></td></tr>';
+				
 		// Remise
 		print '<tr><td width="20%">';
 		print 'Pourcentage de remise';
-		print '</td><td><input value="" size="10" name="remise"></td></tr>';
+		print '</td><td><input value="" id="remise" size="10" name="remise">%</td></tr>';
+		
+		?>
+			<script type="text/javascript">
+			
+				$('input[name=remise]').change(function() {
+					var n_percent = $(this).val();
+					var price = $('#prix').val();
+					if(n_percent>100) {
+						alert('Votre pourcentage doit être inférieur ou égal à cent');
+						return false;
+					}
+					$('[name=prix_visu]').val((100 - n_percent) * price / 100);
+				});			
+				
+				$('input[name=prix_visu]').change(function() {
+					
+					var n_price = parseFloat($(this).val());
+					var price = parseFloat($('#prix').val());
+					
+					if(n_price>price) {
+						alert('Votre prix doit être inférieur au prix de base ('+n_price+'<'+price+').');
+						return false;
+					}
+					
+					var percent = - (((n_price - price) / price) *100 );
+					
+					$('#remise').val(percent.toFixed(2));
+					
+				});
+				
+			</script>
+		<?				
 		
 		//Quantité
 		print '<tr><td width="20%">';

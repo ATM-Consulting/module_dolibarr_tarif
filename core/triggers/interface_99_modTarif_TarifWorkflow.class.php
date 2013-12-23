@@ -163,7 +163,7 @@ class InterfaceTarifWorkflow
 		//return -2;
 	}
 	
-	function _updateLineProduct(&$object,&$user,$idProd,$poids,$weight_units,$remise){
+	function _updateLineProduct(&$object,&$user,$idProd,$conditionnement,$weight_units,$remise){
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
 		dol_include_once('/tarif/config.php');
 		
@@ -178,8 +178,11 @@ class InterfaceTarifWorkflow
 			
 		//echo $product->price; exit;
 		$object->remise_percent = $remise;
-		//$object->subprice = (!empty($product->multiprices[$object_parent->client->price_level])) ? $product->multiprices[$object_parent->client->price_level] * $poids : $product->price * $poids;
-		$object->price = $object->subprice;
+		$object->subprice = (!empty($product->multiprices[$object_parent->client->price_level])) ? $product->multiprices[$object_parent->client->price_level] : $product->price ;
+		
+		$object->subprice = $object->subprice  * ($conditionnement / $product->weight);
+		
+		$object->price = $object->subprice; // TODO qu'est-ce ?
 		//echo $object->subprice; exit;
 		
  		if(get_class($object_parent) == "Facture" && $object_parent->type == 2){ // facture d'avoir
