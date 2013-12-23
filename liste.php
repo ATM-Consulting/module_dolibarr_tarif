@@ -114,7 +114,7 @@
 						alert('Votre pourcentage doit être inférieur ou égal à cent');
 						return false;
 					}
-					$('[name=prix_visu]').val((100 - n_percent) * price / 100);
+					$('[name=prix_visu]').val(((100 - n_percent) * price / 100).toFixed(2));
 				});			
 				
 				$('input[name=prix_visu]').change(function() {
