@@ -13,6 +13,10 @@
 	
 	require_once(DOL_DOCUMENT_ROOT."/product/class/product.class.php");
 	
+	global $langs;
+	
+	$langs->load("other");
+	
 	$ATMdb = new Tdb;	
 	$product = new Product($db);
 	$result=$product->fetch($_REQUEST['fk_product']);	
@@ -92,7 +96,7 @@
 		// Price
 		print '<tr><td width="20%">';
 		print 'Prix de vente';
-		print '</td><td><input type="hidden" name="prix" id="prix" value="'.$object->multiprices[1].'"><input size="10" name="prix_visu" value="'.number_format($object->multiprices[1],2,",","").'"></td></tr>';
+		print '</td><td><input type="hidden" name="prix" id="prix" value="'.$object->price.'"><input size="10" name="prix_visu" value="'.number_format($object->price,2,",","").'"></td></tr>';
 				
 		// Remise
 		print '<tr><td width="20%">';
@@ -150,24 +154,10 @@
 		print '<br></form>';
 	}
 	elseif(isset($_REQUEST['action']) && !empty($_REQUEST['action']) && $_REQUEST['action'] == 'add_conditionnement' && isset($_REQUEST['save'])) {
-		switch($_POST['weight_units']){
-			case -9:
-				$unite = "μg";
-				break;
-			case -6:
-				$unite = "mg";
-				break;
-			case -3:
-				$unite = "g";
-				break;
-			case 0:
-				$unite = "kg";
-				break;
-			case 3:
-				$unite = "tonnes";
-				break;
-		}	
-			
+		
+		$unite = measuring_units_string($_REQUEST['weight_units'],'weight');
+		$unite = $langs->trans($unite);
+		
 		$Ttarif = new TTarif;
 		$Ttarif->tva_tx = $_POST['tva_tx'];
 		$Ttarif->price_base_type = 'HT';
