@@ -137,7 +137,7 @@ class modtarif extends DolibarrModules
 
         // Dictionnaries
         if (! isset($conf->tarif->enabled)){
-        	$conf->tarif->enabled=0;
+        	@$conf->tarif->enabled=0;
 		}
 		$this->dictionnaries=array();
         /* Example:
