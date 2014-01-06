@@ -180,6 +180,10 @@ class InterfaceTarifWorkflow
 		$object->remise_percent = $remise;
 		$object->subprice = (!empty($product->multiprices[$object_parent->client->price_level])) ? $product->multiprices[$object_parent->client->price_level] : $product->price ;
 		
+		/*echo "\$object->subprice : ".$object->subprice."<br >";
+		echo "\$conditionnement : ".$conditionnement."<br >";
+		echo "\$product->weight : ".$product->weight."<br >";*/
+		//exit;
 		$object->subprice = $object->subprice  * ($conditionnement / $product->weight);
 		
 		$object->price = $object->subprice; // TODO qu'est-ce ?

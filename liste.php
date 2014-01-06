@@ -26,16 +26,11 @@
 	$form = new Form($db);
 	$formproduct = new FormProduct($db);
 	
-	$extrafields = new ExtraFields($db);
-	$extralabels=$extrafields->fetch_name_optionals_label($object->table_element);
-	$ret = $extrafields->setOptionalsFromPost($extralabels,$object);	
-	$object->fetch($rowid);
-	$object->fetch_optionals($rowid,$extralabels);
-	$reshook=$hookmanager->executeHooks('formObjectOptions',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
+	/*$reshook=$hookmanager->executeHooks('formObjectOptions',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
 	if (empty($reshook) && ! empty($extrafields->attribute_label))
 	{
 	      print $object->showOptionals($extrafields);
-	}
+	}*/
 	
 	print '<table class="border" width="100%">';
 	
@@ -129,7 +124,7 @@
 					
 					var percent = - (((n_price - price) / price) *100 );
 					
-					$('#remise').val(percent.toFixed(2));
+					$('#remise').val(percent.toFixed(0));
 					
 				});
 				
@@ -212,8 +207,8 @@
 		'limit'=>array('nbLine'=>1000)
 		,'title'=>array(
 			'tva'=>'Taux TVA'
-			,'base' => 'Type du Prix'
-			,'quantite'=>'Quantité'
+			,'base' => 'Base du Prix'
+			,'quantite'=>'Quantit&eacute'
 			,'unite'=>'Unit&eacute;'
 			,'prix'=>'Tarif (€)'
 			,'remise' => 'Remise (%)'
