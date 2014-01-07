@@ -17,7 +17,8 @@
 	
 	$langs->load("other");
 	
-	$ATMdb = new Tdb;	
+	$ATMdb = new Tdb;
+	$TTarif = new TTarif;
 	$product = new Product($db);
 	$result=$product->fetch($_REQUEST['fk_product']);	
 		
@@ -92,7 +93,11 @@
 		//print $form->select_PriceBaseType($object->price_base_type, "price_base_type");
 		print 'HT</td>';
 		print '</tr>';
-
+		
+		print '<tr><td width="20%">Type de prix</td><td>';
+        print $form->selectarray("type_prix",$TTarif->TType_price);
+        print '</td></tr>';
+		
 		// Price
 		print '<tr><td width="20%">';
 		print 'Prix de vente';
@@ -163,6 +168,7 @@
 		$Ttarif->price_base_type = 'HT';
 		$Ttarif->fk_user_author = $user->id;
 		$Ttarif->prix = $_POST['prix'];
+		$Ttarif->type_price = $_REQUEST['type_prix'];
 		//$Ttarif->prix = number_format(str_replace(",", ".", $_POST['prix']),2,".","");
 		$Ttarif->quantite = $_POST['quantite'];
 		//$Ttarif->quantite =  number_format(str_replace(",", ".", $_POST['quantite']),2,".","");
@@ -185,7 +191,7 @@
 	 **********************************/
 	$TConditionnement = array();
 	
-	$sql = "SELECT tc.rowid AS 'id', tc.tva_tx AS tva, tc.price_base_type AS base, tc.quantite as quantite, tc.unite AS unite, tc.remise_percent AS remise, tc.prix AS prix, p.weight_units AS base_poids, tc.unite_value AS unite_value,((tc.quantite * POWER(10,(tc.unite_value-p.weight_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.weight_units))) * tc.prix) * (tc.remise_percent/100)  AS 'Total','' AS 'Supprimer'
+	$sql = "SELECT tc.rowid AS 'id', tc.tva_tx AS tva, tc.type_price as type_price, tc.price_base_type AS base, tc.quantite as quantite, tc.unite AS unite, tc.remise_percent AS remise, tc.prix AS prix, p.weight_units AS base_poids, tc.unite_value AS unite_value,((tc.quantite * POWER(10,(tc.unite_value-p.weight_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.weight_units))) * tc.prix) * (tc.remise_percent/100)  AS 'Total','' AS 'Supprimer'
 			FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
 				LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)
 			WHERE fk_product = ".$product->id."
@@ -199,6 +205,7 @@
 			'tva'=>'Taux TVA'
 			,'base' => 'Base du Prix'
 			,'quantite'=>'Quantit&eacute'
+			,'type_price' => 'Type de prix'
 			,'unite'=>'Unit&eacute;'
 			,'prix'=>'Tarif (€)'
 			,'remise' => 'Remise (%)'
@@ -216,7 +223,22 @@
 		,'link'=>array(
 			'Supprimer'=>'<a href="?id=@id@&action=delete&fk_product='.$object->id.'" onclick="return confirm(\'Êtes-vous sûr de vouloir supprimer ce conditionnement?\');"><img src="img/delete.png"></a>'
 		)
+		,'eval'=>array(
+			'type_price'=>'_getTypePrice(@id@)'
+		)
 	));
+	
+	
+	function _getTypePrice($idPriceCondi){
+		$TPDOdb = new TPDOdb;
+		
+		$TTarif = new TTarif;
+		$TTarif->load($TPDOdb, $idPriceCondi);
+		
+		return $TTarif->TType_price[$TTarif->type_price];
+	}
+	
+	
 	?>
 	<br>
 	
