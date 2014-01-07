@@ -167,13 +167,21 @@
 		$Ttarif->tva_tx = $_POST['tva_tx'];
 		$Ttarif->price_base_type = 'HT';
 		$Ttarif->fk_user_author = $user->id;
-		$Ttarif->prix = $_POST['prix'];
 		$Ttarif->type_price = $_REQUEST['type_prix'];
-		//$Ttarif->prix = number_format(str_replace(",", ".", $_POST['prix']),2,".","");
+		
+		if($_REQUEST['type_prix'] == 'PRICE'){
+			
+			$Ttarif->prix = number_format(str_replace(",", ".", $_POST['prix_visu']),2,".","");
+			
+		}
+		else{
+			$Ttarif->prix = number_format(str_replace(",", ".", $_POST['prix']),2,".","");
+			(isset($_POST['remise']) && !empty($_POST['remise'])) ? $Ttarif->remise_percent = $_POST['remise'] : "" ;
+		}
 		$Ttarif->quantite = $_POST['quantite'];
 		//$Ttarif->quantite =  number_format(str_replace(",", ".", $_POST['quantite']),2,".","");
 		$Ttarif->unite = $unite;
-		(isset($_POST['remise']) && !empty($_POST['remise'])) ? $Ttarif->remise_percent = $_POST['remise'] : "" ;
+		
 		$Ttarif->unite_value = $_POST['weight_units'];
 		$Ttarif->fk_product = $_POST['id'];
 		$Ttarif->save($ATMdb);

@@ -115,11 +115,6 @@ class InterfaceTarifWorkflow
 		// Quantité totale de produit ajoutée dans la ligne
 		//$qte_totale = $qty * $conditionnement * pow(10, $weight_units);
 		
-		
-		
-		
-		
-		
 		if($resql->num_rows > 0) {
 			$pallier = 0;
 			while($res = $this->db->fetch_object($resql)) {
@@ -133,11 +128,7 @@ class InterfaceTarifWorkflow
 			//return -1;
 		}
 		
-		
-		
 		/*
-		
-		
 		$conditionnement_total = $qty * $conditionnement;
 		
 		//Si il existe au moin un prix par conditionnement
@@ -154,16 +145,38 @@ class InterfaceTarifWorkflow
 			return -1;
 		}*/
 		
-		
-		
-		
-		
-		
-		
 		//return -2;
 	}
+
+	function _getPrix($idProd,$qty,$conditionnement,$weight_units){
+
+		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure !!!)
+		$sql = "SELECT p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent";
+		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product";
+		$sql.= " WHERE fk_product = ".$idProd;
+		$sql.= " ORDER BY quantite DESC"; //unite_value DESC, 
+		
+		$resql = $this->db->query($sql);
+		
+		// Quantité totale de produit ajoutée dans la ligne
+		//$qte_totale = $qty * $conditionnement * pow(10, $weight_units);
+		
+		if($resql->num_rows > 0) {
+			$pallier = 0;
+			while($res = $this->db->fetch_object($resql)) {
+				if($qty>=$res->quantite && $res->type_remise == "qte" && $res->type_price = 'PRICE'){
+					//Ici on récupère le pourcentage correspondant et on arrête la boucle
+					return $res->prix;
+				} else if($conditionnement>=$res->quantite && $res->type_remise == "conditionnement" && $res->unite_value == $weight_units && $res->type_price = 'PRICE') {
+					return $res->prix;
+				}
+			}
+			//return -1;
+		}
+	}
 	
-	function _updateLineProduct(&$object,&$user,$idProd,$conditionnement,$weight_units,$remise){
+	function _updateLineProduct(&$object,&$user,$idProd,$conditionnement,$weight_units,$remise, $prix){
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
 		dol_include_once('/tarif/config.php');
 		
@@ -180,13 +193,17 @@ class InterfaceTarifWorkflow
 		$object->remise_percent = $remise;
 		$object->subprice = (!empty($product->multiprices[$object_parent->client->price_level])) ? $product->multiprices[$object_parent->client->price_level] : $product->price ;
 		
+		if($prix > 0){
+			$object->subprice = $prix;
+		}
+		
 		/*echo "\$object->subprice : ".$object->subprice."<br >";
 		echo "\$conditionnement : ".$conditionnement."<br >";
 		echo "\$product->weight : ".$product->weight."<br >";*/
 		//exit;
 		$object->subprice = $object->subprice  * ($conditionnement / $product->weight);
 		
-		$object->price = $object->subprice; // TODO qu'est-ce ?
+		$object->price = $object->subprice; // TODO qu'est-ce ? Due à un deprecated incertain, dans certains cas price est utilisé et dans d'autres c'est subprice
 		//echo $object->subprice; exit;
 		
  		if(get_class($object_parent) == "Facture" && $object_parent->type == 2){ // facture d'avoir
@@ -284,8 +301,10 @@ class InterfaceTarifWorkflow
 				
 				if(!empty($idProd)){
 					
-					
 					$remise = $this->_getRemise($idProd,$_POST['qty'],$poids,$weight_units);
+					$prix = 0;
+					if($remise <= 0)
+						$prix = $this->_getPrix($idProd,$_POST['qty'],$poids,$weight_units);
 					
 					//Quantité en dehors de la grille alors retourner erreur
 					/*if($remise == -1){
@@ -295,7 +314,7 @@ class InterfaceTarifWorkflow
 						return -1;
 					}*/
 					
-					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise); //--- $poids = conditionnement !
+					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix); //--- $poids = conditionnement !
 					$this->_updateTotauxLine($object,$_POST['qty']);
 				}
 
@@ -391,19 +410,6 @@ class InterfaceTarifWorkflow
 			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
 		}
 
-
-
-
-
-
-
-
-
-
-
-
-
-		
 		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE') 
 				&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
 			
@@ -430,15 +436,11 @@ class InterfaceTarifWorkflow
 					
 					$remise = $this->_getRemise($idProd,$_POST['qty'],$poids,$weight_units);
 					
-					//Quantité en dehors de la grille alors retourner erreur
-					if($remise == -1){
-						$this->db->rollback();
-						$this->db->rollback();
-						$object->error = "Quantité trop faible";
-						return -1;
-					}
+					$prix = 0;
+					if($remise <= 0)
+						$prix = $this->_getPrix($idProd,$_POST['qty'],$poids,$weight_units);
 					
-					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise);
+					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise, $prix);
 					$this->_updateTotauxLine($object,$_POST['qty']);
 					
 				}
