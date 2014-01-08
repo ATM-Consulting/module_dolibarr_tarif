@@ -95,8 +95,8 @@ class ActionsTarif
 	         	$('input[name=addline]').click(function() {
 	         		$('.poids_libre').val( $(this).parent().prev().prev().find('> .poidsAff').val() );
 	         		$('.weight_units_libre').val( $(this).parent().prev().prev().find('> select[name=weight_unitsAff_libre] option:selected').val() );
-	         		$('.poids_product').val( $(this).parent().prev().prev().find('> .poidsAff').val() );
-	         		$('.weight_units_product').val( $(this).parent().prev().prev().find('> select[name=weight_unitsAff_product] option:selected').val() );
+	         		$('.poids_product').val( $('#poidsAffProduct').val() );
+	         		$('.weight_units_product').val( $('select[name=weight_unitsAff_product] option:selected').val() );
 	         		return true;
 	         	});
 	         	
