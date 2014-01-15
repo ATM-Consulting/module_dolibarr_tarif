@@ -477,7 +477,9 @@ class InterfaceTarifWorkflow
 			//MAJ du prix 2
 			if(isset($_REQUEST['price_1'])){
 				$level = 2;	
-				$price = $_REQUEST['price_1'] * (1 - 0.15);
+				$price = str_replace(',', '.', $_REQUEST['price_1']);
+				$price = str_replace(' ', '', $price);
+				$price = $price * (1 - 0.15);
 				$price_ttc = $price * (1 + ($_REQUEST['tva_tx_1'] / 100));
 				$base = $_REQUEST['multiprices_base_type_1'];
 				$tva_tx = $_REQUEST['tva_tx_1'];
