@@ -188,7 +188,8 @@ class InterfaceTarifWorkflow
 		/*echo '<pre>';
 		print_r($object_parent);
 		echo '</pre>'; exit;*/
-			
+		$conditionnement = $conditionnement * pow(10, ($weight_units - $product->weight_units ));
+		
 		//echo $product->price; exit;
 		$object->remise_percent = $remise;
 		$object->subprice = (!empty($product->multiprices[$object_parent->client->price_level])) ? $product->multiprices[$object_parent->client->price_level] : $product->price ;
