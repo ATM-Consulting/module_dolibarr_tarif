@@ -324,7 +324,8 @@ class InterfaceTarifWorkflow
 				if(get_class($object) == 'OrderLine') $table = 'commandedet';
 				if(get_class($object) == 'FactureLigne') $table = 'facturedet'; 
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
-
+				
+				//echo "1 "; exit;
 			} 
 			
 			// Sinon, Si l'object origine est renseigné et est soit une propale soit une commande
