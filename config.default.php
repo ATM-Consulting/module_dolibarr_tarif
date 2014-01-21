@@ -24,5 +24,7 @@
 	
 	define('DOL_PACKAGE', true);
 	define('USE_TBS', true);
+	
+	define('FACTURE_DISPATCH_ON_EXPEDITION',true);
 
 	require(COREROOT.'inc.core.php');

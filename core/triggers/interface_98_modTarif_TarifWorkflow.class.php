@@ -363,19 +363,33 @@ class InterfaceTarifWorkflow
 				}
 				
 				elseif($object->origin == "shipping"){
+					
+					//SI TU AS UNE ERREUR ICI C'EST QUE TU AS OUBLIE LE README DU MODULE TARIF
 					$table = "facturedet";
 					$originid = $object->origin_id;
 					
-					$sql = "SELECT SUM(eda.weight) as weight, eda.weight_unit as weight_unit, cd.price, cd.tarif_poids, cd.poids, COUNT(eda.weight_unit) as qty
-							FROM ".MAIN_DB_PREFIX."expeditiondet_asset eda
+					if(FACTURE_DISPATCH_ON_EXPEDITION && $conf->dispatch->enabled){
+						$sql = "SELECT eda.weight as weight, eda.weight_unit as weight_unit, cd.price, cd.tarif_poids, cd.poids, ed.qty as qty";
+					}
+					else{
+						$sql = "SELECT SUM(eda.weight) as weight, eda.weight_unit as weight_unit, cd.price, cd.tarif_poids, cd.poids, COUNT(eda.weight_unit) as qty";
+					}
+					
+					$sql.= " FROM ".MAIN_DB_PREFIX."expeditiondet_asset eda
 								LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (ed.rowid = eda.fk_expeditiondet)
-								LEFT JOIN ".MAIN_DB_PREFIX."commandedet as cd ON (cd.rowid = fk_origin_line)
+								LEFT JOIN ".MAIN_DB_PREFIX."commandedet as cd ON (cd.rowid = ed.fk_origin_line)
 								LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = cd.fk_product)
 							WHERE eda.fk_expeditiondet = ".$originid."
-							AND cd.fk_product = ".$object->fk_product."
-							GROUP BY eda.weight_unit, cd.fk_product
-							ORDER BY eda.weight_unit ASC";
+							AND cd.fk_product = ".$object->fk_product;
+							
+					if(!FACTURE_DISPATCH_ON_EXPEDITION && $conf->dispatch->enabled){
+						$sql.= " GROUP BY eda.weight_unit, cd.fk_product ";
+					}
+					
+					$sql.= " ORDER BY eda.weight_unit ASC";
  				}
+
+				//echo $sql; exit;
 				
 				$resql = $this->db->query($sql);
 				$res = $this->db->fetch_object($resql);
@@ -399,9 +413,9 @@ class InterfaceTarifWorkflow
 						$poids = $res->weight;
 						$weight_units = $res->weight_unit;
 						$object->qty = $res->qty;
-						
+
 						$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".($poids / $object->qty).", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
-						
+
 						$object->subprice = $this->calcule_prix_facture($res,$object);
 						$object->update($user);	
 						$this->_updateTotauxLine($object,$object->qty);
