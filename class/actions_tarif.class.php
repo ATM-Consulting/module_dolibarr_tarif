@@ -25,6 +25,8 @@ class ActionsTarif
 				?>
 				<script type="text/javascript">
 					$(document).ready(function(){
+						$('#tablelines form').attr('name','editline');
+						
 						<?php
 						$formproduct = new FormProduct($db);
 						foreach($object->lines as $line){
@@ -32,9 +34,10 @@ class ActionsTarif
 							$res = $db->fetch_object($resql);
 							if($line->rowid == $_REQUEST['lineid'] && $line->product_type == 0){
 								?>
-								$('input[name=qty]').parent().after('<td align="right"><input id="poidsAff" type="text" value="<?php if(!is_null($res->tarif_poids)) echo number_format($res->tarif_poids,2,",",""); ?>" name="poidsAff" size="6"><?php $formproduct->select_measuring_units("weight_unitsAff", "weight", $res->poids); ?></td>');
-								$('input[name=token]').prev().append('<input id="poids" type="hidden" value="0" name="poids" size="3">');
-					         	$('input[name=token]').prev().append('<input id="weight_units" type="hidden" value="0" name="weight_units" size="3">');
+								$('input[name=qty]').parent().after('<td align="right"><input id="poidsAff" type="text" value="<?php if(!is_null($res->tarif_poids)) echo number_format($res->tarif_poids,2,",",""); ?>" name="poidsAff" size="6" /><?php $formproduct->select_measuring_units("weight_unitsAff", "weight", $res->poids); ?></td>');
+			
+								$('form[name=editline]').append('<input id="poids" type="hidden" value="0" name="poids" size="3" />');
+					         	$('form[name=editline]').append('<input id="weight_units" type="hidden" value="0" name="weight_units" size="3" />');
 					         	$('#savelinebutton').click(function() {
 					         		$('#poids').val( $('#poidsAff').val() );
 					         		$('#weight_units').val( $('select[name=weight_unitsAff] option:selected').val() );
@@ -44,6 +47,23 @@ class ActionsTarif
 							}
 				        }
 						?>
+
+						/*
+						$('#cancellinebutton').click(function() {
+							document.location.href=$('#tablelines form').attr('action');
+						});*/
+						
+						/*$('form[name=editline]').submit(function(event, handler){
+							
+							data = $(this).serialize() ;
+							alert(data);
+							$.post($(this).attr('action') , data );
+
+							document.location.href=$(this).attr('action') ;
+
+							return false;
+							
+						});*/
 					});
 				</script>
 				<?php
@@ -86,7 +106,7 @@ class ActionsTarif
 	         		if($(this).html() == "Qté")
 	         			$(this).after('<td align="right" width="140">Poids</td>');
 	         	});
-	         	$('#np_desc').parent().next().after('<td align="right"><span id="AffUnite" style="display:none;">unité</span><input class="poidsAff" type="text" value="0" name="poidsAff_product" id="poidsAffProduct" size="6"><?php $formproduct->select_measuring_units("weight_unitsAff_product", "weight",-6); ?></td>');
+	         	$('#np_desc').parent().next().after('<td align="right"><span id="AffUnite" style="display:none;">unité</span><input class="poidsAff" type="text" value="0" name="poidsAff_product" id="poidsAffProduct" size="6" /><?php $formproduct->select_measuring_units("weight_unitsAff_product", "weight",-6); ?></td>');
 	         	$('#dp_desc').parent().next().next().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff_libre" size="6"><?php $formproduct->select_measuring_units("weight_unitsAff_libre", "weight",-6); ?></td>');
 	         	$('#addpredefinedproduct').append('<input class="poids_product" type="hidden" value="0" name="poids" size="3">');
 	         	$('#addpredefinedproduct').append('<input class="weight_units_product" type="hidden" value="0" name="weight_units" size="3">');

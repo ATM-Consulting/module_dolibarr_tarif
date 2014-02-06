@@ -128,6 +128,8 @@ class InterfaceTarifWorkflow
 			//return -1;
 		}
 		
+		return 0;
+		
 		/*
 		$conditionnement_total = $qty * $conditionnement;
 		
@@ -174,12 +176,14 @@ class InterfaceTarifWorkflow
 			}
 			//return -1;
 		}
+		
+		return false;
 	}
 	
 	function _updateLineProduct(&$object,&$user,$idProd,$conditionnement,$weight_units,$remise, $prix){
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
 		dol_include_once('/tarif/config.php');
-		
+		//print $prix.'<br />';
 		$product = new Product($this->db);
 		$product->fetch($idProd);
 		
@@ -192,17 +196,19 @@ class InterfaceTarifWorkflow
 		
 		//echo $product->price; exit;
 		$object->remise_percent = $remise;
-		$object->subprice = (!empty($product->multiprices[$object_parent->client->price_level])) ? $product->multiprices[$object_parent->client->price_level] : $product->price ;
 		
-		if($prix > 0){
-			$object->subprice = $prix;
-		}
+		$price_level = & $object_parent->client->price_level;
+		$object->subprice = (!empty($product->multiprices[$price_level])) ? $product->multiprices[$price_level] : $prix ;
+	
+		
+	
 		
 		/*echo "\$object->subprice : ".$object->subprice."<br >";
 		echo "\$conditionnement : ".$conditionnement."<br >";
 		echo "\$product->weight : ".$product->weight."<br >";*/
 		//exit;
-		$object->subprice = $object->subprice  * ($conditionnement / $product->weight);
+		//$object->subprice = $object->subprice  * ($conditionnement / $product->weight);
+		//print $conditionnement.' : '.  $object->subprice.'<br />';
 		
 		$object->price = $object->subprice; // TODO qu'est-ce ? Due à un deprecated incertain, dans certains cas price est utilisé et dans d'autres c'est subprice
 		//echo $object->subprice; exit;
@@ -212,7 +218,7 @@ class InterfaceTarifWorkflow
 			$object->subprice = $object->subprice * (-1);
 			$object->price = $object->subprice;
 		}
-		
+		//print $object->subprice; exit;
 		if(get_class($object) == 'FactureLigne') $object->update($user, true);
 		else $object->update(true);
 	}
@@ -452,9 +458,20 @@ class InterfaceTarifWorkflow
 					
 					$remise = $this->_getRemise($idProd,$_POST['qty'],$poids,$weight_units);
 					
-					$prix = 0;
-					if($remise <= 0)
-						$prix = $this->_getPrix($idProd,$_POST['qty'],$poids,$weight_units);
+				
+					$prix = $object->subprice; 
+				
+					
+					
+					if($remise <= 0) {
+						$newPrix = $this->_getPrix($idProd,$_POST['qty'],$poids,$weight_units);
+						
+						if($newPrix!==false) $prix = $newPrix;
+						
+					}
+						
+					
+				
 					
 					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise, $prix);
 					$this->_updateTotauxLine($object,$_POST['qty']);
