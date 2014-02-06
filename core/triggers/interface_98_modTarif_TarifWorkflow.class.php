@@ -152,12 +152,14 @@ class InterfaceTarifWorkflow
 
 	function _getPrix($idProd,$qty,$conditionnement,$weight_units){
 
-		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure !!!)
-		$sql = "SELECT p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent";
+		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure)
+		$sql = "SELECT p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, pr.weight";
 		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
-		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product
+
+		LEFT JOIN ".MAIN_DB_PREFIX."product pr ON p.fk_object=pr.rowid ";
 		$sql.= " WHERE fk_product = ".$idProd;
-		$sql.= " ORDER BY quantite DESC"; //unite_value DESC, 
+		$sql.= " ORDER BY quantite DESC"; 
 		
 		$resql = $this->db->query($sql);
 		
@@ -171,7 +173,7 @@ class InterfaceTarifWorkflow
 					//Ici on récupère le pourcentage correspondant et on arrête la boucle
 					return $res->prix;
 				} else if($conditionnement>=$res->quantite && $res->type_remise == "conditionnement" && $res->unite_value == $weight_units && $res->type_price = 'PRICE') {
-					return $res->prix;
+					return $res->prix * ($conditionnement / $res->weight); // prise en compte unité produit et poid init produit
 				}
 			}
 			//return -1;
@@ -207,7 +209,9 @@ class InterfaceTarifWorkflow
 		echo "\$conditionnement : ".$conditionnement."<br >";
 		echo "\$product->weight : ".$product->weight."<br >";*/
 		//exit;
+		
 		//$object->subprice = $object->subprice  * ($conditionnement / $product->weight);
+		
 		//print $conditionnement.' : '.  $object->subprice.'<br />';
 		
 		$object->price = $object->subprice; // TODO qu'est-ce ? Due à un deprecated incertain, dans certains cas price est utilisé et dans d'autres c'est subprice
