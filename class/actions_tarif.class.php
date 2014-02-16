@@ -17,6 +17,8 @@ class ActionsTarif
 		include_once(DOL_DOCUMENT_ROOT."/comm/propal/class/propal.class.php");
 		include_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
 		include_once(DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php');
+
+
 		
     	if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context'])))
         {
@@ -85,6 +87,10 @@ class ActionsTarif
 		include_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
 		include_once(DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php');
 		$langs->load("other");
+
+	define('INC_FROM_DOLIBARR', true);
+	dol_include_once('/tarif/config.php');
+
 		
 		if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
         {			
@@ -103,8 +109,10 @@ class ActionsTarif
          			}
          		?>
 	         	$('#tablelines .liste_titre > td').each(function(){
-	         		if($(this).html() == "Qté")
-	         			$(this).after('<td align="right" width="140">'.(defined('WEIGHT_LABEL') ? WEIGHT_LABEL :  'Poids').'</td>');
+	         		if($(this).html() == "Qté"){
+					var weight_label = "<?=defined('WEIGHT_LABEL') ? WEIGHT_LABEL :  'Poids' ?>";
+	         			$(this).after('<td align="right" width="140">'+weight_label+'</td>');
+				}
 	         	});
 	         	$('#np_desc').parent().next().after('<td align="right"><span id="AffUnite" style="display:none;">unité</span><input class="poidsAff" type="text" value="0" name="poidsAff_product" id="poidsAffProduct" size="6" /><?php $formproduct->select_measuring_units("weight_unitsAff_product", "weight",-6); ?></td>');
 	         	$('#dp_desc').parent().next().next().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff_libre" size="6"><?php $formproduct->select_measuring_units("weight_unitsAff_libre", "weight",-6); ?></td>');
