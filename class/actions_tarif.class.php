@@ -104,7 +104,7 @@ class ActionsTarif
          		?>
 	         	$('#tablelines .liste_titre > td').each(function(){
 	         		if($(this).html() == "Qté")
-	         			$(this).after('<td align="right" width="140">Poids</td>');
+	         			$(this).after('<td align="right" width="140">'.(defined('WEIGHT_LABEL') ? WEIGHT_LABEL :  'Poids').'</td>');
 	         	});
 	         	$('#np_desc').parent().next().after('<td align="right"><span id="AffUnite" style="display:none;">unité</span><input class="poidsAff" type="text" value="0" name="poidsAff_product" id="poidsAffProduct" size="6" /><?php $formproduct->select_measuring_units("weight_unitsAff_product", "weight",-6); ?></td>');
 	         	$('#dp_desc').parent().next().next().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff_libre" size="6"><?php $formproduct->select_measuring_units("weight_unitsAff_libre", "weight",-6); ?></td>');
