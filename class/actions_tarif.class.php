@@ -68,6 +68,8 @@ class ActionsTarif
 						         	return true;
 						         	
 					         	});
+					         	
+					         	
 								<?php
 							}
 				        }
