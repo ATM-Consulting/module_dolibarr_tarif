@@ -31,5 +31,3 @@
 	define('DOL_DEFAULT_UNIT','weight'); //Définie l'unité de vente par défaut des lignes de propale, commande, facture : weight, size, surface, volume
 	
 	require(COREROOT.'inc.core.php');
-
-	

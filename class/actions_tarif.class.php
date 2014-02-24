@@ -68,6 +68,8 @@ class ActionsTarif
 						         	return true;
 						         	
 					         	});
+					         	
+					         	
 								<?php
 							}
 				        }
@@ -103,8 +105,7 @@ class ActionsTarif
 		}
 		
 		if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
-        {
-        				
+        {			
 			if($object->line->error)
 				dol_htmloutput_mesg($object->line->error,'', 'error');
         	?>
