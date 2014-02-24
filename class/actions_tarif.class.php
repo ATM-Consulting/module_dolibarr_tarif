@@ -17,8 +17,14 @@ class ActionsTarif
 		include_once(DOL_DOCUMENT_ROOT."/comm/propal/class/propal.class.php");
 		include_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
 		include_once(DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php');
-
-
+		
+		define('INC_FROM_DOLIBARR', true);
+		dol_include_once('/tarif/config.php');
+		
+		if(!defined('DOL_DEFAULT_UNIT')){
+			define('DOL_DEFAULT_UNIT','weight');
+		}
+		
 		
     	if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context'])))
         {
@@ -32,40 +38,41 @@ class ActionsTarif
 						<?php
 						$formproduct = new FormProduct($db);
 						foreach($object->lines as $line){
-	         				$resql = $db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$object->table_element_line." WHERE rowid = ".$line->rowid);
+	         				$resql = $db->query("SELECT e.tarif_poids, e.poids, pe.unite_vente 
+	         									 FROM ".MAIN_DB_PREFIX.$object->table_element_line." as e 
+	         									 	LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as pe ON (e.fk_product = pe.fk_object)
+	         									 WHERE e.rowid = ".$line->rowid);
 							$res = $db->fetch_object($resql);
 							if($line->rowid == $_REQUEST['lineid'] && $line->product_type == 0){
+								
+								if(defined('DONT_ADD_UNIT_SELECT') && DONT_ADD_UNIT_SELECT) {
+									null;
+								}	
+								else {
+									?>
+									$('input[name=qty]').parent().after('<td align="right"><input id="poidsAff" type="text" value="<?php if(!is_null($res->tarif_poids)) echo number_format($res->tarif_poids,2,",",""); ?>" name="poidsAff" size="6" /><?php $formproduct->select_measuring_units("weight_unitsAff", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT, $res->poids); ?></td>');
+					
+									<?php
+								}
+								
 								?>
-								$('input[name=qty]').parent().after('<td align="right"><input id="poidsAff" type="text" value="<?php if(!is_null($res->tarif_poids)) echo number_format($res->tarif_poids,2,",",""); ?>" name="poidsAff" size="6" /><?php $formproduct->select_measuring_units("weight_unitsAff", "weight", $res->poids); ?></td>');
-			
-								$('form[name=editline]').append('<input id="poids" type="hidden" value="0" name="poids" size="3" />');
+								$('form[name=editline]').append('<input id="poids" type="hidden" value="1" name="poids" size="3" />');
 					         	$('form[name=editline]').append('<input id="weight_units" type="hidden" value="0" name="weight_units" size="3" />');
-					         	$('#savelinebutton').click(function() {
-					         		$('#poids').val( $('#poidsAff').val() );
-					         		$('#weight_units').val( $('select[name=weight_unitsAff] option:selected').val() );
-					         		return true;
+					
+					         	$('form[name=editline]').submit(function() {
+					         	
+						         	if($('#poidsAff').length>0) {
+						         		$('#poids').val( $('#poidsAff').val() );
+						         		$('#weight_units').val( $('select[name=weight_unitsAff]').val() );
+						         	} 
+						         	return true;
+						         	
 					         	});
 								<?php
 							}
 				        }
 						?>
 
-						/*
-						$('#cancellinebutton').click(function() {
-							document.location.href=$('#tablelines form').attr('action');
-						});*/
-						
-						/*$('form[name=editline]').submit(function(event, handler){
-							
-							data = $(this).serialize() ;
-							alert(data);
-							$.post($(this).attr('action') , data );
-
-							document.location.href=$(this).attr('action') ;
-
-							return false;
-							
-						});*/
 					});
 				</script>
 				<?php
@@ -88,12 +95,16 @@ class ActionsTarif
 		include_once(DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php');
 		$langs->load("other");
 
-	define('INC_FROM_DOLIBARR', true);
-	dol_include_once('/tarif/config.php');
-
+		define('INC_FROM_DOLIBARR', true);
+		dol_include_once('/tarif/config.php');
+		
+		if(!defined('DOL_DEFAULT_UNIT')){
+			define('DOL_DEFAULT_UNIT','weight');
+		}
 		
 		if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
-        {			
+        {
+        				
 			if($object->line->error)
 				dol_htmloutput_mesg($object->line->error,'', 'error');
         	?>
@@ -101,30 +112,53 @@ class ActionsTarif
          		<?php
          			$formproduct = new FormProduct($db);
          			//echo (count($instance->lines) >0)? "$('#tablelines').children().first().children().first().children().last().prev().prev().prev().prev().prev().after('<td align=\"right\" width=\"50\">Poids</td>');" : '' ;
+					
+				if(defined('DONT_ADD_UNIT_SELECT') && DONT_ADD_UNIT_SELECT) {
+					null;
+				}	
+				else {
+
          			foreach($object->lines as $line){
-         				$resql = $db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$object->table_element_line." WHERE rowid = ".$line->rowid);
+         				$resql = $db->query("SELECT e.tarif_poids, e.poids, pe.unite_vente 
+	         									 FROM ".MAIN_DB_PREFIX.$object->table_element_line." as e 
+	         									 	LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as pe ON (e.fk_product = pe.fk_object)
+	         									 WHERE e.rowid = ".$line->rowid);
 						$res = $db->fetch_object($resql);
-						echo "$('#row-".$line->rowid."').children().eq(3).after('<td align=\"right\">".((!is_null($res->tarif_poids))? number_format($res->tarif_poids,2,",","")." ".measuring_units_string($res->poids,'weight') : "")."</td>');";
-						if($line->error != '') echo "alert('".$line->error."');";
+						
+						echo "$('#row-".$line->rowid."').children().eq(3).after('<td align=\"right\">".((!is_null($res->tarif_poids))? number_format($res->tarif_poids,2,",","")." ".measuring_units_string($res->poids,($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT) : "")."</td>');";
+						//if($line->error != '') echo "alert('".$line->error."');";
          			}
-         		?>
-	         	$('#tablelines .liste_titre > td').each(function(){
-	         		if($(this).html() == "Qté"){
-					var weight_label = "<?=defined('WEIGHT_LABEL') ? WEIGHT_LABEL :  'Poids' ?>";
-	         			$(this).after('<td align="right" width="140">'+weight_label+'</td>');
+
+	         		?>
+		         	$('#tablelines .liste_titre > td').each(function(){
+		         		if($(this).html() == "Qté"){
+						var weight_label = "<?=defined('WEIGHT_LABEL') ? WEIGHT_LABEL :  'Poids' ?>";
+		         			$(this).after('<td align="right" width="140">'+weight_label+'</td>');
+					}
+		         	});
+
+		         	$('#np_desc').parent().next().after('<td align="right"><span id="AffUnite" style="display:none;">unité</span><input class="poidsAff" type="text" value="0" name="poidsAff_product" id="poidsAffProduct" size="6" /><?php $formproduct->select_measuring_units("weight_unitsAff_product", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT,-6); ?></td>');
+		         	$('#dp_desc').parent().next().next().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff_libre" size="6"><?php $formproduct->select_measuring_units("weight_unitsAff_libre", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT,-6); ?></td>');
+
+		         	<?php
 				}
-	         	});
-	         	$('#np_desc').parent().next().after('<td align="right"><span id="AffUnite" style="display:none;">unité</span><input class="poidsAff" type="text" value="0" name="poidsAff_product" id="poidsAffProduct" size="6" /><?php $formproduct->select_measuring_units("weight_unitsAff_product", "weight",-6); ?></td>');
-	         	$('#dp_desc').parent().next().next().next().after('<td align="right"><input class="poidsAff" type="text" value="0" name="poidsAff_libre" size="6"><?php $formproduct->select_measuring_units("weight_unitsAff_libre", "weight",-6); ?></td>');
-	         	$('#addpredefinedproduct').append('<input class="poids_product" type="hidden" value="0" name="poids" size="3">');
+					
+	         	
+	         	?>
+	         	$('#addpredefinedproduct').append('<input class="poids_product" type="hidden" value="1" name="poids" size="3">');
 	         	$('#addpredefinedproduct').append('<input class="weight_units_product" type="hidden" value="0" name="weight_units" size="3">');
-	         	$('#addproduct').append('<input class="poids_libre" type="hidden" value="0" name="poids" size="3">');
+	         	$('#addproduct').append('<input class="poids_libre" type="hidden" value="1" name="poids" size="3">');
 	         	$('#addproduct').append('<input class="weight_units_libre" type="hidden" value="0" name="weight_units" size="3">');
-	         	$('input[name=addline]').click(function() {
-	         		$('.poids_libre').val( $('[name=poidsAff_libre]').val() );
-	         		$('.weight_units_libre').val( $('select[name=weight_unitsAff_libre] option:selected').val() );
-	         		$('.poids_product').val( $('#poidsAffProduct').val() );
-	         		$('.weight_units_product').val( $('select[name=weight_unitsAff_product] option:selected').val() );
+	         
+	         	$('#addpredefinedproduct,#addproduct').submit(function() {
+	         		if($('[name=poidsAff_libre]').length>0) {
+		         		$('.poids_libre').val( $('[name=poidsAff_libre]').val() );
+		         		$('.weight_units_libre').val( $('select[name=weight_unitsAff_libre] option:selected').val() );
+		         		$('.poids_product').val( $('#poidsAffProduct').val() );
+		         		$('.weight_units_product').val( $('select[name=weight_unitsAff_product] option:selected').val() );
+	         			
+	         		}
+	         		
 	         		return true;
 	         	});
 	         	
@@ -137,6 +171,10 @@ class ActionsTarif
 						,data: {fk_product: $('#idprod').val()}
 						},"json").then(function(select){
 							if(select.unite != ""){
+								if(select.unite_vente != ""){
+									$('select[name=weight_unitsAff_product]').remove();
+									$('#poidsAffProduct').after(select.unite_vente);
+								}
 								$('select[name=weight_unitsAff_product]').val(select.unite);
 								$('select[name=weight_unitsAff_product]').prev().show();
 								$('#poidsAffProduct').val(select.poids);
