@@ -18,6 +18,13 @@
 	$langs->load("other");
 	
 	$ATMdb = new Tdb;
+	
+	$ATMdb->Execute("SELECT unite_vente FROM ".MAIN_DB_PREFIX."product_extrafields WHERE fk_object = ".$_REQUEST['fk_product']);
+	$ATMdb->Get_line();
+	$type_unite = $ATMdb->Get_field('unite_vente');
+	
+	if($type_unite == "size") $type_unite = "length"; //Pout la longeur le nom du champ diffère....
+	
 	$TTarif = new TTarif;
 	$product = new Product($db);
 	$result=$product->fetch($_REQUEST['fk_product']);	
@@ -97,6 +104,13 @@
 		print '<tr><td width="20%">Type de prix</td><td>';
         print $form->selectarray("type_prix",$TTarif->TType_price);
         print '</td></tr>';
+        
+        if($conf->multidevise->enabled){
+	        //Devise
+			print '<tr><td>Devise</td><td colspan="3">';
+			print $form->select_currency($conf->currency,"currency");
+			print '</td></tr>';
+		}
 		
 		// Price
 		print '<tr><td width="20%">';
@@ -126,11 +140,6 @@
 					var n_price = parseFloat($(this).val());
 					var price = parseFloat($('#prix').val());
 					
-					if(n_price>price) {
-						alert('Votre prix doit être inférieur au prix de base ('+n_price+'<'+price+').');
-						return false;
-					}
-					
 					var percent = - (((n_price - price) / price) *100 );
 					
 					$('#remise').val(percent.toFixed(0));
@@ -148,7 +157,7 @@
 		print '<tr><td width="20%">';
 		print 'Unit&eacute;';
 		print '</td><td>';
-		print $formproduct->select_measuring_units("weight_units", "weight", $object->weight_units);
+		print $formproduct->select_measuring_units("weight_units", $type_unite, $object->{$type_unite.'_units'});
 		print '</td></tr>';
 
 		print '</table>';
@@ -160,7 +169,7 @@
 	}
 	elseif(isset($_REQUEST['action']) && !empty($_REQUEST['action']) && $_REQUEST['action'] == 'add_conditionnement' && isset($_REQUEST['save'])) {
 		
-		$unite = measuring_units_string($_REQUEST['weight_units'],'weight');
+		$unite = measuring_units_string($_REQUEST['weight_units'],$type_unite);
 		$unite = $langs->trans($unite);
 		
 		$Ttarif = new TTarif;
@@ -168,6 +177,7 @@
 		$Ttarif->price_base_type = 'HT';
 		$Ttarif->fk_user_author = $user->id;
 		$Ttarif->type_price = $_REQUEST['type_prix'];
+		$Ttarif->currency_code = $_REQUEST['currency'];
 		
 		if($_REQUEST['type_prix'] == 'PRICE'){
 			
@@ -199,35 +209,44 @@
 	 **********************************/
 	$TConditionnement = array();
 	
-	$sql = "SELECT tc.rowid AS 'id', tc.tva_tx AS tva, tc.type_price as type_price, tc.price_base_type AS base, tc.quantite as quantite, tc.unite AS unite, tc.remise_percent AS remise, tc.prix AS prix, p.weight_units AS base_poids, tc.unite_value AS unite_value,((tc.quantite * POWER(10,(tc.unite_value-p.weight_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.weight_units))) * tc.prix) * (tc.remise_percent/100)  AS 'Total','' AS 'Supprimer'
+	$sql = "SELECT tc.rowid AS 'id', tc.tva_tx AS tva, tc.type_price as type_price, c.code as currency, tc.price_base_type AS base, tc.quantite as quantite,
+				   tc.unite AS unite, tc.remise_percent AS remise, tc.prix AS prix, p.".$type_unite."_units AS base_poids, tc.unite_value AS unite_value,
+				   ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) * (tc.remise_percent/100)  AS 'Total',
+				   '' AS 'Supprimer'
 			FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
 				LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)
+				LEFT JOIN ".MAIN_DB_PREFIX."currency AS c ON (c.code = tc.currency_code)
 			WHERE fk_product = ".$product->id."
 			ORDER BY unite_value, quantite ASC";
 	
 	$r = new TSSRenderControler(new TTarif);
+	
+	$THide = array(
+			'id'
+			,'base_poids'
+			,'unite_value'
+			,'tva'
+			,'base'
+		);
 		
+	if(!$conf->multidevise->enabled) $THide[] = 'currency';
+	
 	print $r->liste($ATMdb, $sql, array(
 		'limit'=>array('nbLine'=>1000)
 		,'title'=>array(
 			'tva'=>'Taux TVA'
 			,'base' => 'Base du Prix'
 			,'quantite'=>'Quantit&eacute'
+			,'currency'=>'Devise'
 			,'type_price' => 'Type de prix'
 			,'unite'=>'Unit&eacute;'
-			,'prix'=>'Tarif (€)'
+			,'prix'=>'Tarif'
 			,'remise' => 'Remise (%)'
-			,'Total' => 'Total (€)'
+			,'Total' => 'Total'
 			,'Supprimer' => 'Supprimer'
 		)
 		,'type'=>array('date_debut'=>'date','date_fin'=>'date','tva' => 'number', 'prix'=>'money', 'Total' => 'money' , 'quantite' => 'number')
-		,'hide'=>array(
-			'id'
-			,'base_poids'
-			,'unite_value'
-			,'tva'
-			,'base'
-		)
+		,'hide'=> $THide
 		,'link'=>array(
 			'Supprimer'=>'<a href="?id=@id@&action=delete&fk_product='.$object->id.'" onclick="return confirm(\'Êtes-vous sûr de vouloir supprimer ce conditionnement?\');"><img src="img/delete.png"></a>'
 		)
