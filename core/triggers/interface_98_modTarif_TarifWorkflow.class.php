@@ -104,7 +104,7 @@ class InterfaceTarifWorkflow
 		echo "\$weight_units : ".$weight_units."<br />";*/
 
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure !!!)
-		$sql = "SELECT p.type_remise as type_remise, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent";
+		$sql = "SELECT p.type_remise as type_remise, tc.quantite as quantite, tc.type_price, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent";
 		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product";
 		$sql.= " WHERE fk_product = ".$idProd;
@@ -118,71 +118,65 @@ class InterfaceTarifWorkflow
 		if($resql->num_rows > 0) {
 			$pallier = 0;
 			while($res = $this->db->fetch_object($resql)) {
-				if($qty>=$res->quantite && $res->type_remise == "qte"){
-					//Ici on récupère le pourcentage correspondant et on arrête la boucle
-					return $res->remise_percent;
-				} else if($conditionnement>=$res->quantite && $res->type_remise == "conditionnement" && $res->unite_value == $weight_units) {
-					return $res->remise_percent;
+				
+				if( $res->type_price == 'PERCENT'){
+					
+					if($res->type_remise == "qte" && $qty >= $res->quantite){
+						return $res->remise_percent;
+					} 
+					else if($res->type_remise == "conditionnement" && $conditionnement >= $res->quantite && $res->unite_value == $weight_units) {
+						return $res->remise_percent;
+					}
 				}
 			}
-			//return -1;
 		}
 		
 		return 0;
-		
-		/*
-		$conditionnement_total = $qty * $conditionnement;
-		
-		//Si il existe au moin un prix par conditionnement
-		if($resql->num_rows > 0) {
-			while($res = $this->db->fetch_object($resql)){
-				
-				$qte_totale_grille = $res->quantite * pow(10, $res->unite_value); // latoxan !!
-				
-				if($qte_totale_grille <= $qte_totale) {
-					//Récupération de la remise
-					return $res->remise_percent;
-				}
-			}
-			return -1;
-		}*/
-		
-		//return -2;
 	}
 
-	function _getPrix($idProd,$qty,$conditionnement,$weight_units){
+	function _getPrix($idProd,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise){
 
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure)
 		$sql = "SELECT p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, pr.weight";
 		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product
-
-		LEFT JOIN ".MAIN_DB_PREFIX."product pr ON p.fk_object=pr.rowid ";
-		$sql.= " WHERE fk_product = ".$idProd;
+				 LEFT JOIN ".MAIN_DB_PREFIX."product pr ON p.fk_object=pr.rowid ";
+		$sql.= " WHERE fk_product = ".$idProd." AND (tc.currency_code = '".$devise."' OR tc.currency_code IS NULL)";
 		$sql.= " ORDER BY quantite DESC"; 
 		
 		$resql = $this->db->query($sql);
 		
+		/*print($qty);
+		exit($sql);*/
+		
 		// Quantité totale de produit ajoutée dans la ligne
 		//$qte_totale = $qty * $conditionnement * pow(10, $weight_units);
 		
+		
 		if($resql->num_rows > 0) {
-			$pallier = 0;
 			while($res = $this->db->fetch_object($resql)) {
-				if($qty>=$res->quantite && $res->type_remise == "qte" && $res->type_price = 'PRICE'){
-					//Ici on récupère le pourcentage correspondant et on arrête la boucle
-					return $res->prix;
-				} else if($conditionnement>=$res->quantite && $res->type_remise == "conditionnement" && $res->unite_value == $weight_units && $res->type_price = 'PRICE') {
-					return $res->prix * ($conditionnement / $res->weight); // prise en compte unité produit et poid init produit
+				
+				if($res->type_price == 'PRICE'){
+					
+					if($res->type_remise == "qte" && $qty >= $res->quantite){
+						//Ici on récupère le pourcentage correspondant et on arrête la boucle
+						return $res->prix;
+					} 
+					else if($res->type_remise == "conditionnement" && $conditionnement >= $res->quantite &&  $res->unite_value == $weight_units) {
+						return $res->prix * ($conditionnement / $res->weight); // prise en compte unité produit et poid init produit
+					}
 				}
 			}
-			//return -1;
 		}
 		
-		return false;
+		return $subprice * $coef;
+
 	}
 	
-	function _updateLineProduct(&$object,&$user,$idProd,$conditionnement,$weight_units,$remise, $prix){
+	function _updateLineProduct(&$object,&$user,$idProd,$conditionnement,$weight_units,$remise, $prix ,$prix_devise){
+		
+		global $conf;
+		
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
 		dol_include_once('/tarif/config.php');
 		//print $prix.'<br />';
@@ -191,20 +185,14 @@ class InterfaceTarifWorkflow
 		
 		$object_parent = $this->_getObjectParent($object);
 		
-		/*echo '<pre>';
-		print_r($object_parent);
-		echo '</pre>'; exit;*/
 		$conditionnement = $conditionnement * pow(10, ($weight_units - $product->weight_units ));
 		
 		//echo $product->price; exit;
 		$object->remise_percent = $remise;
 		
 		$price_level = & $object_parent->client->price_level;
-		$object->subprice = (!empty($product->multiprices[$price_level])) ? $product->multiprices[$price_level] : $prix ;
+		$object->subprice = $prix ;
 	
-		
-	
-		
 		/*echo "\$object->subprice : ".$object->subprice."<br >";
 		echo "\$conditionnement : ".$conditionnement."<br >";
 		echo "\$product->weight : ".$product->weight."<br >";*/
@@ -223,8 +211,31 @@ class InterfaceTarifWorkflow
 			$object->price = $object->subprice;
 		}
 		//print $object->subprice; exit;
+		
 		if(get_class($object) == 'FactureLigne') $object->update($user, true);
 		else $object->update(true);
+		
+		//Cas multidevise
+		if($conf->multidevise->enabled){
+			
+			if(get_class($object) == "OrderLine"){
+				$tabledet = "commandedet";
+				//$object->update(true);
+			}
+			elseif(get_class($object) == 'PropaleLigne'){
+				$tabledet = "propaldet";
+				//$object->update(true);
+			}
+			elseif(get_class($object) == 'FactureLigne'){
+				$tabledet = "facturedet";
+			}
+			
+			//pre($object,true);
+			//exit('UPDATE '.MAIN_DB_PREFIX.$tabledet.' SET devise_pu = '.$prix_devise.', devise_mt_ligne = '.(($prix_devise * $object->qty) * ( 1 - ($object->remise_percent/100))).' WHERE rowid = '.$object->rowid);
+			$this->db->query('UPDATE '.MAIN_DB_PREFIX.$tabledet.' SET devise_pu = '.$prix_devise.', devise_mt_ligne = '.(($prix_devise * $object->qty) * ( 1 - ($object->remise_percent/100))).' WHERE rowid = '.$object->rowid);
+			//exit("$prix $prix_devise");
+		}
+		//exit;
 	}
 	
 	function _updateTotauxLine(&$object,$qty){
@@ -290,51 +301,66 @@ class InterfaceTarifWorkflow
 		dol_include_once('/comm/propal/class/propal.class.php');
 		dol_include_once('/dispatch/class/dispatchdetail.class.php');
 		
-		global $user;
-		
-		/*echo '<pre>';
-		print_r($_REQUEST);
-		echo '</pre>';exit;*/
-		
+		global $user, $db;
+
 		//Création d'une ligne de facture, propale ou commande
 		if (($action == 'LINEORDER_INSERT' || $action == 'LINEPROPAL_INSERT' || $action == 'LINEBILL_INSERT') 
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
 			
-			$idProd = 0;
-			if(!empty($_POST['idprod'])) $idProd = $_POST['idprod'];
-			if(!empty($_POST['productid'])) $idProd = $_POST['productid'];
+				
+			$idProd = $object->fk_product;
+
+			$poids = __get('poids', 1,'float');
 			
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
-			if(GETPOST('poids', 'int')){
+			if($poids > 0 && $idProd > 0){
 				
-				$poids = (!empty($_POST['poids'])) ? floatval($_POST['poids']) : 0;
 				$weight_units = $_POST['weight_units'];
 				
-				if(!empty($idProd)){
+				if($conf->multidevise->enabled){
 					
-					$remise = $this->_getRemise($idProd,$_POST['qty'],$poids,$weight_units);
-					$prix = 0;
-					if($remise <= 0)
-						$prix = $this->_getPrix($idProd,$_POST['qty'],$poids,$weight_units);
+					if(get_class($object) == "OrderLine"){
+						$table = "commande";
+						//$object->update(true);
+					}
+					elseif(get_class($object) == 'PropaleLigne'){
+						$table = "propal";
+						//$object->update(true);
+					}
+					elseif(get_class($object) == 'FactureLigne'){
+						$table = "facture";
+					}
 					
-					//Quantité en dehors de la grille alors retourner erreur
-					/*if($remise == -1){
-						$this->db->rollback();
-						$this->db->rollback();
-						$object->error = "Quantité trop faible";
-						return -1;
-					}*/
+					$sql = "SELECT devise_code as code, devise_taux as coef FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$object->{"fk_".$table}; //Récup devise du parent + taux de conv 
 					
-					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix); //--- $poids = conditionnement !
-					$this->_updateTotauxLine($object,$_POST['qty']);
+					$res = $db->query($sql);
+					$resql = $db->fetch_object($res);
+					
+					$coef_conv = $resql->coef;
+					$devise = $resql->code;
 				}
-
+				else{ //devise = a celle du système
+					$coef_conv = 1;
+					$devise = $conf->currency;
+				}
+				
+				$remise = $this->_getRemise($idProd,$object->qty,$poids,$weight_units);
+				$prix = __val($object->subprice,$object->price,'float',true);
+				
+				if($remise == 0){
+					$prix_devise = $this->_getPrix($idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise);
+					$prix = $prix_devise / $coef_conv;
+				}
+				
+				$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise); //--- $poids = conditionnement !
+				$this->_updateTotauxLine($object,$object->qty);
+					
 				//MAJ du poids et de l'unité de la ligne
 				if(get_class($object) == 'PropaleLigne') $table = 'propaldet';
 				if(get_class($object) == 'OrderLine') $table = 'commandedet';
 				if(get_class($object) == 'FactureLigne') $table = 'facturedet'; 
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
-				
+				//pre($object,true); exit;
 				//echo "1 "; exit;
 			} 
 			
@@ -439,54 +465,62 @@ class InterfaceTarifWorkflow
 		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE') 
 				&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
 			
-			$idProd = 0;
-			if(!empty($_POST['idprod'])) $idProd = $_POST['idprod'];
-			if(!empty($_POST['productid'])) $idProd = $_POST['productid'];
+			$idProd = __val( $object->fk_product, $object->oldline->fk_product, 'integer');
 			
-			if(get_class($object) == 'PropaleLigne') $table = 'propaldet';
-			if(get_class($object) == 'OrderLine') $table = 'commandedet';
-			if(get_class($object) == 'FactureLigne') $table = 'facturedet';
-			$resql = $this->db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$object->rowid);
+			if(get_class($object) == 'PropaleLigne'){
+				 $table = 'propal';
+				 $tabledet = 'propaldet';
+			}
+			elseif(get_class($object) == 'OrderLine'){
+				 $table = 'commande';
+				 $tabledet = 'commandedet';
+			}
+			elseif(get_class($object) == 'FactureLigne'){
+				 $table = 'facture';
+				 $tabledet = 'facturedet';
+			}
 			
+			$resql = $this->db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$tabledet." WHERE rowid = ".$object->rowid);
 			$res = $this->db->fetch_object($resql);
+			
+			$weight_units = __get('weight_units',0,'integer');
+			$poids = __get('poids',1,'float');
 			
 			//echo floatval($res->tarif_poids * pow(10, $res->poids))." ".floatval($_POST['poids'] * pow(10, $_POST['weight_units']));exit;
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
 			// ET si la quantité ou le poids a changé
-			if($object->oldline->qty != $_POST['qty'] || floatval($res->tarif_poids * pow(10, $res->poids)) != floatval($_POST['poids'] * pow(10, $_POST['weight_units']))){
-				
-				$poids = (!empty($_POST['poids'])) ? floatval($_POST['poids']) : 0;
-				$weight_units = $_POST['weight_units'];
+			//exit($object->oldline->qty." != ".$object->qty." || ".floatval($res->tarif_poids * pow(10, $res->poids))." != ".floatval($poids * pow(10, $weight_units)));
+			if($object->oldline->qty != $object->qty || floatval($res->tarif_poids * pow(10, $res->poids)) != floatval($poids * pow(10, $weight_units))){
 				
 				if(!empty($idProd)){
-					
-					$remise = $this->_getRemise($idProd,$_POST['qty'],$poids,$weight_units);
-					
-				
-					$prix = $object->subprice; 
-				
-					
-					
-					if($remise <= 0) {
-						$newPrix = $this->_getPrix($idProd,$_POST['qty'],$poids,$weight_units);
+					if($conf->multidevise->enabled){
+						$sql = "SELECT devise_code as code, devise_taux as coef FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".__val($object->{"fk_".$table},$_REQUEST['id'],'integer'); //Récup devise du parent + taux de conv 
 						
-						if($newPrix!==false) $prix = $newPrix;
+						$res = $db->query($sql);
+						$resql = $db->fetch_object($res);
 						
+						$coef_conv = $resql->coef;
+						$devise = $resql->code;
 					}
-						
+					else{ //devise = a celle du système
+						$coef_conv = 1;
+						$devise = $conf->currency;
+					}
 					
-				
-					
-					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise, $prix);
-					$this->_updateTotauxLine($object,$_POST['qty']);
+					$remise = $this->_getRemise($idProd,$object->qty,$poids,$weight_units);
+					$prix = 0;
+	
+					if($remise == 0){
+						$prix_devise = $this->_getPrix($idProd,$object->qty,$poids,$weight_units,$object->subprice,$coef_conv,$devise);
+						$prix = $prix_devise / $coef_conv;
+					}
+					//pre($object, true);exit;
+					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise); //--- $poids = conditionnement !
+					$this->_updateTotauxLine($object,$object->qty);
 					
 				}
 
-				//MAJ du poids et de l'unité de la ligne
-				if(get_class($object) == 'PropaleLigne') $table = 'propaldet';
-				if(get_class($object) == 'OrderLine') $table = 'commandedet';
-				if(get_class($object) == 'FactureLigne') $table = 'facturedet'; 
-				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 
 			}
 			
@@ -495,7 +529,7 @@ class InterfaceTarifWorkflow
 		}
 		
 		//MAJ des différents prix de la grille de tarif par conditionnement lors d'une modification du prix produit
-		elseif($action == 'PRODUCT_PRICE_MODIFY'){
+		elseif(false && $action == 'PRODUCT_PRICE_MODIFY'){ //false => désactive
 			
 			/*echo '<pre>';
 			print_r($object);
