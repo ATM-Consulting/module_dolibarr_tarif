@@ -146,9 +146,6 @@ class InterfaceTarifWorkflow
 		
 		$resql = $this->db->query($sql);
 		
-		/*print($qty);
-		exit($sql);*/
-		
 		// Quantité totale de produit ajoutée dans la ligne
 		//$qte_totale = $qty * $conditionnement * pow(10, $weight_units);
 		

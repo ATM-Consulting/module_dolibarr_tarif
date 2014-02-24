@@ -56,7 +56,8 @@ class ActionsTarif
 								}
 								
 								?>
-								$('form[name=editline]').append('<input id="poids" type="hidden" value="1" name="poids" size="3" />');
+			
+								$('form[name=editline]').append('<input id="poids" type="hidden" value="0" name="poids" size="3" />');
 					         	$('form[name=editline]').append('<input id="weight_units" type="hidden" value="0" name="weight_units" size="3" />');
 					
 					         	$('form[name=editline]').submit(function() {
@@ -68,8 +69,6 @@ class ActionsTarif
 						         	return true;
 						         	
 					         	});
-					         	
-					         	
 								<?php
 							}
 				        }
@@ -125,7 +124,6 @@ class ActionsTarif
 	         									 	LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as pe ON (e.fk_product = pe.fk_object)
 	         									 WHERE e.rowid = ".$line->rowid);
 						$res = $db->fetch_object($resql);
-						
 						echo "$('#row-".$line->rowid."').children().eq(3).after('<td align=\"right\">".((!is_null($res->tarif_poids))? number_format($res->tarif_poids,2,",","")." ".measuring_units_string($res->poids,($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT) : "")."</td>');";
 						//if($line->error != '') echo "alert('".$line->error."');";
          			}
