@@ -68,8 +68,6 @@ class ActionsTarif
 						         	return true;
 						         	
 					         	});
-					         	
-					         	
 								<?php
 							}
 				        }
@@ -144,12 +142,10 @@ class ActionsTarif
 
 		         	<?php
 				}
-					
 	         	
-	         	?>
-	         	$('#addpredefinedproduct').append('<input class="poids_product" type="hidden" value="1" name="poids" size="3">');
+	         	$('#addpredefinedproduct').append('<input class="poids_product" type="hidden" value="0" name="poids" size="3">');
 	         	$('#addpredefinedproduct').append('<input class="weight_units_product" type="hidden" value="0" name="weight_units" size="3">');
-	         	$('#addproduct').append('<input class="poids_libre" type="hidden" value="1" name="poids" size="3">');
+	         	$('#addproduct').append('<input class="poids_libre" type="hidden" value="0" name="poids" size="3">');
 	         	$('#addproduct').append('<input class="weight_units_libre" type="hidden" value="0" name="weight_units" size="3">');
 	         
 	         	$('#addpredefinedproduct,#addproduct').submit(function() {
