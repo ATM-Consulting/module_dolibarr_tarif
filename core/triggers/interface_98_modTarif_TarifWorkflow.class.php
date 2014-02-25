@@ -93,16 +93,7 @@ class InterfaceTarifWorkflow
     }
 	
 	function _getRemise($idProd,$qty,$conditionnement,$weight_units){
-		//--- Aide ---
-		//$qty = quantité testée (champs quantité dans l'ajout d'un produit à une propale par exemple)
-		//$contitionnement = champs entre "Qté" et "Poids" dans l'ajout d'un produit à une propale
-		//$weight_units = champs "Poids" dans l'ajout d'un produit à une propale
 		
-		/*echo "\$idProd : ".$idProd."<br />";
-		echo "\$qty : ".$qty."<br />";
-		echo "\$conditionnement : ".$conditionnement."<br />";
-		echo "\$weight_units : ".$weight_units."<br />";*/
-
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure !!!)
 		$sql = "SELECT p.type_remise as type_remise, tc.quantite as quantite, tc.type_price, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent";
 		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
@@ -111,9 +102,6 @@ class InterfaceTarifWorkflow
 		$sql.= " ORDER BY quantite DESC"; //unite_value DESC, 
 		
 		$resql = $this->db->query($sql);
-		
-		// Quantité totale de produit ajoutée dans la ligne
-		//$qte_totale = $qty * $conditionnement * pow(10, $weight_units);
 		
 		if($resql->num_rows > 0) {
 			$pallier = 0;
@@ -145,10 +133,6 @@ class InterfaceTarifWorkflow
 		$sql.= " ORDER BY quantite DESC"; 
 		
 		$resql = $this->db->query($sql);
-		
-		// Quantité totale de produit ajoutée dans la ligne
-		//$qte_totale = $qty * $conditionnement * pow(10, $weight_units);
-		
 		
 		if($resql->num_rows > 0) {
 			while($res = $this->db->fetch_object($resql)) {
@@ -189,15 +173,6 @@ class InterfaceTarifWorkflow
 		
 		$price_level = & $object_parent->client->price_level;
 		$object->subprice = $prix ;
-	
-		/*echo "\$object->subprice : ".$object->subprice."<br >";
-		echo "\$conditionnement : ".$conditionnement."<br >";
-		echo "\$product->weight : ".$product->weight."<br >";*/
-		//exit;
-		
-		//$object->subprice = $object->subprice  * ($conditionnement / $product->weight);
-		
-		//print $conditionnement.' : '.  $object->subprice.'<br />';
 		
 		$object->price = $object->subprice; // TODO qu'est-ce ? Due à un deprecated incertain, dans certains cas price est utilisé et dans d'autres c'est subprice
 		//echo $object->subprice; exit;
@@ -505,12 +480,13 @@ class InterfaceTarifWorkflow
 					}
 					
 					$remise = $this->_getRemise($idProd,$object->qty,$poids,$weight_units);
-					$prix = 0;
-	
+					$prix = __val($object->subprice,$object->price,'float',true);
+					
 					if($remise == 0){
-						$prix_devise = $this->_getPrix($idProd,$object->qty,$poids,$weight_units,$object->subprice,$coef_conv,$devise);
+						$prix_devise = $this->_getPrix($idProd,$object->qty*$poids,$poids,$weight_units,$object->subprice,$coef_conv,$devise);
 						$prix = $prix_devise / $coef_conv;
 					}
+					
 					//pre($object, true);exit;
 					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise); //--- $poids = conditionnement !
 					$this->_updateTotauxLine($object,$object->qty);
@@ -527,10 +503,6 @@ class InterfaceTarifWorkflow
 		
 		//MAJ des différents prix de la grille de tarif par conditionnement lors d'une modification du prix produit
 		elseif(false && $action == 'PRODUCT_PRICE_MODIFY'){ //false => désactive
-			
-			/*echo '<pre>';
-			print_r($object);
-			echo '</pre>'; exit;*/
 			
 			$resql = $this->db->query("SELECT rowid FROM ".MAIN_DB_PREFIX."tarif_conditionnement WHERE fk_product = ".$object->id);
 			
@@ -552,20 +524,9 @@ class InterfaceTarifWorkflow
 				$base = $_REQUEST['multiprices_base_type_1'];
 				$tva_tx = $_REQUEST['tva_tx_1'];
 			}
-			//MAJ du prix 1
-			/*else{
-				$level = 1;
-				$price = $_REQUEST['price_2'] * (1 + 0.15);
-				$price_ttc = $price * (1 + ($_REQUEST['tva_tx_2'] / 100));
-				$base = $_REQUEST['multiprices_base_type_2'];
-				$tva_tx = $_REQUEST['tva_tx_2'];
-			}*/
+			
 			$now=dol_now();
 			
-			/*echo '<pre>';
-			print_r($object);
-			echo '</pre>';exit;*/
-			//echo $object->fk_product_type;exit;
 			
 			//seulement si produit
 			if($object->type == 0){
