@@ -23,8 +23,6 @@
 	$ATMdb->Get_line();
 	$type_unite = $ATMdb->Get_field('unite_vente');
 	
-	if($type_unite == "size") $type_unite = "length"; //Pout la longeur le nom du champ diffère....
-	
 	$TTarif = new TTarif;
 	$product = new Product($db);
 	$result=$product->fetch($_REQUEST['fk_product']);	
@@ -169,6 +167,7 @@
 	}
 	elseif(isset($_REQUEST['action']) && !empty($_REQUEST['action']) && $_REQUEST['action'] == 'add_conditionnement' && isset($_REQUEST['save'])) {
 		
+		if($type_unite == "size") $type_unite = "length"; //Pout la longeur le nom du champ diffère....
 		$unite = measuring_units_string($_REQUEST['weight_units'],$type_unite);
 		$unite = $langs->trans($unite);
 		
@@ -202,7 +201,9 @@
 		$Ttarif->load($ATMdb,$_GET['id']);
 		$Ttarif->delete($ATMdb);
 	}
-
+	
+	
+	if($type_unite == "size") $type_unite = "length"; //Pout la longeur le nom du champ diffère....
 	
 	/**********************************
 	 * Liste des tarifs
