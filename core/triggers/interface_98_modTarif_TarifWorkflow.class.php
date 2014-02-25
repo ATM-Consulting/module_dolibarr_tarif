@@ -283,11 +283,10 @@ class InterfaceTarifWorkflow
 			$idProd = $object->fk_product;
 
 			$poids = __get('poids', 1,'float');
+			$weight_units = $_POST['weight_units'];
 			
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
-			if($poids > 0 && $idProd > 0){
-				
-				$weight_units = $_POST['weight_units'];
+			if($poids > 0 && $idProd > 0){				
 				
 				if($conf->multidevise->enabled){
 					
@@ -429,6 +428,14 @@ class InterfaceTarifWorkflow
 						$this->_updateTotauxLine($object,$object->qty);
 					}
 				}
+			}
+			//Ligne libre
+			else{
+				//MAJ du poids et de l'unité de la ligne
+				if(get_class($object) == 'PropaleLigne') $table = 'propaldet';
+				if(get_class($object) == 'OrderLine') $table = 'commandedet';
+				if(get_class($object) == 'FactureLigne') $table = 'facturedet'; 
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
