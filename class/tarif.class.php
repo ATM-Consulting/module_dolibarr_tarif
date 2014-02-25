@@ -7,7 +7,7 @@ class TTarif extends TObjetStd {
 		parent::set_table(MAIN_DB_PREFIX.'tarif_conditionnement');
 		parent::add_champs('unite','type=chaine;');
 		parent::add_champs('unite_value','type=entier;');
-		parent::add_champs('price_base_type,type_price','type=chaine;');
+		parent::add_champs('price_base_type,type_price,currency_code','type=chaine;');
 		parent::add_champs('remise_percent','type=entier;');
 		parent::add_champs('prix,tva_tx,quantite','type=float;');
 		parent::add_champs('fk_user_author,fk_product','type=entier;index;');
