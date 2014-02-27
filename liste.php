@@ -155,7 +155,8 @@
 		print '<tr><td width="20%">';
 		print 'Unit&eacute;';
 		print '</td><td>';
-		print $formproduct->select_measuring_units("weight_units", $type_unite, $object->{$type_unite.'_units'});
+		if($type_unite=='unite') print 'U';
+		else print $formproduct->select_measuring_units("weight_units", $type_unite, $object->{$type_unite.'_units'});
 		print '</td></tr>';
 
 		print '</table>';

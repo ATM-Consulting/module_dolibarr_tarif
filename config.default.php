@@ -27,7 +27,7 @@
 	
 	define('FACTURE_DISPATCH_ON_EXPEDITION',true);
 	define('DONT_ADD_UNIT_SELECT', false);
-	define('WEIGHT_LABEL','Poids');
+	//TARIF_CAN_SET_PACKAGE_ON_LINE en conf doli
 	define('DOL_DEFAULT_UNIT','weight'); //Définie l'unité de vente par défaut des lignes de propale, commande, facture : weight, size, surface, volume
 	
 	require(COREROOT.'inc.core.php');
