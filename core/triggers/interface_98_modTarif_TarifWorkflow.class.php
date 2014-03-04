@@ -281,6 +281,17 @@ class InterfaceTarifWorkflow
 			
 				
 			$idProd = $object->fk_product;
+			if($conf->declinaison->enabled) {
+				$sql = "SELECT fk_parent FROM ".MAIN_DB_PREFIX."declinaison WHERE fk_declinaison = ".$idProd;
+					
+				$res = $this->db->query($sql);
+				$resql = $this->db->fetch_object($res);
+				$idParent = $resql->fk_parent;
+				
+				if(!empty($idParent)) {
+					$idProd = $idParent;
+				}
+			}
 
 			$poids = __get('poids', 1,'float');
 			$weight_units = $_POST['weight_units'];
