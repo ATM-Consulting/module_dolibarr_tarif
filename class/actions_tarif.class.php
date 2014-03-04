@@ -24,7 +24,10 @@ class ActionsTarif
 		}
 		
 		
-    	if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context'])))
+    	if (in_array('propalcard',explode(':',$parameters['context']))
+    		|| in_array('ordercard',explode(':',$parameters['context']))
+			|| in_array('ordersuppliercard',explode(':',$parameters['context']))
+    		|| in_array('invoicecard',explode(':',$parameters['context'])))
         {
 			if($action == "editline"){
 				
@@ -106,7 +109,10 @@ class ActionsTarif
 			define('DOL_DEFAULT_UNIT','weight');
 		}
 		
-		if (in_array('propalcard',explode(':',$parameters['context'])) || in_array('ordercard',explode(':',$parameters['context'])) || in_array('invoicecard',explode(':',$parameters['context']))) 
+		if (in_array('propalcard',explode(':',$parameters['context']))
+			|| in_array('ordercard',explode(':',$parameters['context']))
+			|| in_array('ordersuppliercard',explode(':',$parameters['context']))
+			|| in_array('invoicecard',explode(':',$parameters['context']))) 
         {
         		
 			if($object->line->error)
