@@ -67,7 +67,7 @@
 	print "</div>\n";
 	
 	print '<div class="tabsAction">
-				<a class="butAction" href="?action=add&fk_product='.$object->id.'">Ajouter un conditionnement</a>
+				<a class="butAction" href="?action=add&fk_product='.$object->id.'">Ajouter un tarif</a>
 			</div><br>';
 	
 	/***********************************
