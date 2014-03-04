@@ -141,7 +141,7 @@ class ActionsTarif
 								if($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) {	
 									print number_format($res->tarif_poids,2,",","");
 								}
-								print measuring_units_string($res->poids,($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT);
+								if($line->fk_product>0) print measuring_units_string($res->poids,($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT);
 							}
 						?></td>'); <?
 						//if($line->error != '') echo "alert('".$line->error."');";
@@ -168,7 +168,7 @@ class ActionsTarif
 		         			?><input class="poidsAff" type="text" value="0" name="poidsAff_libre" size="6"><?php	
 						}
 		         	
-		         		print ($type_unite=='unite') ? 'U' :  $formproduct->select_measuring_units("weight_unitsAff_libre", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT,0); 
+		         		//print ($type_unite=='unite') ? 'U' :  $formproduct->select_measuring_units("weight_unitsAff_libre", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT,0); 
 		         		?></td>');  	<?php 
 				}
 					
