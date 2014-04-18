@@ -238,6 +238,8 @@
 	
 	if($type_unite == "size") $type_unite = "length"; //Pout la longeur le nom du champ diffère....
 	
+	if(empty($type_unite)) $type_unite = 'weight';
+	
 	/**********************************
 	 * Liste des tarifs
 	 **********************************/
