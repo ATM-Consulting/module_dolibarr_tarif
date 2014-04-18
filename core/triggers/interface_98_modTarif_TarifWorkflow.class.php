@@ -122,7 +122,7 @@ class InterfaceTarifWorkflow
 		return 0;
 	}
 
-	function _getPrix($idProd,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise){
+	function _getPrix($idProd,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1){
 
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure)
 		$sql = "SELECT p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, pr.weight";
@@ -141,19 +141,41 @@ class InterfaceTarifWorkflow
 					
 					if($res->type_remise == "qte" && $qty >= $res->quantite){
 						//Ici on récupère le pourcentage correspondant et on arrête la boucle
-						return $res->prix;
+						return $this->_price_with_multiprix($res->prix, $price_level);
 					} 
 					else if($res->type_remise == "conditionnement" && $conditionnement >= $res->quantite &&  $res->unite_value == $weight_units) {
-						return $res->prix * ($conditionnement / $res->weight); // prise en compte unité produit et poid init produit
+						return $this->_price_with_multiprix($res->prix * ($conditionnement / $res->weight), $price_level); // prise en compte unité produit et poid init produit
 					}
 				}
 			}
 		}
 		
+		
+		
+		
 		return $subprice * $coef;
 
 	}
-	
+	function _price_with_multiprix($price, $price_level) {
+		global $conf;
+		if($conf->multiprixcascade->enabled) {
+		/*
+		 * Si multiprix cascade est présent, on ajoute le pourcentage de réduction défini directement dans le multiprix
+		 */	
+			
+			$TNiveau  = unserialize($conf->global->MULTI_PRIX_CASCADE_LEVEL);
+			
+			if(isset($TNiveau[$price_level])) {
+				
+				$price = $price * ($TNiveau[$price_level] / 100);
+				
+			}
+			
+			
+		}
+		
+		return $price;
+	}
 	function _updateLineProduct(&$object,&$user,$idProd,$conditionnement,$weight_units,$remise, $prix ,$prix_devise){
 		
 		global $conf;
@@ -171,7 +193,6 @@ class InterfaceTarifWorkflow
 		//echo $product->price; exit;
 		$object->remise_percent = $remise;
 		
-		$price_level = & $object_parent->client->price_level;
 		$object->subprice = $prix ;
 		
 		$object->price = $object->subprice; // TODO qu'est-ce ? Due à un deprecated incertain, dans certains cas price est utilisé et dans d'autres c'est subprice
@@ -331,7 +352,10 @@ class InterfaceTarifWorkflow
 				$prix = __val($object->subprice,$object->price,'float',true);
 				
 				if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
-					$prix_devise = $this->_getPrix($idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise);
+					$object_parent = $this->_getObjectParent($object);
+					$price_level = $object_parent->client->price_level;
+		
+					$prix_devise = $this->_getPrix($idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level);
 					$prix = $prix_devise / $coef_conv;
 				}
 				
@@ -502,7 +526,10 @@ class InterfaceTarifWorkflow
 					$prix = __val($object->subprice,$object->price,'float',true);
 					
 					if($remise == 0 || $type_prix=='PERCENT/PRICE'){
-						$prix_devise = $this->_getPrix($idProd,$object->qty*$poids,$poids,$weight_units,$object->subprice,$coef_conv,$devise);
+						$object_parent = $this->_getObjectParent($object);
+						$price_level = $object_parent->client->price_level;
+						
+						$prix_devise = $this->_getPrix($idProd,$object->qty*$poids,$poids,$weight_units,$object->subprice,$coef_conv,$devise, $price_level);
 						$prix = $prix_devise / $coef_conv;
 					}
 					
