@@ -174,20 +174,21 @@ class ActionsTarif
 					
 	         	
 	         	?>
-	         	$('#addpredefinedproduct').append('<input class="poids_product" type="hidden" value="1" name="poids" size="3">');
+	         /*	$('#addpredefinedproduct').append('<input class="poids_product" type="hidden" value="1" name="poids" size="3">');
 	         	$('#addpredefinedproduct').append('<input class="weight_units_product" type="hidden" value="0" name="weight_units" size="3">');
-	         	$('#addproduct').append('<input class="poids_libre" type="hidden" value="1" name="poids" size="3">');
-	         	$('#addproduct').append('<input class="weight_units_libre" type="hidden" value="0" name="weight_units" size="3">');
+	         	*/
+	         	$('form#addproduct').append('<input class="poids_libre" type="hidden" value="1" name="poids" size="3">');
+	         	$('form#addproduct').append('<input class="weight_units_libre" type="hidden" value="0" name="weight_units" size="3">');
 	         
-	         	$('#addpredefinedproduct,#addproduct').submit(function() {
+	         	$('form#addproduct').submit(function() {
 	         		if($('[name=poidsAff_libre]').length>0) {
-		         		$('.poids_libre').val( $('[name=poidsAff_libre]').val() );
-		         		$('.poids_product').val( $('#poidsAffProduct').val() );
+		         		$('[name=poids]').val( $('[name=poidsAff_product]').val() );
+		         		if($('[name=weight_unitsAff_libre]').length>0) $('[name=weight_units]').val( $('select[name=weight_unitsAff_libre]').val() );
 		         	}
-	         		
-	         		if($('[name=weight_unitsAff_libre]').length>0) {
-		         		$('.weight_units_libre').val( $('select[name=weight_unitsAff_libre]').val() );
-		         		$('.weight_units_product').val( $('select[name=weight_unitsAff_product]').val() );
+	         		else {
+	         			$('[name=poids]').val( $('[name=poidsAff_libre]').val() );
+		         		if($('[name=weight_unitsAff_product]').length>0) $('[name=weight_units]').val( $('select[name=weight_unitsAff_product]').val() );
+		         		
 	         		}
 	         		
 	         		return true;
@@ -197,9 +198,11 @@ class ActionsTarif
 	         	$('#idprod').change( function(){
 					$.ajax({
 						type: "POST"
-						,url: "<?=DOL_URL_ROOT; ?>/custom/tarif/script/ajax.unite_poids.php"
+						,url: "<?=dol_buildpath('/custom/tarif/script/ajax.unite_poids.php',1); ?>"
 						,dataType: "json"
-						,data: {fk_product: $('#idprod').val()}
+						,data: {
+							fk_product: $('#idprod').val()
+							}
 						},"json").then(function(select){
 							if(select.unite != ""){
 								if(select.unite_vente != ""){
