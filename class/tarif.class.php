@@ -18,6 +18,7 @@ class TTarif extends TObjetStd {
 		$this->TType_price = array(
 			'PERCENT'=>'Pourcentage de réduction'
 			,'PRICE'=>'Prix unitaire'
+			,'PERCENT/PRICE'=>'Mixte'
 		);
 	}
 }

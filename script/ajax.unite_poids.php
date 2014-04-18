@@ -8,7 +8,7 @@ global $db;
 
 $id = $_POST['fk_product'];
 
-$ATMdb = new Tdb;
+$ATMdb = new TPDOdb;
 $Tres = array();
 $formproduct = new FormProduct($db);
 

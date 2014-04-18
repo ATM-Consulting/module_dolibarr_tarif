@@ -11,7 +11,7 @@ elseif(isset($_POST['fk_product'])){
 	$id = $_POST['fk_product'];
 }
 
-$ATMdb = new Tdb;
+$ATMdb = new TPDOdb;
 $Tres = array();
 
 $sql = "SELECT rowid AS id, description AS intitule, contenance, prix
