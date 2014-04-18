@@ -110,10 +110,10 @@ class InterfaceTarifWorkflow
 				if( strpos($res->type_price,'PERCENT')!==false ){
 					
 					if($res->type_remise == "qte" && $qty >= $res->quantite){
-						return $res->remise_percent;
+						return array($res->remise_percent, $res->type_price);
 					} 
 					else if($res->type_remise == "conditionnement" && $conditionnement >= $res->quantite && $res->unite_value == $weight_units) {
-						return $res->remise_percent;
+						return array($res->remise_percent, $res->type_price);
 					}
 				}
 			}
@@ -137,7 +137,7 @@ class InterfaceTarifWorkflow
 		if($resql->num_rows > 0) {
 			while($res = $this->db->fetch_object($resql)) {
 				
-				if(strpos($res->type_price) !== false){
+				if(strpos($res->type_price,'PRICE') !== false){
 					
 					if($res->type_remise == "qte" && $qty >= $res->quantite){
 						//Ici on récupère le pourcentage correspondant et on arrête la boucle
@@ -178,8 +178,9 @@ class InterfaceTarifWorkflow
 		//echo $object->subprice; exit;
 		
  		if(get_class($object_parent) == "Facture" && $object_parent->type == 2){ // facture d'avoir
- 			$object->remise_percent = $object->remise_percent * (-1);
-			$object->subprice = $object->subprice * (-1);
+ 			$object->remise_percent = -$object->remise_percent;
+			$object->subprice = -$object->subprice;
+			
 			$object->price = $object->subprice;
 		}
 		//print $object->subprice; exit;
@@ -326,10 +327,10 @@ class InterfaceTarifWorkflow
 					$devise = $conf->currency;
 				}
 				
-				$remise = $this->_getRemise($idProd,$object->qty,$poids,$weight_units);
+				list($remise, $type_prix) = $this->_getRemise($idProd,$object->qty,$poids,$weight_units);
 				$prix = __val($object->subprice,$object->price,'float',true);
 				
-				if($remise == 0){
+				if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
 					$prix_devise = $this->_getPrix($idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise);
 					$prix = $prix_devise / $coef_conv;
 				}
@@ -497,10 +498,10 @@ class InterfaceTarifWorkflow
 						$devise = $conf->currency;
 					}
 					
-					$remise = $this->_getRemise($idProd,$object->qty,$poids,$weight_units);
+					list($remise, $type_prix) = $this->_getRemise($idProd,$object->qty,$poids,$weight_units);
 					$prix = __val($object->subprice,$object->price,'float',true);
 					
-					if($remise == 0){
+					if($remise == 0 || $type_prix=='PERCENT/PRICE'){
 						$prix_devise = $this->_getPrix($idProd,$object->qty*$poids,$poids,$weight_units,$object->subprice,$coef_conv,$devise);
 						$prix = $prix_devise / $coef_conv;
 					}
