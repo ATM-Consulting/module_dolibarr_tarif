@@ -107,7 +107,7 @@ class InterfaceTarifWorkflow
 			$pallier = 0;
 			while($res = $this->db->fetch_object($resql)) {
 				
-				if( $res->type_price == 'PERCENT'){
+				if( strpos($res->type_price,'PERCENT')!==false ){
 					
 					if($res->type_remise == "qte" && $qty >= $res->quantite){
 						return $res->remise_percent;
@@ -137,7 +137,7 @@ class InterfaceTarifWorkflow
 		if($resql->num_rows > 0) {
 			while($res = $this->db->fetch_object($resql)) {
 				
-				if($res->type_price == 'PRICE'){
+				if(strpos($res->type_price) !== false){
 					
 					if($res->type_remise == "qte" && $qty >= $res->quantite){
 						//Ici on récupère le pourcentage correspondant et on arrête la boucle
