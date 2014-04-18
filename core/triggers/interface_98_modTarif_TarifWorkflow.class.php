@@ -122,7 +122,7 @@ class InterfaceTarifWorkflow
 		return 0;
 	}
 
-	function _getPrix($idProd,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1){
+	function _getPrix($idProd,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1,$fk_country=0){
 
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure)
 		$sql = "SELECT p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, pr.weight";
@@ -130,7 +130,14 @@ class InterfaceTarifWorkflow
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product
 				 LEFT JOIN ".MAIN_DB_PREFIX."product pr ON p.fk_object=pr.rowid ";
 		$sql.= " WHERE fk_product = ".$idProd." AND (tc.currency_code = '".$devise."' OR tc.currency_code IS NULL)";
-		$sql.= " ORDER BY quantite DESC"; 
+		
+		if($fk_country>0) {
+			
+			$sql.=" AND tc.fk_country IN (0, $fk_country)";
+			
+		}
+		
+		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC"; 
 		
 		$resql = $this->db->query($sql);
 		
@@ -354,8 +361,9 @@ class InterfaceTarifWorkflow
 				if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
 					$object_parent = $this->_getObjectParent($object);
 					$price_level = $object_parent->client->price_level;
+					$fk_country = $object_parent->client->country_id;
 		
-					$prix_devise = $this->_getPrix($idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level);
+					$prix_devise = $this->_getPrix($idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country);
 					$prix = $prix_devise / $coef_conv;
 				}
 				
@@ -528,8 +536,9 @@ class InterfaceTarifWorkflow
 					if($remise == 0 || $type_prix=='PERCENT/PRICE'){
 						$object_parent = $this->_getObjectParent($object);
 						$price_level = $object_parent->client->price_level;
-						
-						$prix_devise = $this->_getPrix($idProd,$object->qty*$poids,$poids,$weight_units,$object->subprice,$coef_conv,$devise, $price_level);
+						$fk_country = $object_parent->client->country_id;
+		
+						$prix_devise = $this->_getPrix($idProd,$object->qty*$poids,$poids,$weight_units,$object->subprice,$coef_conv,$devise, $price_level,$fk_country);
 						$prix = $prix_devise / $coef_conv;
 					}
 					

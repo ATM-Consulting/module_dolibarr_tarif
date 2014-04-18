@@ -115,7 +115,14 @@
 			print '<tr><td>Devise</td><td colspan="3">';
 			print $form->select_currency( ($action=='edit') ? $tarif->currency_code : $conf->currency,"currency");
 			print '</td></tr>';
+			
 		}
+
+        //Pays
+		print '<tr><td>Pays</td><td colspan="3">';
+		print $form->select_country( ($action=='edit') ? $tarif->fk_country : 0,"fk_country");
+		print '</td></tr>';
+
 		
 		$prix = ( ($action=='edit') ? $tarif->prix :$object->price);
 		// Price
@@ -197,6 +204,7 @@
 		$Ttarif->fk_user_author = $user->id;
 		$Ttarif->type_price = $_REQUEST['type_prix'];
 		$Ttarif->currency_code = $_REQUEST['currency'];
+		$Ttarif->fk_country = $_REQUEST['fk_country'];
 		
 		if($_REQUEST['type_prix'] == 'PERCENT/PRICE'){
 			$Ttarif->prix = price2num($_POST['prix_visu']);
@@ -237,23 +245,25 @@
 	
 	if($conf->multidevise->enabled){
 
-		$sql = "SELECT tc.rowid AS 'id', tc.tva_tx AS tva, tc.type_price as type_price, c.code as currency, tc.price_base_type AS base, tc.quantite as quantite,
+		$sql = "SELECT tc.rowid AS 'id', tc.tva_tx AS tva, tc.type_price as type_price, c.code as currency,pays.libelle as 'Pays', tc.price_base_type AS base, tc.quantite as quantite,
 					   tc.unite AS unite, tc.remise_percent AS remise, tc.prix AS prix, p.".$type_unite."_units AS base_poids, tc.unite_value AS unite_value,
 					   ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) * (tc.remise_percent/100)  AS 'Total',
 					   '' AS 'actions'
 				FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
 					LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)
 					LEFT JOIN ".MAIN_DB_PREFIX."currency AS c ON (c.code = tc.currency_code)
+					LEFT JOIN ".MAIN_DB_PREFIX."c_pays AS pays ON (pays.rowid = tc.fk_country)
 				WHERE fk_product = ".$product->id."
 				ORDER BY unite_value, quantite ASC";
 	}
 	else {
-		$sql = "SELECT tc.rowid AS 'id', tc.tva_tx AS tva, tc.type_price as type_price, tc.price_base_type AS base, tc.quantite as quantite,
+		$sql = "SELECT tc.rowid AS 'id', tc.tva_tx AS tva, tc.type_price as type_price,pays.libelle as 'Pays', tc.price_base_type AS base, tc.quantite as quantite,
 					   tc.unite AS unite, tc.remise_percent AS remise, tc.prix AS prix, p.".$type_unite."_units AS base_poids, tc.unite_value AS unite_value,
 					   ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) * (tc.remise_percent/100)  AS 'Total',
 					   '' AS 'actions'
 				FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
 					LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)
+					LEFT JOIN ".MAIN_DB_PREFIX."c_pays AS pays ON (pays.rowid = tc.fk_country)
 					
 				WHERE fk_product = ".$product->id."
 				ORDER BY unite_value, quantite ASC";
@@ -296,6 +306,7 @@
 		)
 		,'eval'=>array(
 			'type_price'=>'_getTypePrice(@id@)'
+			
 		)
 	));
 	
