@@ -117,6 +117,9 @@ class ActionsTarif
         		
 			if($object->line->error)
 				dol_htmloutput_mesg($object->line->error,'', 'error');
+			
+			//var_dump($object->lines);
+			
         	?>
          	<script type="text/javascript">
          		<?php
@@ -129,13 +132,17 @@ class ActionsTarif
 				else {
 
          			foreach($object->lines as $line){
-         				$resql = $db->query("SELECT e.tarif_poids, e.poids, pe.unite_vente 
+         				
+						$idLine = empty($line->id) ? $line->rowid : $line->id;
+						
+         				$sql = "SELECT e.tarif_poids, e.poids, pe.unite_vente 
 	         									 FROM ".MAIN_DB_PREFIX.$object->table_element_line." as e 
 	         									 	LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as pe ON (e.fk_product = pe.fk_object)
-	         									 WHERE e.rowid = ".$line->rowid);
+	         									 WHERE e.rowid = ".$idLine;
+         				$resql = $db->query($sql);
 						$res = $db->fetch_object($resql);
 						
-						?>$('#row-<?=$line->rowid?>').children().eq(3).after('<td align="right" tarif-col="conditionnement"><?php
+						?>$('#row-<?=$idLine ?>').children().eq(3).after('<td align="right" tarif-col="conditionnement"><?php
 						
 							if(!is_null($res->tarif_poids)) {
 								if($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) {	
@@ -145,7 +152,7 @@ class ActionsTarif
 							}
 						?></td>'); <?
 						//if($line->error != '') echo "alert('".$line->error."');";
-         			}
+					}
 
 	         		?>
 		         	$('#tablelines .liste_titre > td').each(function(){
