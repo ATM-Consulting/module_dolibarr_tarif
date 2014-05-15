@@ -490,6 +490,19 @@ class InterfaceTarifWorkflow
 			
 			$idProd = __val( $object->fk_product, $object->oldline->fk_product, 'integer');
 			
+			if($conf->declinaison->enabled) {
+				$sql = "SELECT fk_parent FROM ".MAIN_DB_PREFIX."declinaison WHERE fk_declinaison = ".$idProd;
+					
+				$res = $this->db->query($sql);
+				$resql = $this->db->fetch_object($res);
+				$idParent = $resql->fk_parent;
+				
+				if(!empty($idParent)) {
+					$idProd = $idParent;
+				}
+			}
+			
+			
 			if(get_class($object) == 'PropaleLigne'){
 				 $table = 'propal';
 				 $tabledet = 'propaldet';
