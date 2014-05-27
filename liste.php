@@ -12,6 +12,7 @@
 	else require_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
 	
 	require_once(DOL_DOCUMENT_ROOT."/product/class/product.class.php");
+	dol_include_once('/categories/class/categorie.class.php');
 	
 	global $langs;
 	
@@ -80,7 +81,6 @@
 		
 		$tarif = new TTarif;
 		if($action=='edit') $tarif->load($ATMdb, __get('id',0,'integer'));
-		
 
 		print '<table class="notopnoleftnoright" width="100%" border="0" style="margin-bottom: 2px;" summary="">';
 		print '<tbody><tr>';
@@ -122,7 +122,10 @@
 		print '<tr><td>Pays</td><td colspan="3">';
 		print $form->select_country( ($action=='edit') ? $tarif->fk_country : 0,"fk_country");
 		print '</td></tr>';
-
+		
+		print '<tr><td>Catégorie client</td><td colspan="3">';
+		print $form->select_all_categories(2, ($action=='edit') ? $tarif->fk_categorie_client : 'auto', 'fk_categorie_client');
+		print '</td></tr>';
 		
 		$prix = ( ($action=='edit') ? $tarif->prix :$object->price);
 		// Price
@@ -198,13 +201,12 @@
 		
 		if($_REQUEST['id_tarif']>0) $Ttarif->load($ATMdb, $_REQUEST['id_tarif']);
 		
-		
 		$Ttarif->tva_tx = $_POST['tva_tx'];
 		$Ttarif->price_base_type = 'HT';
 		$Ttarif->fk_user_author = $user->id;
 		$Ttarif->type_price = $_REQUEST['type_prix'];
 		$Ttarif->currency_code = $_REQUEST['currency'];
-		$Ttarif->fk_country = $_REQUEST['fk_country'];
+		$Ttarif->fk_country = $_REQUEST['fk_country'];		
 		
 		if($_REQUEST['type_prix'] == 'PERCENT/PRICE'){
 			$Ttarif->prix = price2num($_POST['prix_visu']);
@@ -225,7 +227,9 @@
 		
 		$Ttarif->unite_value = $_POST['weight_units'];
 		$Ttarif->fk_product = $_POST['id'];
+		$Ttarif->fk_categorie_client = $_REQUEST['fk_categorie_client'];
 		//$ATMdb->db->debug=true;
+
 		$Ttarif->save($ATMdb);
 	}
 	elseif(isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
