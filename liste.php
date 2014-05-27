@@ -262,7 +262,7 @@
 		$sql = "SELECT tc.rowid AS 'id', tc.tva_tx AS tva, tc.type_price as type_price,pays.libelle as 'Pays', tc.price_base_type AS base, tc.quantite as quantite,";
 		if($type_unite == "unite") {
 			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.prix AS prix, tc.unite_value AS unite_value,";
-			$sql.=			  "tc.quantite * tc.prix AS 'Total',";
+			$sql.=			  "tc.quantite * tc.prix * (100-tc.remise_percent)/100 AS 'Total',";
 		} else {
 			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.prix AS prix, p.".$type_unite."_units AS base_poids, tc.unite_value AS unite_value,";
 			$sql.=			  "((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) * (tc.remise_percent/100)  AS 'Total',";
