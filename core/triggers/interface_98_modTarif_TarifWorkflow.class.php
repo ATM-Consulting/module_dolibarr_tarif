@@ -138,13 +138,13 @@ class InterfaceTarifWorkflow
 		}
 		if(!empty($TFk_categorie)) {
 			
-			$sql.=" AND tc.fk_categorie IN (0, ".implode(',', $TFk_categorie).")";
+			$sql.=" AND tc.fk_categorie_client IN (0, ".implode(',', $TFk_categorie).")";
 
 			
 		}
 		
 		
-		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie DESC"; 
+		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC"; 
 		
 		$resql = $this->db->query($sql);
 		
