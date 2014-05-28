@@ -122,7 +122,7 @@ class InterfaceTarifWorkflow
 		return 0;
 	}
 
-	function _getPrix($idProd,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1,$fk_country=0){
+	function _getPrix($idProd,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1,$fk_country=0, $TFk_categorie=array()){
 
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure)
 		$sql = "SELECT p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, pr.weight";
@@ -136,8 +136,15 @@ class InterfaceTarifWorkflow
 			$sql.=" AND tc.fk_country IN (0, $fk_country)";
 			
 		}
+		if(!empty($TFk_categorie)) {
+			
+			$sql.=" AND tc.fk_categorie IN (0, ".implode(',', $TFk_categorie).")";
+
+			
+		}
 		
-		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC"; 
+		
+		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie DESC"; 
 		
 		$resql = $this->db->query($sql);
 		
@@ -364,6 +371,7 @@ class InterfaceTarifWorkflow
 					$fk_country = $object_parent->client->country_id;
 		
 					$prix_devise = $this->_getPrix($idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country);
+					
 					$prix = $prix_devise / $coef_conv;
 				}
 				
