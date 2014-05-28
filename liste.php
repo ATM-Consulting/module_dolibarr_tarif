@@ -256,7 +256,7 @@
 		
 		if($type_unite == "unite") {
 
-			$sql.=" tc.unite_value AS unite_value,
+			$sql.=" ,tc.unite_value AS unite_value,
 				tc.quantite * tc.prix * (100-tc.remise_percent)/100 AS 'Total'";
 		
 		}
