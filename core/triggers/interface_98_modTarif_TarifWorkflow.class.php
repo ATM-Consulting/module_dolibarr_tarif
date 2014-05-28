@@ -138,7 +138,7 @@ class InterfaceTarifWorkflow
 		}
 		if(!empty($TFk_categorie)) {
 			
-			$sql.=" AND tc.fk_categorie_client IN (0, ".implode(',', $TFk_categorie).")";
+			$sql.=" AND tc.fk_categorie_client IN (-1,0, ".implode(',', $TFk_categorie).")";
 
 			
 		}
