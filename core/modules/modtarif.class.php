@@ -256,7 +256,7 @@ class modtarif extends DolibarrModules
 
 		dol_include_once('/core/class/extrafields.class.php');
         $extrafields=new ExtraFields($this->db);
-		$res = $extrafields->addExtraField('type_remise', 'Type remise', 'select', 0, '', 'product', 0, 0, '', array("options"=> array("conditionnement" => "conditionnement", "qte" => "quantite")));		
+		$res = $extrafields->addExtraField('type_remise', 'Type remise', 'select', 0, '', 'product', 0, 0, '', array("options"=> array("qte" => "quantite", "conditionnement" => "conditionnement")));		
 		$res = $extrafields->addExtraField('unite_vente', 'Unité de vente', 'select', 0, '', 'product', 0, 0, '', array("options"=> array("weight" => "Poids", "size" => "Longueur", "surface" => "Surface", "volume" => "Volume", "unite" => "Unité")));		
 		
 		dolibarr_set_const($this->db, 'TARIF_CAN_SET_PACKAGE_ON_LINE', isset($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) ? $conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE : 1 ,'chaine',1,'Affiche ou pas le champs de saisie de conditionnement sur la ligne de propale/comm/facture',0);
