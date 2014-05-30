@@ -92,104 +92,8 @@ class InterfaceTarifWorkflow
         else return $langs->trans("Unknown");
     }
 	
-	function _getRemise($idProd,$qty,$conditionnement,$weight_units){
-		
-		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure !!!)
-		$sql = "SELECT p.type_remise as type_remise, tc.quantite as quantite, tc.type_price, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent";
-		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
-		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product";
-		$sql.= " WHERE fk_product = ".$idProd;
-		$sql.= " ORDER BY quantite DESC"; //unite_value DESC, 
-		
-		$resql = $this->db->query($sql);
-		
-		if($resql->num_rows > 0) {
-			$pallier = 0;
-			while($res = $this->db->fetch_object($resql)) {
-				
-				if( strpos($res->type_price,'PERCENT')!==false ){
-					
-					if($res->type_remise == "qte" && $qty >= $res->quantite){
-						return array($res->remise_percent, $res->type_price);
-					} 
-					else if($res->type_remise == "conditionnement" && $conditionnement >= $res->quantite && $res->unite_value == $weight_units) {
-						return array($res->remise_percent, $res->type_price);
-					}
-				}
-			}
-		}
-		
-		return 0;
-	}
+	
 
-	function _getPrix($idProd,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1,$fk_country=0, $TFk_categorie=array()){
-
-		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure)
-		$sql = "SELECT p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, pr.weight";
-		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
-		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product
-				 LEFT JOIN ".MAIN_DB_PREFIX."product pr ON p.fk_object=pr.rowid ";
-		$sql.= " WHERE fk_product = ".$idProd." AND (tc.currency_code = '".$devise."' OR tc.currency_code IS NULL)";
-		
-		if($fk_country>0) {
-			
-			$sql.=" AND tc.fk_country IN (0, $fk_country)";
-			
-		}
-		if(!empty($TFk_categorie)) {
-			
-			$sql.=" AND tc.fk_categorie_client IN (-1,0, ".implode(',', $TFk_categorie).")";
-
-			
-		}
-		
-		
-		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC"; 
-		
-		$resql = $this->db->query($sql);
-		
-		if($resql->num_rows > 0) {
-			while($res = $this->db->fetch_object($resql)) {
-				
-				if(strpos($res->type_price,'PRICE') !== false){
-					
-					if($res->type_remise == "qte" && $qty >= $res->quantite){
-						//Ici on récupère le pourcentage correspondant et on arrête la boucle
-						return $this->_price_with_multiprix($res->prix, $price_level);
-					} 
-					else if($res->type_remise == "conditionnement" && $conditionnement >= $res->quantite &&  $res->unite_value == $weight_units) {
-						return $this->_price_with_multiprix($res->prix * ($conditionnement / $res->weight), $price_level); // prise en compte unité produit et poid init produit
-					}
-				}
-			}
-		}
-		
-		
-		
-		
-		return $subprice * $coef;
-
-	}
-	function _price_with_multiprix($price, $price_level) {
-		global $conf;
-		if($conf->multiprixcascade->enabled) {
-		/*
-		 * Si multiprix cascade est présent, on ajoute le pourcentage de réduction défini directement dans le multiprix
-		 */	
-			
-			$TNiveau  = unserialize($conf->global->MULTI_PRIX_CASCADE_LEVEL);
-			
-			if(isset($TNiveau[$price_level])) {
-				
-				$price = $price * ($TNiveau[$price_level] / 100);
-				
-			}
-			
-			
-		}
-		
-		return $price;
-	}
 	function _updateLineProduct(&$object,&$user,$idProd,$conditionnement,$weight_units,$remise, $prix ,$prix_devise){
 		
 		global $conf;
@@ -303,6 +207,7 @@ class InterfaceTarifWorkflow
 		
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
 		dol_include_once('/tarif/config.php');
+		dol_include_once('/tarif/class/tarif.class.php');
 		dol_include_once('/commande/class/commande.class.php');
 		dol_include_once('/fourn/class/fournisseur.commande.class.php');
 		dol_include_once('/compta/facture/class/facture.class.php');
@@ -329,25 +234,29 @@ class InterfaceTarifWorkflow
 				}
 			}
 
+
+			if(get_class($object) == 'PropaleLigne'){ $table = "propal"; $tabledet = 'propaldet';}
+			else if(get_class($object) == 'OrderLine'){$table = "commande"; $tabledet = 'commandedet';}
+			else if(get_class($object) == 'FactureLigne'){ $table = "facture"; $tabledet = 'facturedet'; }
+				
+
 			$poids = __get('poids', 1,'float');
 			$weight_units = $_POST['weight_units'];
+			
+			if($idProd>0) {
+				
+				$product =new Product($db);
+				$product->fetch($idProd);
+				
+				if($product->type==1)$poids=1;
+				
+			}
+			
 			
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
 			if($poids > 0 && $idProd > 0){				
 				
 				if($conf->multidevise->enabled){
-					
-					if(get_class($object) == "OrderLine"){
-						$table = "commande";
-						//$object->update(true);
-					}
-					elseif(get_class($object) == 'PropaleLigne'){
-						$table = "propal";
-						//$object->update(true);
-					}
-					elseif(get_class($object) == 'FactureLigne'){
-						$table = "facture";
-					}
 					
 					$sql = "SELECT devise_code as code, devise_taux as coef FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$object->{"fk_".$table}; //Récup devise du parent + taux de conv 
 					
@@ -362,7 +271,7 @@ class InterfaceTarifWorkflow
 					$devise = $conf->currency;
 				}
 				
-				list($remise, $type_prix) = $this->_getRemise($idProd,$object->qty,$poids,$weight_units);
+				list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units);
 				$prix = __val($object->subprice,$object->price,'float',true);
 				
 				if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
@@ -370,7 +279,7 @@ class InterfaceTarifWorkflow
 					$price_level = $object_parent->client->price_level;
 					$fk_country = $object_parent->client->country_id;
 		
-					$prix_devise = $this->_getPrix($idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country);
+					$prix_devise =TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country);
 					
 					$prix = $prix_devise / $coef_conv;
 				}
@@ -379,10 +288,8 @@ class InterfaceTarifWorkflow
 				$this->_updateTotauxLine($object,$object->qty);
 					
 				//MAJ du poids et de l'unité de la ligne
-				if(get_class($object) == 'PropaleLigne') $table = 'propaldet';
-				if(get_class($object) == 'OrderLine') $table = 'commandedet';
-				if(get_class($object) == 'FactureLigne') $table = 'facturedet'; 
-				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
+				
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 				//pre($object,true); exit;
 				//echo "1 "; exit;
 			} 
@@ -483,11 +390,8 @@ class InterfaceTarifWorkflow
 			}
 			//Ligne libre
 			else{
-				//MAJ du poids et de l'unité de la ligne
-				if(get_class($object) == 'PropaleLigne') $table = 'propaldet';
-				if(get_class($object) == 'OrderLine') $table = 'commandedet';
-				if(get_class($object) == 'FactureLigne') $table = 'facturedet'; 
-				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
+				
+				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
@@ -551,7 +455,7 @@ class InterfaceTarifWorkflow
 						$devise = $conf->currency;
 					}
 					
-					list($remise, $type_prix) = $this->_getRemise($idProd,$object->qty,$poids,$weight_units);
+					list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units);
 					$prix = __val($object->subprice,$object->price,'float',true);
 					
 					if($remise == 0 || $type_prix=='PERCENT/PRICE'){
@@ -559,7 +463,7 @@ class InterfaceTarifWorkflow
 						$price_level = $object_parent->client->price_level;
 						$fk_country = $object_parent->client->country_id;
 		
-						$prix_devise = $this->_getPrix($idProd,$object->qty*$poids,$poids,$weight_units,$object->subprice,$coef_conv,$devise, $price_level,$fk_country);
+						$prix_devise = TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$object->subprice,$coef_conv,$devise, $price_level,$fk_country);
 						$prix = $prix_devise / $coef_conv;
 					}
 					

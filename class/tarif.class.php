@@ -23,6 +23,108 @@ class TTarif extends TObjetStd {
 			,'PERCENT/PRICE'=>'Mixte'
 		);
 	}
+	
+	static function getRemise(&$db, $idProd,$qty,$conditionnement,$weight_units){
+		
+		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure !!!)
+		$sql = "SELECT p.type_remise as type_remise, tc.quantite as quantite, tc.type_price, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent";
+		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product";
+		$sql.= " WHERE fk_product = ".$idProd;
+		$sql.= " ORDER BY quantite DESC"; //unite_value DESC, 
+		
+		$resql = $db->query($sql);
+		
+		if($resql->num_rows > 0) {
+			$pallier = 0;
+			while($res = $db->fetch_object($resql)) {
+				
+				if( strpos($res->type_price,'PERCENT')!==false ){
+					
+					if($res->type_remise == "qte" && $qty >= $res->quantite){
+						return array($res->remise_percent, $res->type_price);
+					} 
+					else if($res->type_remise == "conditionnement" && $conditionnement >= $res->quantite && $res->unite_value == $weight_units) {
+						return array($res->remise_percent, $res->type_price);
+					}
+				}
+			}
+		}
+		
+		return 0;
+	}
+	
+	
+	static function getPrix(&$db, $idProd,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1,$fk_country=0, $TFk_categorie=array()){
+
+		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure)
+		$sql = "SELECT p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, pr.weight";
+		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product
+				 LEFT JOIN ".MAIN_DB_PREFIX."product pr ON p.fk_object=pr.rowid ";
+		$sql.= " WHERE fk_product = ".$idProd." AND (tc.currency_code = '".$devise."' OR tc.currency_code IS NULL)";
+		
+		if($fk_country>0) {
+			
+			$sql.=" AND tc.fk_country IN (0, $fk_country)";
+			
+		}
+		if(!empty($TFk_categorie)) {
+			
+			$sql.=" AND tc.fk_categorie_client IN (-1,0, ".implode(',', $TFk_categorie).")";
+
+			
+		}
+		
+		
+		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC"; 
+		
+		$resql = $db->query($sql);
+		
+		if($resql->num_rows > 0) {
+			while($res = $db->fetch_object($resql)) {
+				
+				if(strpos($res->type_price,'PRICE') !== false){
+					
+					if($res->type_remise == "qte" && $qty >= $res->quantite){
+						//Ici on récupère le pourcentage correspondant et on arrête la boucle
+						return TTarif::price_with_multiprix($res->prix, $price_level);
+					} 
+					else if($res->type_remise == "conditionnement" && $conditionnement >= $res->quantite &&  $res->unite_value == $weight_units) {
+						return TTarif::price_with_multiprix($res->prix * ($conditionnement / $res->weight), $price_level); // prise en compte unité produit et poid init produit
+					}
+				}
+			}
+		}
+		
+		
+		
+		
+		return $subprice * $coef;
+
+	}
+	
+	function price_with_multiprix($price, $price_level) {
+		global $conf;
+		if($conf->multiprixcascade->enabled) {
+		/*
+		 * Si multiprix cascade est présent, on ajoute le pourcentage de réduction défini directement dans le multiprix
+		 */	
+			
+			$TNiveau  = unserialize($conf->global->MULTI_PRIX_CASCADE_LEVEL);
+			
+			if(isset($TNiveau[$price_level])) {
+				
+				$price = $price * ($TNiveau[$price_level] / 100);
+				
+			}
+			
+			
+		}
+		
+		return $price;
+	}
+	
 }
 
 class TTarifCommandedet extends TObjetStd {
