@@ -281,7 +281,7 @@ class InterfaceTarifWorkflow
 				
 				foreach($categ->get_all_categories("2") as $cat) {
 					$TFk_categorie[] = $cat->id."<br />";
-				}			
+				}
 				
 				$object_parent = $this->_getObjectParent($object);
 				$price_level = $object_parent->client->price_level;
@@ -292,9 +292,9 @@ class InterfaceTarifWorkflow
 
 				if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
 					//exit('1');
-					$object_parent = $this->_getObjectParent($object);
+					/*$object_parent = $this->_getObjectParent($object);
 					$price_level = $object_parent->client->price_level;
-					$fk_country = $object_parent->client->country_id;
+					$fk_country = $object_parent->client->country_id;*/
 										
 					$prix_devise =TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie);
 					
@@ -472,13 +472,29 @@ class InterfaceTarifWorkflow
 						$devise = $conf->currency;
 					}
 					
+					// On récupère les catégories dont le client fait partie
+					dol_include_once("/categories/class/categorie.class.php");
+					$commande = new Commande($db);
+					$commande->fetch($object->fk_commande);
+					$id_soc = $commande->socid;
+					$categ = new Categorie($db);
+					$TCategs = array();
+					
+					foreach($categ->get_all_categories("2") as $cat) {
+						$TFk_categorie[] = $cat->id."<br />";
+					}
+					
+					$object_parent = $this->_getObjectParent($object);
+					$price_level = $object_parent->client->price_level;
+					$fk_country = $object_parent->client->country_id;					
+					
 					list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units);
 					$prix = __val($object->subprice,$object->price,'float',true);
 					
 					if($remise == 0 || $type_prix=='PERCENT/PRICE'){
-						$object_parent = $this->_getObjectParent($object);
+						/*$object_parent = $this->_getObjectParent($object);
 						$price_level = $object_parent->client->price_level;
-						$fk_country = $object_parent->client->country_id;
+						$fk_country = $object_parent->client->country_id;*/
 		
 						$prix_devise = TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$object->subprice,$coef_conv,$devise, $price_level,$fk_country);
 						$prix = $prix_devise / $coef_conv;

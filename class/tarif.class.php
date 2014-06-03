@@ -44,7 +44,7 @@ class TTarif extends TObjetStd {
 			
 		}		
 		
-		$sql.= " ORDER BY quantite DESC"; //unite_value DESC, 
+		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC";
 		
 		$resql = $db->query($sql);
 		
@@ -69,7 +69,7 @@ class TTarif extends TObjetStd {
 	
 	
 	static function getPrix(&$db, $idProd,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1,$fk_country=0, $TFk_categorie=array()){
-
+		
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure)
 		$sql = "SELECT p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, pr.weight";
 		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
@@ -90,7 +90,7 @@ class TTarif extends TObjetStd {
 		}
 		
 		
-		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC"; 
+		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC";
 		
 		$resql = $db->query($sql);
 		
