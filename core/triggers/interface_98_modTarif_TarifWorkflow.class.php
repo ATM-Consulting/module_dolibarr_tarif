@@ -280,7 +280,7 @@ class InterfaceTarifWorkflow
 				$TCategs = array();
 				
 				foreach($categ->get_all_categories("2") as $cat) {
-					$TFk_categorie[] = $cat->id."<br />";
+					$TFk_categorie[] = $cat->id;
 				}
 				
 				$object_parent = $this->_getObjectParent($object);
@@ -481,7 +481,7 @@ class InterfaceTarifWorkflow
 					$TCategs = array();
 					
 					foreach($categ->get_all_categories("2") as $cat) {
-						$TFk_categorie[] = $cat->id."<br />";
+						$TFk_categorie[] = $cat->id;
 					}
 					
 					$object_parent = $this->_getObjectParent($object);
