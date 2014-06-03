@@ -220,7 +220,6 @@ class InterfaceTarifWorkflow
 		if (($action == 'LINEORDER_INSERT' || $action == 'LINEPROPAL_INSERT' || $action == 'LINEBILL_INSERT') 
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
 			
-				
 			$idProd = $object->fk_product;
 			if($conf->declinaison->enabled) {
 				$sql = "SELECT fk_parent FROM ".MAIN_DB_PREFIX."declinaison WHERE fk_declinaison = ".$idProd;
@@ -242,22 +241,21 @@ class InterfaceTarifWorkflow
 
 			$poids = __get('poids', 1,'float');
 			$weight_units = $_POST['weight_units'];
-			
+
 			if($idProd>0) {
 				
 				$product =new Product($db);
 				$product->fetch($idProd);
-				
+
 				if($product->type==1)$poids=1;
 				
 			}
-			
-			
+
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
-			if($poids > 0 && $idProd > 0){				
+			if($poids > 0 && $idProd > 0){
 				
 				if($conf->multidevise->enabled){
-					
+				
 					$sql = "SELECT devise_code as code, devise_taux as coef FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$object->{"fk_".$table}; //Récup devise du parent + taux de conv 
 					
 					$res = $db->query($sql);
@@ -267,19 +265,38 @@ class InterfaceTarifWorkflow
 					$devise = $resql->code;
 				}
 				else{ //devise = a celle du système
+				
 					$coef_conv = 1;
 					$devise = $conf->currency;
 				}
 				
-				list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units);
-				$prix = __val($object->subprice,$object->price,'float',true);
 				
+				// On récupère les catégories dont le client fait partie
+				dol_include_once("/categories/class/categorie.class.php");
+				$commande = new Commande($db);
+				$commande->fetch($object->fk_commande);
+				$id_soc = $commande->socid;
+				$categ = new Categorie($db);
+				$TCategs = array();
+				
+				foreach($categ->get_all_categories("2") as $cat) {
+					$TFk_categorie[] = $cat->id."<br />";
+				}			
+				
+				$object_parent = $this->_getObjectParent($object);
+				$price_level = $object_parent->client->price_level;
+				$fk_country = $object_parent->client->country_id;
+				
+				list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie);
+				$prix = __val($object->subprice,$object->price,'float',true);
+
 				if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
+					//exit('1');
 					$object_parent = $this->_getObjectParent($object);
 					$price_level = $object_parent->client->price_level;
 					$fk_country = $object_parent->client->country_id;
-		
-					$prix_devise =TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country);
+										
+					$prix_devise =TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie);
 					
 					$prix = $prix_devise / $coef_conv;
 				}
