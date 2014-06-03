@@ -488,7 +488,7 @@ class InterfaceTarifWorkflow
 					$price_level = $object_parent->client->price_level;
 					$fk_country = $object_parent->client->country_id;					
 					
-					list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units);
+					list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie);
 					$prix = __val($object->subprice,$object->price,'float',true);
 					
 					if($remise == 0 || $type_prix=='PERCENT/PRICE'){
@@ -496,7 +496,7 @@ class InterfaceTarifWorkflow
 						$price_level = $object_parent->client->price_level;
 						$fk_country = $object_parent->client->country_id;*/
 		
-						$prix_devise = TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$object->subprice,$coef_conv,$devise, $price_level,$fk_country);
+						$prix_devise = TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$object->subprice,$coef_conv,$devise, $price_level,$fk_country, $TFk_categorie);
 						$prix = $prix_devise / $coef_conv;
 					}
 					
