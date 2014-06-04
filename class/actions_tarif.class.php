@@ -56,13 +56,13 @@ class ActionsTarif
 												?><input id="poidsAff" type="text" value="<?=(!is_null($res->tarif_poids)) ? number_format($res->tarif_poids,2,",","") : '' ?>" name="poidsAff" size="6" /><?	
 											}
 									
-											print ($type_unite=='unite') ? 'U' : $formproduct->select_measuring_units("weight_unitsAff", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT, $res->poids); 
+											//print ($type_unite=='unite') ? 'U' : $formproduct->select_measuring_units("weight_unitsAff", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT, $res->poids); 
 									?></td>');
 					
 									<?php
 								}
 								
-								?>
+								/*?>
 								$('form[name=editline]').append('<input id="poids" type="hidden" value="1" name="poids" size="3" />');
 					         	$('form[name=editline]').append('<input id="weight_units" type="hidden" value="0" name="weight_units" size="3" />');
 					
@@ -75,7 +75,7 @@ class ActionsTarif
 						         	return true;
 						         	
 					         	});
-								<?php
+								<?php*/
 							}
 				        }
 						?>
@@ -145,8 +145,10 @@ class ActionsTarif
 						?>$('#row-<?=$idLine ?>').children().eq(3).after('<td align="right" tarif-col="conditionnement"><?php
 						
 							if(!is_null($res->tarif_poids)) {
-								if($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) {	
-									print number_format($res->tarif_poids,2,",","");
+								if($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) {
+									if($res->poids != 69){ //69 = chiffre au hasard pour définir qu'on est sur un type "unité" et non "poids"
+										print number_format($res->tarif_poids,2,",","");
+									}
 								}
 								if($line->fk_product>0) print measuring_units_string($res->poids,($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT);
 							}
@@ -166,7 +168,7 @@ class ActionsTarif
 			         		if($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) {
 			         			?><input class="poidsAff" type="text" value="0" name="poidsAff_product" id="poidsAffProduct" size="6" /><?php
 							}
-		         			print ($type_unite=='unite') ? 'U' :  $formproduct->select_measuring_units("weight_unitsAff_product", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT,0); 
+		         			//print ($type_unite=='unite') ? 'U' :  $formproduct->select_measuring_units("weight_unitsAff_product", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT,0); 
 		         			
 		         			?></td>');
 

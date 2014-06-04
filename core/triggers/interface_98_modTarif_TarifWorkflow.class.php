@@ -215,7 +215,8 @@ class InterfaceTarifWorkflow
 		dol_include_once('/dispatch/class/dispatchdetail.class.php');
 		
 		global $user, $db;
-
+//pre($_REQUEST);
+/*pre($object);*/
 		//Création d'une ligne de facture, propale ou commande
 		if (($action == 'LINEORDER_INSERT' || $action == 'LINEPROPAL_INSERT' || $action == 'LINEBILL_INSERT') 
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
@@ -238,9 +239,25 @@ class InterfaceTarifWorkflow
 			else if(get_class($object) == 'OrderLine'){$table = "commande"; $tabledet = 'commandedet';}
 			else if(get_class($object) == 'FactureLigne'){ $table = "facture"; $tabledet = 'facturedet'; }
 				
+			//Gestion du poids et de l'unité transmise
+			
+			if(!empty($_REQUEST['poidsAff_product'])){ //Si un poids produit a été transmis
+				$poids = ($_REQUEST['poidsAff_product'] > 0) ? $_REQUEST['poidsAff_product'] : 1;
+			}
+			elseif(!empty($_REQUEST['poidsAff_libre'])){ //Si un poids ligne libre a été transmis
+				$poids = ($_REQUEST['poidsAff_libre'] > 0) ? $_REQUEST['poidsAff_libre'] : 1;
+			}
+			else{ //Aucun poids transmis = poids reçois 1
+				$poids = 1;
+			}
+			
+			if(isset($_REQUEST['weight_unitsAff_product'])){ //Si on a un unité produit transmise
+				$weight_units = $_REQUEST['weight_unitsAff_product'];
+			}
+			else{ //Sinon on est sur un tarif à l'unité donc pas de gestion de poids => 69 chiffre pris au hasard
+				$weight_units = 69;
+			}
 
-			$poids = __get('poids', 1,'float');
-			$weight_units = $_POST['weight_units'];
 
 			if($idProd>0) {
 				
@@ -248,9 +265,9 @@ class InterfaceTarifWorkflow
 				$product->fetch($idProd);
 
 				if($product->type==1)$poids=1;
-				
-			}
 
+			}
+			//echo $poids." ".$weight_units; exit;
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
 			if($poids > 0 && $idProd > 0){
 				
@@ -455,6 +472,30 @@ class InterfaceTarifWorkflow
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
 			// ET si la quantité ou le poids a changé
 			//exit($object->oldline->qty." != ".$object->qty." || ".floatval($res->tarif_poids * pow(10, $res->poids))." != ".floatval($poids * pow(10, $weight_units)));
+			//echo $res->tarif_poids;
+			//echo floatval($res->tarif_poids * pow(10, $res->poids)) != floatval($poids * pow(10, $weight_units));
+			
+			
+			//Gestion du poids et de l'unité transmise
+			
+			if(!empty($_REQUEST['poidsAff_product'])){ //Si un poids produit a été transmis
+				$poids = ($_REQUEST['poidsAff_product'] > 0) ? $_REQUEST['poidsAff_product'] : 1;
+			}
+			elseif(!empty($_REQUEST['poidsAff_libre'])){ //Si un poids ligne libre a été transmis
+				$poids = ($_REQUEST['poidsAff_libre'] > 0) ? $_REQUEST['poidsAff_libre'] : 1;
+			}
+			else{ //Aucun poids transmis = poids reçois 1
+				$poids = 1;
+			}
+			
+			if(isset($_REQUEST['weight_unitsAff_product'])){ //Si on a un unité produit transmise
+				$weight_units = $_REQUEST['weight_unitsAff_product'];
+			}
+			else{ //Sinon on est sur un tarif à l'unité donc pas de gestion de poids => 69 chiffre pris au hasard
+				$weight_units = 69;
+			}			
+			
+			
 			if($object->oldline->qty != $object->qty || floatval($res->tarif_poids * pow(10, $res->poids)) != floatval($poids * pow(10, $weight_units))){
 				
 				if(!empty($idProd)){

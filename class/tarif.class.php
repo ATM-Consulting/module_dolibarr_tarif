@@ -104,7 +104,7 @@ class TTarif extends TObjetStd {
 						return TTarif::price_with_multiprix($res->prix, $price_level);
 					} 
 					else if($res->type_remise == "conditionnement" && $conditionnement >= $res->quantite &&  $res->unite_value == $weight_units) {
-						return TTarif::price_with_multiprix($res->prix * ($conditionnement / $res->weight), $price_level); // prise en compte unité produit et poid init produit
+						return TTarif::price_with_multiprix($res->prix * ($conditionnement / (($res->weight != 0) ? $res->weight : 1 )), $price_level); // prise en compte unité produit et poid init produit
 					}
 				}
 			}
