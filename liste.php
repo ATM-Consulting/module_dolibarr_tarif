@@ -194,12 +194,14 @@
 	}
 	elseif(isset($_REQUEST['action']) && !empty($_REQUEST['action']) && $_REQUEST['action'] == 'add_conditionnement' && isset($_REQUEST['save'])) {
 		
+		//pre($_REQUEST,true);
 		$unite = measuring_units_string($_REQUEST['weight_units'],$type_unite);
 		$unite = $langs->trans($unite);
 		
 		$Ttarif = new TTarif;
 		
 		if($_REQUEST['id_tarif']>0) $Ttarif->load($ATMdb, $_REQUEST['id_tarif']);
+		//pre($Ttarif,true);exit;
 		
 		$Ttarif->tva_tx = $_POST['tva_tx'];
 		$Ttarif->price_base_type = 'HT';
@@ -209,16 +211,16 @@
 		$Ttarif->fk_country = $_REQUEST['fk_country'];		
 		
 		if($_REQUEST['type_prix'] == 'PERCENT/PRICE'){
-			$Ttarif->prix = price2num($_POST['prix_visu']);
+			$Ttarif->prix = price2num($_POST['prix_visu'],2,1);
 			$Ttarif->remise_percent = __get('remise',0,'float');
 		}
 		else if($_REQUEST['type_prix'] == 'PRICE'){
 			
-			$Ttarif->prix =price2num($_POST['prix_visu']);
-			
+			$Ttarif->prix =price2num($_POST['prix_visu'],2,1);
+
 		}
 		else{
-			$Ttarif->prix = price2num($_POST['prix_visu']);
+			$Ttarif->prix = price2num($_POST['prix_visu'],2,1);
 			$Ttarif->remise_percent = __get('remise',0,'float') ;
 		}
 		$Ttarif->quantite = $_POST['quantite'];
@@ -229,7 +231,8 @@
 		$Ttarif->fk_product = $_POST['id'];
 		$Ttarif->fk_categorie_client = $_REQUEST['fk_categorie_client'];
 		//$ATMdb->db->debug=true;
-
+			
+		//pre($Ttarif,true);exit;
 		$Ttarif->save($ATMdb);
 	}
 	elseif(isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
@@ -257,14 +260,22 @@
 		if($type_unite == "unite") {
 
 			$sql.=" ,tc.unite_value AS unite_value,
-				tc.quantite * tc.prix * (100-tc.remise_percent)/100 AS 'Total'";
+				tc.quantite * tc.prix";
+			if($Ttarif->remise_percent){
+				$sql .= "* (100-tc.remise_percent)/100";
+			} 
+			$sql .=	"  AS 'Total'";
 		
 		}
 		else {
 			
 			$sql.=" , p.".$type_unite."_units AS base_poids, tc.unite_value AS unite_value,
-				((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) * (tc.remise_percent/100)  AS 'Total'";
-			
+				((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix)";
+			if($Ttarif->remise_percent){
+				$sql .=  	  "* (tc.remise_percent/100)";
+			}
+			$sql .=	  " AS 'Total'";
+
 		}
 					   
 		$sql.= " , '' AS 'actions'
@@ -282,7 +293,11 @@
 			$sql.=			  "tc.quantite * tc.prix * (100-tc.remise_percent)/100 AS 'Total',";
 		} else {
 			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.prix AS prix, p.".$type_unite."_units AS base_poids, tc.unite_value AS unite_value,";
-			$sql.=			  "((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) * (tc.remise_percent/100)  AS 'Total',";
+			$sql.=			  "((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix)";
+			if($Ttarif->remise_percent){
+				$sql .=  	  "* (tc.remise_percent/100)";
+			}
+			$sql .=			  " AS 'Total',";
 		}
 		$sql.=			   "'' AS 'actions'
 				FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
@@ -292,8 +307,7 @@
 				WHERE fk_product = ".$product->id."
 				ORDER BY unite_value, quantite ASC";
 	}
-		
-	
+	//echo $sql;
 	$r = new TSSRenderControler(new TTarif);
 	
 	$THide = array(

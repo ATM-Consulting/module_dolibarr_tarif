@@ -8,8 +8,8 @@ class TTarif extends TObjetStd {
 		parent::add_champs('unite','type=chaine;');
 		parent::add_champs('unite_value','type=entier;');
 		parent::add_champs('price_base_type,type_price,currency_code','type=chaine;');
-		parent::add_champs('remise_percent,fk_categorie_client','type=entier;');
-		parent::add_champs('prix,tva_tx,quantite','type=float;');
+		parent::add_champs('fk_categorie_client','type=entier;');
+		parent::add_champs('prix,tva_tx,quantite,remise_percent','type=float;');
 		parent::add_champs('fk_user_author,fk_product,fk_country','type=entier;index;');
 		
 		parent::_init_vars();
