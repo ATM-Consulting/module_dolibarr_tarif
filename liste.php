@@ -195,8 +195,15 @@
 	elseif(isset($_REQUEST['action']) && !empty($_REQUEST['action']) && $_REQUEST['action'] == 'add_conditionnement' && isset($_REQUEST['save'])) {
 		
 		//pre($_REQUEST,true);
-		$unite = measuring_units_string($_REQUEST['weight_units'],$type_unite);
-		$unite = $langs->trans($unite);
+		
+		//logueur, poids, etc
+		if(!empty($_REQUEST['weight_units'])){
+			$unite = measuring_units_string($_REQUEST['weight_units'],$type_unite);
+			$unite = $langs->trans($unite);
+		}
+		else{ //unitaire
+			$unite = 'U';
+		}
 		
 		$Ttarif = new TTarif;
 		
