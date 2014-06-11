@@ -55,27 +55,11 @@ class ActionsTarif
 											if($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) {
 												?><input id="poidsAff" type="text" value="<?=(!is_null($res->tarif_poids)) ? number_format($res->tarif_poids,2,",","") : '' ?>" name="poidsAff" size="6" /><?	
 											}
-									
-											//print ($type_unite=='unite') ? 'U' : $formproduct->select_measuring_units("weight_unitsAff", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT, $res->poids); 
+
 									?></td>');
-					
+
 									<?php
 								}
-								
-								/*?>
-								$('form[name=editline]').append('<input id="poids" type="hidden" value="1" name="poids" size="3" />');
-					         	$('form[name=editline]').append('<input id="weight_units" type="hidden" value="0" name="weight_units" size="3" />');
-					
-					         	$('form[name=editline]').submit(function() {
-					         	
-						         	if($('#poidsAff').length>0) {
-						         		$('#poids').val( $('#poidsAff').val() );
-						         		$('#weight_units').val( $('select[name=weight_unitsAff]').val() );
-						         	} 
-						         	return true;
-						         	
-					         	});
-								<?php*/
 							}
 				        }
 						?>
@@ -158,7 +142,7 @@ class ActionsTarif
 
 	         		?>
 		         	$('#tablelines .liste_titre > td').each(function(){
-		         		if($(this).html() == "Qté"){
+		         		if($(this).html() == "Qté" || $(this).html() == "Qty"){
 						var weight_label = "<?=defined('WEIGHT_LABEL') ? WEIGHT_LABEL :  'Cond.' ?>";
 		         			$(this).after('<td align="right" width="140">'+weight_label+'</td>');
 					}
