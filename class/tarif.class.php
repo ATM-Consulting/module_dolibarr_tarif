@@ -18,9 +18,9 @@ class TTarif extends TObjetStd {
 		//$this->fk_categorie_client = 0;
 		
 		$this->TType_price = array(
-			'PERCENT'=>'Pourcentage de réduction'
-			,'PRICE'=>'Prix unitaire'
-			,'PERCENT/PRICE'=>'Mixte'
+			'PERCENT'=>$langs->trans('PERCENT')
+			,'PRICE'=>$langs->trans('PRICE')
+			,'PERCENT/PRICE'=>$langs->trans('PERCENT/PRICE')
 		);
 	}
 	
