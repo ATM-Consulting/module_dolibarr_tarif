@@ -587,7 +587,7 @@ class InterfaceTarifWorkflow
 		
 		$categ = new Categorie($db);
 		$TFk_categorie = array();
-		foreach($categ->containing($object->thirdparty->id, 'customer') as $cat) {
+		foreach($categ->containing($object->thirdparty->id, 2) as $cat) {
 			$TFk_categorie[] = $cat->id;
 		}
 		
