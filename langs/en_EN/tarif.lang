@@ -1,0 +1,29 @@
+Module210006Name=Tarif par conditionnement
+Module210006Desc=Gestion de tarif par conditionnement
+
+# Onglet tarif
+Tarifs=Package prices
+PriceType=Price type
+Devise=Currency
+Country=Country
+Quantity=Quantity
+Unit=Unit
+Remise=Percent discount
+Tarif=Price
+Total=Total
+Actions=Actions
+AddTarif=Add package price
+NewTarif=New package price
+PERCENT=Percent discount
+PRICE=Unit price
+PERCENT/PRICE=Mixed
+TarifList=Package prices list
+PriceBase=Price base
+PriceType=Price type
+CategoriesCustomer=Customer Category
+SellingPrice=Selling price
+ErreurPercent=Percente discount should be less than or equal 100
+ConfirmDelete=Are you sure you want to delete this rate?
+
+#Lignes
+Cond=Package
