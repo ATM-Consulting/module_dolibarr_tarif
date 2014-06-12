@@ -138,7 +138,7 @@ class ActionsTarif
 									print " ".measuring_units_string($res->poids,($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT);
 								}
 								elseif($res->poids == 69){
-									print ' Unité';
+									print ' U';
 								}
 							}
 						?></td>'); <?
