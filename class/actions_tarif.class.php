@@ -130,11 +130,16 @@ class ActionsTarif
 						
 							if(!is_null($res->tarif_poids)) {
 								if($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) {
-									if($res->poids != 69){ //69 = chiffre au hasard pour définir qu'on est sur un type "unité" et non "poids"
+									//if($res->poids != 69){ //69 = chiffre au hasard pour définir qu'on est sur un type "unité" et non "poids"
 										print number_format($res->tarif_poids,2,",","");
-									}
+									//}
 								}
-								if($line->fk_product>0) print measuring_units_string($res->poids,($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT);
+								if($line->fk_product>0 && $res->poids != 69){
+									print " ".measuring_units_string($res->poids,($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT);
+								}
+								elseif($res->poids == 69){
+									print ' Unité';
+								}
 							}
 						?></td>'); <?
 						//if($line->error != '') echo "alert('".$line->error."');";
