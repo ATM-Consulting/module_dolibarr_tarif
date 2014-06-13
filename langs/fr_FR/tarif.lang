@@ -1,2 +1,29 @@
 Module210006Name=Tarif par conditionnement
 Module210006Desc=Gestion de tarif par conditionnement
+
+# Onglet tarif
+Tarifs=Tarifs
+PriceType=Type de prix
+Devise=Devise
+Country=Pays
+Quantity=Quantité
+Unit=Unité
+Remise=Remise(%)
+Tarif=Tarif
+Total=Total
+Actions=Actions
+AddTarif=Ajouter un tarif
+NewTarif=Nouveau conditionnement
+PERCENT=Pourcentage de réduction
+PRICE=Prix unitaire
+PERCENT/PRICE=Mixte
+TarifList=Liste des tarifs par conditionnement
+PriceBase=Base du prix
+PriceType=Type de prix
+CategoriesCustomer= Catégorie client
+SellingPrice=Prix de vente
+ErreurPercent=Votre pourcentage doit être inférieur ou égal à cent
+ConfirmDelete=Êtes-vous sûr de vouloir supprimer ce tarif ?
+
+#Lignes
+Cond=Cond.
