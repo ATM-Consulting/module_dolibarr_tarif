@@ -116,7 +116,7 @@ class modTarif extends DolibarrModules
         //                              'objecttype:+tabname2:Title2:mylangfile@mymodule:$user->rights->othermodule->read:/mymodule/mynewtab2.php?id=__ID__',  	// To add another new tab identified by code tabname2
         //                              'objecttype:-tabname':NU:conditiontoremove);                                                     						// To remove an existing tab identified by code tabname
         
-        $this->tabs = array('product:+tabTarif1:Tarifs:@tarif:/tarif/liste.php?fk_product=__ID__');
+        $this->tabs = array('product:+tabTarif1:Tarifs:tarif@tarif:/tarif/liste.php?fk_product=__ID__');
         
 		// where objecttype can be
 		// 'thirdparty'       to add a tab in third party view
