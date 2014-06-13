@@ -85,6 +85,7 @@ class ActionsTarif
 		include_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
 		include_once(DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php');
 		$langs->load("other");
+		$langs->load("tarif@tarif");
 
 		define('INC_FROM_DOLIBARR', true);
 		dol_include_once('/tarif/config.php');
@@ -148,12 +149,12 @@ class ActionsTarif
 	         		?>
 		         	$('#tablelines .liste_titre > td').each(function(){
 		         		if($(this).html() == "Qté" || $(this).html() == "Qty"){
-						var weight_label = "<?=defined('WEIGHT_LABEL') ? WEIGHT_LABEL :  'Cond.' ?>";
+						var weight_label = "<?=defined('WEIGHT_LABEL') ? WEIGHT_LABEL :  $langs->trans('Cond'); ?>";
 		         			$(this).after('<td align="right" width="140">'+weight_label+'</td>');
 					}
 		         	});
 
-		         	$('#np_desc').parent().next().after('<td align="right" tarif-col="conditionnement_product"><span id="AffUnite" style="display:none;">unité</span><?php
+		         	$('#np_desc').parent().next().after('<td align="right" tarif-col="conditionnement_product"><span id="AffUnite" style="display:none;"><?php echo $langs->trans('Unit'); ?></span><?php
 			         		if($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) {
 			         			?><input class="poidsAff" type="text" value="0" name="poidsAff_product" id="poidsAffProduct" size="6" /><?php
 							}

@@ -6,8 +6,6 @@
 	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 	
-	llxHeader('','Liste des tarifs par conditionnement','','');
-	
 	if(is_file(DOL_DOCUMENT_ROOT."/lib/product.lib.php")) require_once(DOL_DOCUMENT_ROOT."/lib/product.lib.php");
 	else require_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
 	
@@ -16,7 +14,10 @@
 	
 	global $langs;
 	
-	$langs->load("other");
+	$langs->Load("other");
+	$langs->Load("tarif@tarif");
+	
+	llxHeader('',$langs->trans('TarifList'),'','');
 	
 	$ATMdb = new TPDOdb;
 	
@@ -100,37 +101,37 @@
         print '</td></tr>';
 
 		// Price base
-		print '<tr><td width="20%">Base du prix</td>';
+		print '<tr><td width="20%">'.$langs->trans('PriceBase').'</td>';
 		print '<td>';
 		//print $form->select_PriceBaseType($object->price_base_type, "price_base_type");
 		print 'HT</td>';
 		print '</tr>';
 		
-		print '<tr><td width="20%">Type de prix</td><td>';
+		print '<tr><td width="20%">'.$langs->trans('PriceBase').'</td><td>';
         print $form->selectarray("type_prix",$TTarif->TType_price,$tarif->type_price);
         print '</td></tr>';
         
         if($conf->multidevise->enabled){
 	        //Devise
-			print '<tr><td>Devise</td><td colspan="3">';
+			print '<tr><td>'.$langs->trans('Devise').'</td><td colspan="3">';
 			print $form->select_currency( ($action=='edit') ? $tarif->currency_code : $conf->currency,"currency");
 			print '</td></tr>';
 			
 		}
 
         //Pays
-		print '<tr><td>Pays</td><td colspan="3">';
+		print '<tr><td>'.$langs->trans('Country').'</td><td colspan="3">';
 		print $form->select_country( ($action=='edit') ? $tarif->fk_country : 0,"fk_country");
 		print '</td></tr>';
 		
-		print '<tr><td>Catégorie client</td><td colspan="3">';
+		print '<tr><td>'.$langs->trans('CategoriesCustomer').'</td><td colspan="3">';
 		print $form->select_all_categories(2, ($action=='edit') ? $tarif->fk_categorie_client : 'auto', 'fk_categorie_client');
 		print '</td></tr>';
 		
 		$prix = ( ($action=='edit') ? $tarif->prix :$object->price);
 		// Price
 		print '<tr><td width="20%">';
-		print 'Prix de vente';
+		print $langs->trans('SellingPrice');
 		print '</td><td>
 		<input type="hidden" name="prix" id="prix" value="'.$prix.'">
 		<input size="10" name="prix_visu" value="'.number_format($prix,2,",","").'"></td></tr>';
@@ -138,7 +139,7 @@
 		$remise = $tarif->remise_percent;		
 		// Remise
 		print '<tr><td width="20%">';
-		print 'Pourcentage de remise';
+		print $langs->trans('Remise');
 		print '</td><td><input id="remise" size="10" name="remise" value="'.$remise.'" />%</td></tr>';
 		
 		?>
@@ -148,7 +149,7 @@
 					var n_percent = $(this).val();
 					var price = $('#prix').val();
 					if(n_percent>100 || n_percent<0) {
-						alert('Votre pourcentage doit être inférieur ou égal à cent');
+						alert('<?php echo $langs->trans('Remise'); ?>');
 						return false;
 					}
 					if($('#type_prix').val() != 'PERCENT/PRICE') {
@@ -175,11 +176,11 @@
 		
 		//Quantité
 		print '<tr><td width="20%">';
-		print 'Quantit&eacute;';
+		print $langs->trans('Quantity');
 		print '</td><td><input size="10" name="quantite" value="'.__val($tarif->quantite,1,'integer',true).'"></td></tr>';
 		
 		print '<tr><td width="20%">';
-		print 'Unit&eacute;';
+		print $langs->trans('Unit');
 		print '</td><td>';
 		if($type_unite=='unite') print 'U';
 		else print $formproduct->select_measuring_units("weight_units", $type_unite, ($action=='edit') ? $tarif->unite_value : $object->{$type_unite.'_units'});
@@ -285,7 +286,7 @@
 
 		}
 					   
-		$sql.= " , '' AS 'actions'
+		$sql.= " , '' AS 'Actions'
 				FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
 					LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)
 					LEFT JOIN ".MAIN_DB_PREFIX."currency AS c ON (c.code = tc.currency_code)
@@ -298,7 +299,8 @@
 		if($type_unite == "unite") {
 			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.prix AS prix, tc.unite_value AS unite_value,";
 			$sql.=			  "tc.quantite * tc.prix * (100-tc.remise_percent)/100 AS 'Total',";
-		} else {
+		} 
+		else {
 			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.prix AS prix, p.".$type_unite."_units AS base_poids, tc.unite_value AS unite_value,";
 			$sql.=			  "((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix)";
 			if($Ttarif->remise_percent){
@@ -306,7 +308,7 @@
 			}
 			$sql .=			  " AS 'Total',";
 		}
-		$sql.=			   "'' AS 'actions'
+		$sql.=			   "'' AS 'Actions'
 				FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
 					LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)
 					LEFT JOIN ".MAIN_DB_PREFIX."c_pays AS pays ON (pays.rowid = tc.fk_country)
@@ -330,22 +332,22 @@
 	print $r->liste($ATMdb, $sql, array(
 		'limit'=>array('nbLine'=>1000)
 		,'title'=>array(
-			'tva'=>'Taux TVA'
-			,'base' => 'Base du Prix'
-			,'quantite'=>'Quantit&eacute'
-			,'currency'=>'Devise'
-			,'type_price' => 'Type de prix'
-			,'unite'=>'Unit&eacute;'
-			,'prix'=>'Tarif'
-			,'remise' => 'Remise (%)'
-			,'Total' => 'Total'
-			,'Supprimer' => 'Supprimer'
+			'tva'=>$langs->trans('Tvatx')
+			,'base' =>$langs->trans('PriceBase')
+			,'quantite'=>$langs->trans('Quantity')
+			,'currency'=>$langs->trans('Devise')
+			,'type_price' =>$langs->trans('PriceType')
+			,'unite'=>$langs->trans('Unit')
+			,'prix'=>$langs->trans('Tarif')
+			,'remise' =>$langs->trans('Remise')
+			,'Total' =>$langs->trans('Total')
+			,'Supprimer' =>$langs->trans('Delete')
 		)
 		,'type'=>array('date_debut'=>'date','date_fin'=>'date','tva' => 'number', 'prix'=>'money', 'Total' => 'money' , 'quantite' => 'number')
 		,'hide'=> $THide
 		,'link'=>array(
-			'actions'=>'
-					<a href="?id=@id@&action=delete&fk_product='.$object->id.'" onclick="return confirm(\'Êtes-vous sûr de vouloir supprimer ce tarif ?\');">'.img_delete().'</a>
+			'Actions'=>'
+					<a href="?id=@id@&action=delete&fk_product='.$object->id.'" onclick="return confirm(\''.$langs->trans('ConfirmDelete').'\');">'.img_delete().'</a>
 					<a href="?id=@id@&action=edit&fk_product='.$object->id.'">'.img_edit().'</a>
 			'
 		)
@@ -354,8 +356,8 @@
 			
 		)
 	));
-	
-	
+
+
 	function _getTypePrice($idPriceCondi){
 		$TPDOdb = new TPDOdb;
 		
