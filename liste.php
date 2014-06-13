@@ -17,6 +17,8 @@
 	$langs->Load("other");
 	$langs->Load("tarif@tarif");
 	
+	//pre($langs);exit;
+	
 	llxHeader('',$langs->trans('TarifList'),'','');
 	
 	$ATMdb = new TPDOdb;
@@ -69,7 +71,7 @@
 	print "</div>\n";
 	
 	print '<div class="tabsAction">
-				<a class="butAction" href="?action=add&fk_product='.$object->id.'">Ajouter un tarif</a>
+				<a class="butAction" href="?action=add&fk_product='.$object->id.'">'.$langs->trans('AddTarif').'</a>
 			</div><br>';
 	
 	/***********************************
@@ -107,7 +109,7 @@
 		print 'HT</td>';
 		print '</tr>';
 		
-		print '<tr><td width="20%">'.$langs->trans('PriceBase').'</td><td>';
+		print '<tr><td width="20%">'.$langs->trans('PriceType').'</td><td>';
         print $form->selectarray("type_prix",$TTarif->TType_price,$tarif->type_price);
         print '</td></tr>';
         
@@ -342,6 +344,7 @@
 			,'remise' =>$langs->trans('Remise')
 			,'Total' =>$langs->trans('Total')
 			,'Supprimer' =>$langs->trans('Delete')
+			,'Pays' =>$langs->trans('Country')
 		)
 		,'type'=>array('date_debut'=>'date','date_fin'=>'date','tva' => 'number', 'prix'=>'money', 'Total' => 'money' , 'quantite' => 'number')
 		,'hide'=> $THide
@@ -359,12 +362,14 @@
 
 
 	function _getTypePrice($idPriceCondi){
+		global $langs;
+
 		$TPDOdb = new TPDOdb;
-		
+
 		$TTarif = new TTarif;
 		$TTarif->load($TPDOdb, $idPriceCondi);
-		
-		return $TTarif->TType_price[$TTarif->type_price];
+
+		return $langs->trans($TTarif->type_price);
 	}
 	
 	

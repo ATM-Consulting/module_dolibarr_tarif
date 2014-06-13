@@ -19,7 +19,6 @@ PRICE=Unit price
 PERCENT/PRICE=Mixed
 TarifList=Package prices list
 PriceBase=Price base
-PriceType=Price type
 CategoriesCustomer=Customer Category
 SellingPrice=Selling price
 ErreurPercent=Percente discount should be less than or equal 100
