@@ -287,22 +287,13 @@ class InterfaceTarifWorkflow
 					$devise = $conf->currency;
 				}
 				
-				
-				// On récupère les catégories dont le client fait partie
-				dol_include_once("/categories/class/categorie.class.php");
-				$commande = new Commande($db);
-				$commande->fetch($object->fk_commande);
-				$id_soc = $commande->socid;
-				$categ = new Categorie($db);
-				$TCategs = array();
-				
-				foreach($categ->get_all_categories("2") as $cat) {
-					$TFk_categorie[] = $cat->id;
-				}
-				
+				// Chargement de l'objet parent
 				$object_parent = $this->_getObjectParent($object);
 				$price_level = $object_parent->client->price_level;
 				$fk_country = $object_parent->client->country_id;
+				
+				// On récupère les catégories dont le client fait partie
+				$TFk_categorie = $this->getCategClient($object_parent);
 				
 				list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie);
 				$prix = __val($object->subprice,$object->price,'float',true);
@@ -513,21 +504,13 @@ class InterfaceTarifWorkflow
 						$devise = $conf->currency;
 					}
 					
-					// On récupère les catégories dont le client fait partie
-					dol_include_once("/categories/class/categorie.class.php");
-					$commande = new Commande($db);
-					$commande->fetch($object->fk_commande);
-					$id_soc = $commande->socid;
-					$categ = new Categorie($db);
-					$TCategs = array();
-					
-					foreach($categ->get_all_categories("2") as $cat) {
-						$TFk_categorie[] = $cat->id;
-					}
-					
+					// Chargement de l'objet parent
 					$object_parent = $this->_getObjectParent($object);
 					$price_level = $object_parent->client->price_level;
-					$fk_country = $object_parent->client->country_id;					
+					$fk_country = $object_parent->client->country_id;
+					
+					// On récupère les catégories dont le client fait partie
+					$TFk_categorie = $this->getCategClient($object_parent);
 					
 					list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie);
 					$prix = __val($object->subprice,$object->price,'float',true);
@@ -594,5 +577,20 @@ class InterfaceTarifWorkflow
 		}
 
 		return 1;
+	}
+
+	function getCategClient(&$object) {
+		global $db;
+		
+		// On récupère les catégories dont le client fait partie
+		dol_include_once("/categories/class/categorie.class.php");
+		
+		$categ = new Categorie($db);
+		$TFk_categorie = array();
+		foreach($categ->containing($object->thirdparty->id, 2) as $cat) {
+			$TFk_categorie[] = $cat->id;
+		}
+		
+		return $TFk_categorie;
 	}
 }
