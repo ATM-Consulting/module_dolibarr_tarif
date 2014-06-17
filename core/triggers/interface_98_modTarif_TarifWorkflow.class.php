@@ -521,7 +521,7 @@ class InterfaceTarifWorkflow
 						$fk_country = $object_parent->client->country_id;*/
 		
 						$prix_devise = TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$object->subprice,$coef_conv,$devise, $price_level,$fk_country, $TFk_categorie);
-						$prix = $prix_devise / $coef_conv;
+						@$prix = $prix_devise / $coef_conv;
 					}
 					
 					//pre($object, true);exit;
