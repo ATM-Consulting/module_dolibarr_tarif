@@ -570,7 +570,9 @@ class InterfaceTarifWorkflow
 				$sql = "INSERT INTO ".MAIN_DB_PREFIX."product_price
 					(price_level,date_price,fk_product,fk_user_author,price,price_ttc,price_base_type,tosell,tva_tx,recuperableonly,localtax1_tx, localtax2_tx, price_min,price_min_ttc,price_by_qty,entity) 
 					VALUES
-					(".$level.",'".$this->db->idate($now)."',".$object->id.",".$user->id.",".$price.",".$price_ttc.",'".$base."',".$object->status.",".$tva_tx.",".$object->tva_npr.",".$object->localtax1_tx.",".$object->localtax2_tx.",".$object->price_min.",".$object->price_min_ttc.",0,".$conf->entity.")";
+					(".$level.",'".$this->db->idate($now)."',".$object->id.",".$user->id.",".$price.",".$price_ttc.",'".$base."',".$object->status.",".$tva_tx.",".$object->tva_npr.",".$object->localtax1_tx."
+					,".$object->localtax2_tx.",".$object->price_min.",".$object->price_min_ttc.",0
+					,".((! empty($conf->multicompany->enabled) && ! empty($conf->multicompany->transverse_mode) ? 1 : $conf->entity).")";
 				
 				$this->db->query($sql);
 			}
