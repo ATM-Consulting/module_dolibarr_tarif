@@ -281,7 +281,9 @@ class InterfaceTarifWorkflow
 					$coef_conv = $resql->coef;
 					$devise = $resql->code;
 				}
-				else{ //devise = a celle du système
+				
+				
+				if(empty($coef_conv)){ //devise = a celle du système
 				
 					$coef_conv = 1;
 					$devise = $conf->currency;
@@ -572,7 +574,7 @@ class InterfaceTarifWorkflow
 					VALUES
 					(".$level.",'".$this->db->idate($now)."',".$object->id.",".$user->id.",".$price.",".$price_ttc.",'".$base."',".$object->status.",".$tva_tx.",".$object->tva_npr.",".$object->localtax1_tx."
 					,".$object->localtax2_tx.",".$object->price_min.",".$object->price_min_ttc.",0
-					,".((! empty($conf->multicompany->enabled) && ! empty($conf->multicompany->transverse_mode) ? 1 : $conf->entity).")";
+					,".(! empty($conf->multicompany->enabled) && ! empty($conf->multicompany->transverse_mode) ? 1 : $conf->entity).")";
 				
 				$this->db->query($sql);
 			}
