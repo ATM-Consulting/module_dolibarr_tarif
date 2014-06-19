@@ -501,7 +501,8 @@ class InterfaceTarifWorkflow
 						$coef_conv = $resql->coef;
 						$devise = $resql->code;
 					}
-					else{ //devise = a celle du système
+					
+					if(empty($coef_conv)){
 						$coef_conv = 1;
 						$devise = $conf->currency;
 					}
