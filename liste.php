@@ -264,9 +264,9 @@
 	
 	if($conf->multidevise->enabled){
 
-		$sql = "SELECT tc.rowid AS 'id', tc.tva_tx AS tva, tc.type_price as type_price, pays.libelle as 'Pays', cat.label as 'Catégorie',
+		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price, pays.libelle as 'Pays', cat.label as 'Catégorie',
 					   tc.price_base_type AS base, tc.quantite as quantite,
-					   tc.unite AS unite, tc.remise_percent AS remise, tc.prix AS prix ";
+					   tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix ";
 		
 		if($type_unite == "unite") {
 
@@ -299,13 +299,13 @@
 				ORDER BY unite_value, quantite ASC";
 	}
 	else {
-		$sql = "SELECT tc.rowid AS 'id', tc.tva_tx AS tva, tc.type_price as type_price,pays.libelle as 'Pays', cat.label as 'Catégorie', tc.price_base_type AS base, tc.quantite as quantite,";
+		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price,pays.libelle as 'Pays', cat.label as 'Catégorie', tc.price_base_type AS base, tc.quantite as quantite,";
 		if($type_unite == "unite") {
-			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.prix AS prix, tc.unite_value AS unite_value,";
+			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, tc.unite_value AS unite_value,";
 			$sql.=			  "tc.quantite * tc.prix * (100-tc.remise_percent)/100 AS 'Total',";
 		} 
 		else {
-			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.prix AS prix, p.".$type_unite."_units AS base_poids, tc.unite_value AS unite_value,";
+			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, p.".$type_unite."_units AS base_poids, tc.unite_value AS unite_value,";
 			$sql.=			  "((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix)";
 			if($Ttarif->remise_percent){
 				$sql .=  	  "* (tc.remise_percent/100)";
@@ -328,7 +328,6 @@
 			'id'
 			,'base_poids'
 			,'unite_value'
-			,'tva'
 			,'base'
 		);
 		
@@ -337,14 +336,14 @@
 	print $r->liste($ATMdb, $sql, array(
 		'limit'=>array('nbLine'=>1000)
 		,'title'=>array(
-			'tva'=>$langs->trans('Tvatx')
-			,'base' =>$langs->trans('PriceBase')
+			'base' =>$langs->trans('PriceBase')
 			,'quantite'=>$langs->trans('Quantity')
 			,'currency'=>$langs->trans('Devise')
 			,'type_price' =>$langs->trans('PriceType')
 			,'unite'=>$langs->trans('Unit')
 			,'prix'=>$langs->trans('Tarif')
 			,'remise' =>$langs->trans('Remise')
+			,'tva'=>$langs->trans('TVA')
 			,'Total' =>$langs->trans('Total')
 			,'Supprimer' =>$langs->trans('Delete')
 			,'Pays' =>$langs->trans('Country')
@@ -359,7 +358,6 @@
 		)
 		,'eval'=>array(
 			'type_price'=>'_getTypePrice(@id@)'
-			
 		)
 	));
 

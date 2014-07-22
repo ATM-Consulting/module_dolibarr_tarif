@@ -94,7 +94,7 @@ class InterfaceTarifWorkflow
 	
 	
 
-	function _updateLineProduct(&$object,&$user,$idProd,$conditionnement,$weight_units,$remise, $prix ,$prix_devise){
+	function _updateLineProduct(&$object,&$user,$idProd,$conditionnement,$weight_units,$remise, $prix ,$prix_devise,$tvatx){
 		
 		global $conf;
 		
@@ -112,6 +112,7 @@ class InterfaceTarifWorkflow
 		$object->remise_percent = $remise;
 		
 		$object->subprice = $prix ;
+		$object->tva_tx = $tvatx;
 		
 		$object->price = $object->subprice; // TODO qu'est-ce ? Due à un deprecated incertain, dans certains cas price est utilisé et dans d'autres c'est subprice
 		//echo $object->subprice; exit;
@@ -297,7 +298,7 @@ class InterfaceTarifWorkflow
 				// On récupère les catégories dont le client fait partie
 				$TFk_categorie = $this->getCategClient($object_parent);
 				
-				list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie);
+				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie);
 				$prix = __val($object->subprice,$object->price,'float',true);
 
 				if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
@@ -311,7 +312,7 @@ class InterfaceTarifWorkflow
 					$prix = $prix_devise / $coef_conv;
 				}
 				
-				$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise); //--- $poids = conditionnement !
+				$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !
 				$this->_updateTotauxLine($object,$object->qty);
 					
 				//MAJ du poids et de l'unité de la ligne

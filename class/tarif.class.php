@@ -55,10 +55,10 @@ class TTarif extends TObjetStd {
 				if( strpos($res->type_price,'PERCENT')!==false ){
 					
 					if($res->type_remise == "qte" && $qty >= $res->quantite){
-						return array($res->remise_percent, $res->type_price);
+						return array($res->remise_percent, $res->type_price, $res->tva_tx);
 					} 
 					else if($res->type_remise == "conditionnement" && $conditionnement >= $res->quantite && $res->unite_value == $weight_units) {
-						return array($res->remise_percent, $res->type_price);
+						return array($res->remise_percent, $res->type_price, $res->tva_tx);
 					}
 				}
 			}
