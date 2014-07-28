@@ -24,7 +24,7 @@ class TTarif extends TObjetStd {
 		);
 	}
 	
-	static function getRemise(&$db, $idProd,$qty,$conditionnement,$weight_units, $fk_country=0, $TFk_categorie=array()){
+	static function getRemise(&$db, $idProd,$qty,$conditionnement,$weight_units, $fk_country=0, $TFk_categorie=array(), $remise_ligne_de_depart = 0){
 		
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure !!!)
 		$sql = "SELECT p.type_remise as type_remise, tc.quantite as quantite, tc.type_price, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent";
@@ -64,7 +64,7 @@ class TTarif extends TObjetStd {
 			}
 		}
 		
-		return 0;
+		return array($remise_ligne_de_depart, 0);
 	}
 	
 	
