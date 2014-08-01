@@ -62,9 +62,11 @@ class TTarif extends TObjetStd {
 					}
 				}
 			}
+			
+			return array(0,'PRICE',0);
 		}
 		
-		return false; // On ne fait pas de modification sur la ligne
+		return array(false,false,false); // On ne fait pas de modification sur la ligne
 	}
 	
 	
