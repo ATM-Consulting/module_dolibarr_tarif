@@ -105,10 +105,10 @@ class TTarif extends TObjetStd {
 					
 					if($res->type_remise == "qte" && $qty >= $res->quantite){
 						//Ici on récupère le pourcentage correspondant et on arrête la boucle
-						return TTarif::price_with_multiprix($res->prix, $price_level);
+						return array(TTarif::price_with_multiprix($res->prix, $price_level), $res->tva_tx);
 					} 
 					else if($res->type_remise == "conditionnement" && $conditionnement >= $res->quantite &&  $res->unite_value == $weight_units) {
-						return TTarif::price_with_multiprix($res->prix * ($conditionnement / (($res->weight != 0) ? $res->weight : 1 )), $price_level); // prise en compte unité produit et poid init produit
+						return array(TTarif::price_with_multiprix($res->prix * ($conditionnement / (($res->weight != 0) ? $res->weight : 1 )), $price_level), $res->tva_tx); // prise en compte unité produit et poid init produit
 					}
 				}
 			}
