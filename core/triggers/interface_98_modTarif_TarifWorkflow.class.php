@@ -270,7 +270,7 @@ class InterfaceTarifWorkflow
 			}
 			//echo $poids." ".$weight_units; exit;
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
-			if($poids > 0 && $idProd > 0){
+			if($poids > 0 && $idProd > 0 && !isset($_REQUEST['origin'])){
 				
 				if($conf->multidevise->enabled){
 				
@@ -298,23 +298,27 @@ class InterfaceTarifWorkflow
 				// On récupère les catégories dont le client fait partie
 				$TFk_categorie = $this->getCategClient($object_parent);
 				
-				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie, $object->remise_percent);
+				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie);
 				$prix = __val($object->subprice,$object->price,'float',true);
 
-				if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
-					//exit('1');
-					/*$object_parent = $this->_getObjectParent($object);
-					$price_level = $object_parent->client->price_level;
-					$fk_country = $object_parent->client->country_id;*/
-										
-					$prix_devise =TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie);
+				if($remise !== false) {
+				
+					if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
+						//exit('1');
+						/*$object_parent = $this->_getObjectParent($object);
+						$price_level = $object_parent->client->price_level;
+						$fk_country = $object_parent->client->country_id;*/
+											
+						$prix_devise =TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie);
+						
+						$prix = $prix_devise / $coef_conv;
+					}
 					
-					$prix = $prix_devise / $coef_conv;
+					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !
+					$this->_updateTotauxLine($object,$object->qty);
+					
 				}
 				
-				$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !
-				$this->_updateTotauxLine($object,$object->qty);
-					
 				//MAJ du poids et de l'unité de la ligne
 				
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
