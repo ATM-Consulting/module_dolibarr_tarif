@@ -309,7 +309,14 @@ class InterfaceTarifWorkflow
 						$price_level = $object_parent->client->price_level;
 						$fk_country = $object_parent->client->country_id;*/
 											
-						list($prix_devise, $tvatx) =TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie);
+						$TRes = TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie);
+						if(is_array($TRes)) {
+							$prix_devise = $TRes[0];
+							$tvatx = $TRes[1];
+						} else {
+							$prix_devise = $TRes;
+							$tvatx = $object->tva_tx;
+						}
 						
 						$prix = $prix_devise / $coef_conv;
 					}
@@ -528,12 +535,12 @@ class InterfaceTarifWorkflow
 						$price_level = $object_parent->client->price_level;
 						$fk_country = $object_parent->client->country_id;*/
 		
-						$prix_devise = TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$object->subprice,$coef_conv,$devise, $price_level,$fk_country, $TFk_categorie);
+						list($prix_devise, $tvatx) =TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie);
 						@$prix = $prix_devise / $coef_conv;
 					}
 					
 					//pre($object, true);exit;
-					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise); //--- $poids = conditionnement !
+					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !
 					$this->_updateTotauxLine($object,$object->qty);
 					
 				}
