@@ -95,7 +95,7 @@ class InterfaceTarifWorkflow
 	
 
 	function _updateLineProduct(&$object,&$user,$idProd,$conditionnement,$weight_units,$remise, $prix ,$prix_devise,$tvatx){
-		exit("$idProd,$conditionnement,$weight_units,$remise, $prix ,$prix_devise,$tvatx");
+		
 		global $conf;
 		
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
