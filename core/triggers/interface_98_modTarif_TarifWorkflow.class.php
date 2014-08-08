@@ -362,7 +362,8 @@ class InterfaceTarifWorkflow
 				elseif($object->origin == "commande"){
 					$table = "facturedet";
 					$originid = $object->origin_id;
-					$sql = "SELECT tarif_poids as weight, 1 as qty, poids as weight_unit 
+					//$sql = "SELECT tarif_poids as weight, 1 as qty, poids as weight_unit
+					$sql = "SELECT tarif_poids as weight, qty, poids as weight_unit 
 							FROM ".MAIN_DB_PREFIX."commandedet
 							WHERE rowid = ".$originid;
 				}
