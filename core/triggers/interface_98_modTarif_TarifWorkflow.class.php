@@ -95,7 +95,7 @@ class InterfaceTarifWorkflow
 	
 
 	function _updateLineProduct(&$object,&$user,$idProd,$conditionnement,$weight_units,$remise, $prix ,$prix_devise,$tvatx){
-		
+		exit("$idProd,$conditionnement,$weight_units,$remise, $prix ,$prix_devise,$tvatx");
 		global $conf;
 		
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
@@ -320,9 +320,12 @@ class InterfaceTarifWorkflow
 						
 						$prix = $prix_devise / $coef_conv;
 					}
-					
-					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !
-					$this->_updateTotauxLine($object,$object->qty);
+					if($prix_devise !== false) {
+						
+						$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !
+						$this->_updateTotauxLine($object,$object->qty);
+						
+					}
 					
 				}
 				

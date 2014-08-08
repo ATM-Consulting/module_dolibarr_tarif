@@ -117,7 +117,8 @@ class TTarif extends TObjetStd {
 		
 		
 		
-		return $subprice * $coef;
+		//return $subprice * $coef;
+		return array(false, false);
 
 	}
 	
