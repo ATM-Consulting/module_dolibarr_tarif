@@ -373,7 +373,7 @@ class InterfaceTarifWorkflow
 							WHERE rowid = ".$originid;
 				}
 				
-				elseif($object->origin == "shipping"){
+				elseif($object->origin == "shipping" && $conf->dispatch->enabled){
 					
 					//SI TU AS UNE ERREUR ICI C'EST QUE TU AS OUBLIE LE README DU MODULE TARIF
 					$table = "facturedet";
@@ -399,6 +399,9 @@ class InterfaceTarifWorkflow
 					
 					$sql.= " ORDER BY eda.weight_unit ASC";
  				}
+				else{
+					return 0;
+				}
 
 				//echo $sql; exit;
 				
