@@ -1,5 +1,4 @@
 <?php
-	
 	if(is_file('../main.inc.php'))$dir = '../';
 	else  if(is_file('../../../main.inc.php'))$dir = '../../../';
 	else $dir = '../../';
@@ -21,9 +20,8 @@
 		define('DB_DRIVER',$dolibarr_main_db_type);
 
 		define('USE_TBS', true);
-		dol_include_once('/abricot/inc.core.php');
-	
 	}
 	
+	dol_include_once('/abricot/inc.core.php');
 
 

@@ -1,4 +1,5 @@
 <?php
+
 class ActionsTarif
 { 
      /** Overloading the doActions function : replacing the parent's function with the one below 
@@ -7,7 +8,9 @@ class ActionsTarif
       *  @param      action             current action (if set). Generally create or edit or null 
       *  @return       void 
       */ 
-    function formEditProductOptions($parameters, &$object, &$action, $hookmanager) 
+     
+     var $module_number = 104190;
+	  function formEditProductOptions($parameters, &$object, &$action, $hookmanager) 
     {
     	global $db,$conf;
 		include_once(DOL_DOCUMENT_ROOT."/commande/class/commande.class.php");
@@ -29,7 +32,8 @@ class ActionsTarif
 			|| in_array('ordersuppliercard',explode(':',$parameters['context']))
     		|| in_array('invoicecard',explode(':',$parameters['context'])))
         {
-			if($action == "editline"){
+			
+			if($action === "editline"){
 				
 				?>
 				<script type="text/javascript">
@@ -53,7 +57,7 @@ class ActionsTarif
 									?>$('input[name=qty]').parent().after('<td align="right"><?php
 									
 											if($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) {
-												?><input id="poidsAff" type="text" value="<?=(!is_null($res->tarif_poids)) ? number_format($res->tarif_poids,2,",","") : '' ?>" name="poidsAff" size="6" /><?	
+												?><input id="poidsAff" type="text" value="<?php echo (!is_null($res->tarif_poids)) ? number_format($res->tarif_poids,2,",","") : '' ?>" name="poidsAff" size="6" /><?php	
 											}
 
 									?></td>');
@@ -68,12 +72,11 @@ class ActionsTarif
 				</script>
 				<?php
 			}
-			
+
 			$this->resprints='';
 		}
         return 0;
     }
-
 
 	function formBuilddocOptions ($parameters, &$object, &$action, $hookmanager) {
 		
@@ -228,4 +231,6 @@ class ActionsTarif
 
 		return 0;
 	}
+   
+	
 }

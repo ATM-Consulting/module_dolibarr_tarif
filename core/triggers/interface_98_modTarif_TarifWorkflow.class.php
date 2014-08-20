@@ -125,6 +125,8 @@ class InterfaceTarifWorkflow
 		}
 		//print $object->subprice; exit;
 		
+		//pre($object);exit;
+		
 		if(get_class($object) == 'FactureLigne') $object->update($user, true);
 		else $object->update(true);
 		
@@ -533,17 +535,18 @@ class InterfaceTarifWorkflow
 					
 					list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie);
 					$prix = __val($object->subprice,$object->price,'float',true);
-					
+
 					if($remise == 0 || $type_prix=='PERCENT/PRICE'){
 						/*$object_parent = $this->_getObjectParent($object);
 						$price_level = $object_parent->client->price_level;
 						$fk_country = $object_parent->client->country_id;*/
 		
 						list($prix_devise, $tvatx) =TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie);
-						@$prix = $prix_devise / $coef_conv;
+						if($prix_devise !== false) @$prix = $prix_devise / $coef_conv;
 					}
 					
-					//pre($object, true);exit;
+					if($tvatx === false) $tvatx = $object->tva_tx;
+					
 					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !
 					$this->_updateTotauxLine($object,$object->qty);
 					
