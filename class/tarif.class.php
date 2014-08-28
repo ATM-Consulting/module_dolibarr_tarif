@@ -47,7 +47,7 @@ class TTarif extends TObjetStd {
 		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC";
 		
 		$resql = $db->query($sql);
-		
+//exit($sql);		
 		if($resql->num_rows > 0) {
 			$pallier = 0;
 			while($res = $db->fetch_object($resql)) {

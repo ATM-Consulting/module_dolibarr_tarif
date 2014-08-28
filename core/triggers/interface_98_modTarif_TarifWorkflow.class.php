@@ -125,8 +125,6 @@ class InterfaceTarifWorkflow
 		}
 		//print $object->subprice; exit;
 		
-		//pre($object);exit;
-		
 		if(get_class($object) == 'FactureLigne') $object->update($user, true);
 		else $object->update(true);
 		
@@ -300,7 +298,10 @@ class InterfaceTarifWorkflow
 				// On récupère les catégories dont le client fait partie
 				$TFk_categorie = $this->getCategClient($object_parent);
 				
-				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie);
+				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie, $object->remise_percent);
+				if($type_prix == '') {
+					$tvatx = $object->tva_tx;
+				}
 				$prix = __val($object->subprice,$object->price,'float',true);
 
 				if($remise !== false) {
@@ -538,7 +539,7 @@ class InterfaceTarifWorkflow
 					
 					list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie);
 					$prix = __val($object->subprice,$object->price,'float',true);
-
+					
 					if($remise == 0 || $type_prix=='PERCENT/PRICE'){
 						/*$object_parent = $this->_getObjectParent($object);
 						$price_level = $object_parent->client->price_level;
