@@ -270,7 +270,7 @@ class InterfaceTarifWorkflow
 			}
 			//echo $poids." ".$weight_units; exit;
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
-			if($poids > 0 && $idProd > 0){
+			if($poids > 0 && $idProd > 0 && isset($_REQUEST['weight_unitsAff_product'])){
 				
 				if($conf->multidevise->enabled){
 				
@@ -299,6 +299,9 @@ class InterfaceTarifWorkflow
 				$TFk_categorie = $this->getCategClient($object_parent);
 				
 				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie, $object->remise_percent);
+				if($type_prix == '') {
+					$tvatx = $object->tva_tx;
+				}
 				$prix = __val($object->subprice,$object->price,'float',true);
 
 				if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
@@ -382,7 +385,6 @@ class InterfaceTarifWorkflow
 					
 					$sql.= " ORDER BY eda.weight_unit ASC";
  				}
-
 				//echo $sql; exit;
 				
 				$resql = $this->db->query($sql);
@@ -390,7 +392,8 @@ class InterfaceTarifWorkflow
 
 				$poids = $res->weight;
 				$weight_units = $res->weight_unit;
-				$object->qty = $res->qty;
+				// POURQUOI METTRE A JOUR LA QUANTITE DE LA LIGNE A 1 ??????
+				//$object->qty = $res->qty;
 
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".($poids / $object->qty).", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 
