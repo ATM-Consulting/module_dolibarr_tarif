@@ -219,7 +219,7 @@ class InterfaceTarifWorkflow
 //pre($_REQUEST);
 /*pre($object);*/
 		//Création d'une ligne de facture, propale ou commande
-		if (($action == 'LINEORDER_INSERT' || $action == 'LINEPROPAL_INSERT' || $action == 'LINEBILL_INSERT') 
+		if (($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT') 
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
 			
 			$idProd = $object->fk_product;
@@ -374,7 +374,7 @@ class InterfaceTarifWorkflow
 							WHERE rowid = ".$originid;
 				}
 				
-				elseif($object->origin == "shipping" && $conf->dispatch->enabled){
+				elseif($object->origin === "shipping" && $conf->dispatch->enabled){
 					
 					//SI TU AS UNE ERREUR ICI C'EST QUE TU AS OUBLIE LE README DU MODULE TARIF
 					$table = "facturedet";
@@ -400,6 +400,30 @@ class InterfaceTarifWorkflow
 					
 					$sql.= " ORDER BY eda.weight_unit ASC";
  				}
+				elseif($object->origin === "shipping" && !$conf->dispatch->enabled){
+					/* cas sans dispatch, on rappatrie le poids du produit */
+					$table = "facturedet";
+					$originid = GETPOST('originid');
+					
+					$sql = "SELECT cd.tarif_poids as weight, cd.poids as weight_unit, ed.qty as qty";
+					
+					$sql.= " FROM ".MAIN_DB_PREFIX."commandedet as cd
+								LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (cd.rowid = ed.fk_origin_line)
+								LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = cd.fk_product)
+							WHERE ed.fk_expedition = ".$originid."
+							AND cd.fk_product = ".$object->fk_product;
+							
+					$resql = $this->db->query($sql);
+					$res = $this->db->fetch_object($resql);
+	
+					$poids = $res->weight;
+					$weight_units = $res->weight_unit;
+					$object->qty = $res->qty;	
+					
+					$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
+					
+					return 0;
+				}
 				else{
 					return 0;
 				}
@@ -415,7 +439,7 @@ class InterfaceTarifWorkflow
 
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$table." SET tarif_poids = ".($poids / $object->qty).", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 
-				if($object->origin == "shipping"){
+				if($object->origin == "shipping" && $conf->dispatch->enabled){
 					$object->subprice = $this->calcule_prix_facture($res,$object);
 
 					$object->update($user);
