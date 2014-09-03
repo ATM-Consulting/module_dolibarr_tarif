@@ -192,6 +192,42 @@ class InterfaceTarifWorkflow
 		return floatval($prix);
 	}
 	
+	/**
+	 * Cherche et retourne le premier prix différent de zéro dans le cas ou le multiprix est actif
+	 * Dans l'ordre décroissant, si le prix courant est à 0
+	 */
+	private function _getFirstPriceDifferentDeZero(&$object) {
+		
+		global $db;
+		
+		$com = new Commande($db); 
+		$com->fetch($object->fk_commande);
+		
+		$prod = new product($db);
+		$prod->fetch($object->fk_product);
+		
+		$soc = new Societe($db);
+		$soc->fetch($com->socid);
+		
+		$trouve = false;
+		
+		$price_level = $soc->price_level;
+		
+		if(!empty($prod->multiprices)) {
+			
+			while($price_level > 0) {
+				if($prod->multiprices[$price_level] != 0) {
+					return $prod->multiprices[$price_level];
+				}
+				$price_level--;
+			}
+			
+		}
+		
+		return $prod->price;
+
+	}
+	
     /**
      *      Function called when a Dolibarrr business event is done.
      *      All functions "run_trigger" are triggered if file is inside directory htdocs/core/triggers
@@ -297,6 +333,8 @@ class InterfaceTarifWorkflow
 				
 				// On récupère les catégories dont le client fait partie
 				$TFk_categorie = $this->getCategClient($object_parent);
+
+				$prix_devise = $remise = false;
 				
 				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie, $object->remise_percent);
 				if($type_prix == '') {
@@ -328,9 +366,15 @@ class InterfaceTarifWorkflow
 						$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !
 						$this->_updateTotauxLine($object,$object->qty);
 						
-					}
+					} 
 					
 				}
+				
+				if($remise === false && $prix_devise ===false && $conf->global->TARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO) {
+					$object->price = $this->_getFirstPriceDifferentDeZero($object);
+					$object->update();
+				}
+				
 				
 				//MAJ du poids et de l'unité de la ligne
 				
