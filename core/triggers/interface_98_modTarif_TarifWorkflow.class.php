@@ -372,6 +372,7 @@ class InterfaceTarifWorkflow
 				
 				if($remise === false && $prix_devise ===false && $conf->global->TARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO) {
 					$object->price = $this->_getFirstPriceDifferentDeZero($object);
+					$object->subprice = $this->_getFirstPriceDifferentDeZero($object);
 					$object->update();
 				}
 				
