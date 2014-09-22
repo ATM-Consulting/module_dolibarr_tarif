@@ -217,7 +217,7 @@ class InterfaceTarifWorkflow
 			
 			while($price_level > 0) {
 				if($prod->multiprices[$price_level] != 0) {
-					return $prod->multiprices[$price_level];
+					return array($prod->multiprices[$price_level], $prod->multiprices_tva_tx[$price_level]);
 				}
 				$price_level--;
 			}
@@ -371,9 +371,13 @@ class InterfaceTarifWorkflow
 				}
 				
 				if($remise === false && $prix_devise ===false && $conf->global->TARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO) {
-					$object->price = $this->_getFirstPriceDifferentDeZero($object);
-					$object->subprice = $this->_getFirstPriceDifferentDeZero($object);
-					$object->update();
+					$TFirst_price_diff_zero = $this->_getFirstPriceDifferentDeZero($object);
+					if(is_array($TFirst_price_diff_zero)){
+						$object->price = $TFirst_price_diff_zero[0];
+						$object->subprice = $TFirst_price_diff_zero[0];
+						$object->tva_tx = $TFirst_price_diff_zero[1];
+						$object->update();
+					}
 				}
 				
 				
