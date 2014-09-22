@@ -199,15 +199,25 @@ class InterfaceTarifWorkflow
 	private function _getFirstPriceDifferentDeZero(&$object) {
 		
 		global $db;
-		
-		$com = new Commande($db); 
-		$com->fetch($object->fk_commande);
+
+		if(stripos(get_class($object), "PropaleLigne") !== false) {
+			$obj_parent = new Propal($db);
+			$obj_parent->fetch($object->fk_propal);
+		}
+		if(stripos(get_class($object), "OrderLine") !== false){
+			$obj_parent = new Commande($db); 
+			$obj_parent->fetch($object->fk_commande);
+		}
+		if(stripos(get_class($object), "FactureLigne") !== false){
+			$obj_parent = new Facture($db); 
+			$obj_parent->fetch($object->fk_facture);
+		}
 		
 		$prod = new product($db);
 		$prod->fetch($object->fk_product);
 		
 		$soc = new Societe($db);
-		$soc->fetch($com->socid);
+		$soc->fetch($obj_parent->socid);
 		
 		$trouve = false;
 		
