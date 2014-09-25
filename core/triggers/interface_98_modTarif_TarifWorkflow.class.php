@@ -266,7 +266,8 @@ class InterfaceTarifWorkflow
 /*pre($object);*/
 		//Création d'une ligne de facture, propale ou commande
 		if (($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT') 
-			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
+			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)
+			&& !empty($object->fk_product) && (!empty($_REQUEST['addline_predefined']) || !empty($_REQUEST['addline_libre'])  || !empty($_REQUEST['prod_entry_mode']))) {
 			
 			$idProd = $object->fk_product;
 			if($conf->declinaison->enabled) {
