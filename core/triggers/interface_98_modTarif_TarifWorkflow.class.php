@@ -376,22 +376,20 @@ class InterfaceTarifWorkflow
 						
 						$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !
 						$this->_updateTotauxLine($object,$object->qty);
-						
+
 					} 
 					
 				}
-				
+
 				if($remise === false && $prix_devise ===false && $conf->global->TARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO) {
 					$TFirst_price_diff_zero = $this->_getFirstPriceDifferentDeZero($object);
 					if(is_array($TFirst_price_diff_zero)){
 						$object->price = $TFirst_price_diff_zero[0];
 						$object->subprice = $TFirst_price_diff_zero[0];
 						$object->tva_tx = $TFirst_price_diff_zero[1];
-						$object->update();
+						$object->update($user,1);
 					}
-				}
-				
-				
+				}				
 				//MAJ du poids et de l'unité de la ligne
 				
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
