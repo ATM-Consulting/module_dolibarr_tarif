@@ -22,3 +22,6 @@
 	
 	$o=new TTarifFacturedet;
 	$o->init_db_by_vars($ATMdb);
+	
+	$o=new TTarifCommandeFourndet;
+	$o->init_db_by_vars($ATMdb);

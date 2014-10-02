@@ -33,7 +33,7 @@ class ActionsTarif
     		|| in_array('invoicecard',explode(':',$parameters['context'])))
         {
 			
-			if($action === "editline"){
+			if($action === "editline" || $action === "edit_line"){
 				
 				?>
 				<script type="text/javascript">
@@ -127,6 +127,7 @@ class ActionsTarif
 	         									 FROM ".MAIN_DB_PREFIX.$object->table_element_line." as e 
 	         									 	LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as pe ON (e.fk_product = pe.fk_object)
 	         									 WHERE e.rowid = ".$idLine;
+
          				$resql = $db->query($sql);
 						$res = $db->fetch_object($resql);
 						
@@ -197,14 +198,15 @@ class ActionsTarif
 	         	});
 	         	
 	         	//Sélection automatique de l'unité de mesure associé au produit sélectionné
-	         	$('#idprod').change( function(){
+	         	$('#idprod, #idprodfournprice').change( function(){
 					$.ajax({
 						type: "POST"
 						,url: "<?=dol_buildpath('/custom/tarif/script/ajax.unite_poids.php',1); ?>"
 						,dataType: "json"
 						,data: {
-							fk_product: $('#idprod').val()
-							}
+							fk_product: $(this).val(),
+							type: $(this).attr('id')
+						}
 						},"json").then(function(select){
 							if(select.unite != ""){
 								if(select.unite_vente != ""){

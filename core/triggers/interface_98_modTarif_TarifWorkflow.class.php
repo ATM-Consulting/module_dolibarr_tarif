@@ -179,6 +179,12 @@ class InterfaceTarifWorkflow
 				$object_parent->fetch_thirdparty();
 				return $object_parent;
 				break;
+			case 'CommandeFournisseurLigne':
+				$object_parent = new CommandeFournisseur($this->db);
+				$object_parent->fetch((!empty($object->fk_commande)) ? $object->fk_commande : $object->oldline->fk_commande);
+				$object_parent->fetch_thirdparty();
+				return $object_parent;
+				break;
 		}
 		return $object_parent;
 	}
@@ -251,7 +257,6 @@ class InterfaceTarifWorkflow
      */
 	function run_trigger($action,$object,$user,$langs,$conf)
 	{
-		
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
 		dol_include_once('/tarif/config.php');
 		dol_include_once('/tarif/class/tarif.class.php');
@@ -262,14 +267,26 @@ class InterfaceTarifWorkflow
 		dol_include_once('/dispatch/class/dispatchdetail.class.php');
 		
 		global $user, $db;
-//pre($_REQUEST);
-/*pre($object);*/
-		//Création d'une ligne de facture, propale ou commande
-		if (($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT') 
+
+/*echo $action;
+pre($_REQUEST, true);
+pre($object, true);
+exit;*/
+
+		//Création d'une ligne de facture, propale ou commande, ou commande fournisseur
+		if (($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT' || $action === 'LINEORDER_SUPPLIER_CREATE') 
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)
-			&& !empty($object->fk_product) && (!empty($_REQUEST['addline_predefined']) || !empty($_REQUEST['addline_libre'])  || !empty($_REQUEST['prod_entry_mode']))) {
+			&& (!empty($object->fk_product) || !empty($_REQUEST['idprodfournprice']))
+			&& (!empty($_REQUEST['addline_predefined']) || !empty($_REQUEST['addline_libre'])  || !empty($_REQUEST['prod_entry_mode']))) {
+
+			if($action == 'LINEORDER_SUPPLIER_CREATE') { // Gestion commande fournisseur
+				$tmpObject = $object;
+				$object = new CommandeFournisseurLigne($db);
+				$object->fetch($tmpObject->rowid);
+			}
 			
 			$idProd = $object->fk_product;
+			
 			if($conf->declinaison->enabled) {
 				$sql = "SELECT fk_parent FROM ".MAIN_DB_PREFIX."declinaison WHERE fk_declinaison = ".$idProd;
 
@@ -282,13 +299,13 @@ class InterfaceTarifWorkflow
 				}
 			}
 
-
-			if(get_class($object) == 'PropaleLigne'){ $table = "propal"; $tabledet = 'propaldet';}
-			else if(get_class($object) == 'OrderLine'){$table = "commande"; $tabledet = 'commandedet';}
-			else if(get_class($object) == 'FactureLigne'){ $table = "facture"; $tabledet = 'facturedet'; }
+			// Définition des tables. Attention pour commande fournisseur, l'objet commande est passé et non l'objet ligne
+			if(get_class($object) == 'PropaleLigne'){ $table = "propal"; $tabledet = 'propaldet'; $parentfield = 'fk_propal';}
+			else if(get_class($object) == 'OrderLine'){$table = "commande"; $tabledet = 'commandedet'; $parentfield = 'fk_commande';}
+			else if(get_class($object) == 'FactureLigne'){ $table = "facture"; $tabledet = 'facturedet'; $parentfield = 'fk_facture';}
+			else if(get_class($object) == 'CommandeFournisseurLigne'){ $table = "commande_fournisseur"; $tabledet = 'commande_fournisseurdet'; $parentfield = 'fk_commande';}
 				
 			//Gestion du poids et de l'unité transmise
-			
 			if(!empty($_REQUEST['poidsAff_product'])){ //Si un poids produit a été transmis
 				$poids = ($_REQUEST['poidsAff_product'] > 0) ? $_REQUEST['poidsAff_product'] : 1;
 			}
@@ -315,13 +332,15 @@ class InterfaceTarifWorkflow
 				if($product->type==1)$poids=1;
 
 			}
-			//echo $poids." ".$weight_units; exit;
+			//echo $poids." ".$weight_units;
+			//pre($product,true);
+			//exit;
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
 			if($poids > 0 && $idProd > 0 && !isset($_REQUEST['origin'])){
 				
 				if($conf->multidevise->enabled){
 				
-					$sql = "SELECT devise_code as code, devise_taux as coef FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$object->{"fk_".$table}; //Récup devise du parent + taux de conv 
+					$sql = "SELECT devise_code as code, devise_taux as coef FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$object->{$parentfield}; //Récup devise du parent + taux de conv 
 					
 					$res = $db->query($sql);
 					$resql = $db->fetch_object($res);
@@ -526,6 +545,10 @@ class InterfaceTarifWorkflow
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
+			
+			if($action == 'LINEORDER_SUPPLIER_CREATE') {
+				$object = $tmpObject;
+			}
 		}
 
 		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE') 
