@@ -362,7 +362,8 @@ exit;*/
 				$fk_country = $object_parent->client->country_id;
 				
 				// On récupère les catégories dont le client fait partie
-				$TFk_categorie = $this->getCategClient($object_parent);
+				
+				$TFk_categorie = TTarif::getCategClient($object_parent->thirdparty->id); // $this->getCategClient($object_parent);
 
 				$prix_devise = $remise = false;
 				
@@ -640,7 +641,7 @@ exit;*/
 					$fk_country = $object_parent->client->country_id;
 					
 					// On récupère les catégories dont le client fait partie
-					$TFk_categorie = $this->getCategClient($object_parent);
+					$TFk_categorie = TTarif::getCategClient($object_parent->thirdparty->id); 
 					
 					list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie);
 					$prix = __val($object->subprice,$object->price,'float',true);
@@ -712,18 +713,5 @@ exit;*/
 		return 1;
 	}
 
-	function getCategClient(&$object) {
-		global $db;
-		
-		// On récupère les catégories dont le client fait partie
-		dol_include_once("/categories/class/categorie.class.php");
-		
-		$categ = new Categorie($db);
-		$TFk_categorie = array();
-		foreach($categ->containing($object->thirdparty->id, 2) as $cat) {
-			$TFk_categorie[] = $cat->id;
-		}
-		
-		return $TFk_categorie;
-	}
+	
 }

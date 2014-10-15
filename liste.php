@@ -116,7 +116,7 @@
         if($conf->multidevise->enabled){
 	        //Devise
 			print '<tr><td>'.$langs->trans('Devise').'</td><td colspan="3">';
-			print $form->select_currency( ($action=='edit') ? $tarif->currency_code : $conf->currency,"currency");
+			print $form->selectCurrency( ($action=='edit') ? $tarif->currency_code : $conf->currency,"currency");
 			print '</td></tr>';
 			
 		}
@@ -357,7 +357,7 @@
 			'
 		)
 		,'eval'=>array(
-			'type_price'=>'_getTypePrice(@id@)'
+			'type_price'=>'_getTypePrice("@val@")'
 		)
 	));
 
@@ -368,9 +368,8 @@
 		$TPDOdb = new TPDOdb;
 
 		$TTarif = new TTarif;
-		$TTarif->load($TPDOdb, $idPriceCondi);
 
-		return $langs->trans($TTarif->type_price);
+		return $langs->trans($TTarif->TType_price[$idPriceCondi]);
 	}
 	
 	

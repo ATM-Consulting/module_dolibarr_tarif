@@ -97,7 +97,6 @@ class TTarif extends TObjetStd {
 		
 		$resql = $db->query($sql);
 		
-		
 		if($resql->num_rows > 0) {
 			while($res = $db->fetch_object($resql)) {
 				
@@ -120,6 +119,21 @@ class TTarif extends TObjetStd {
 		//return $subprice * $coef;
 		return array(false, false);
 
+	}
+	
+	static function getCategClient($socid) {
+		global $db;
+		
+		// On récupère les catégories dont le client fait partie
+		dol_include_once("/categories/class/categorie.class.php");
+		
+		$categ = new Categorie($db);
+		$TFk_categorie = array();
+		foreach($categ->containing($socid, 2) as $cat) {
+			$TFk_categorie[] = $cat->id;
+		}
+		
+		return $TFk_categorie;
 	}
 	
 	function price_with_multiprix($price, $price_level) {
