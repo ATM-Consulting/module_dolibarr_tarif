@@ -28,7 +28,6 @@
 	$type_unite = $ATMdb->Get_field('unite_vente');
 	
 	$TTarif = new TTarif;
-	$TTarif->type_price = defined('TARIF_DEFAULT_TYPE') ? TARIF_DEFAULT_TYPE : '';
 	$product = new Product($db);
 	$result=$product->fetch($_REQUEST['fk_product']);	
 		
@@ -84,6 +83,7 @@
 	if(isset($_REQUEST['action']) && !empty($_REQUEST['action']) && ($action == 'add' || $action == 'edit' )){
 		
 		$tarif = new TTarif;
+		$tarif->type_price = defined('TARIF_DEFAULT_TYPE') ? TARIF_DEFAULT_TYPE : '';
 		if($action=='edit') $tarif->load($ATMdb, __get('id',0,'integer'));
 
 		print '<table class="notopnoleftnoright" width="100%" border="0" style="margin-bottom: 2px;" summary="">';
