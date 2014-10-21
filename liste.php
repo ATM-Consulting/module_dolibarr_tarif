@@ -28,6 +28,7 @@
 	$type_unite = $ATMdb->Get_field('unite_vente');
 	
 	$TTarif = new TTarif;
+	$TTarif->type_price = defined('TARIF_DEFAULT_TYPE') ? TARIF_DEFAULT_TYPE : '';
 	$product = new Product($db);
 	$result=$product->fetch($_REQUEST['fk_product']);	
 		
