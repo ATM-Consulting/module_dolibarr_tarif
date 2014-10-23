@@ -180,8 +180,7 @@
 		//Quantité
 		print '<tr><td width="20%">';
 		print $langs->trans('Quantity');
-		print '</td><td><input size="10" name="quantite" value="'.__val($tarif->quantite,1,'integer',true).'"></td></tr>';
-		
+		print '</td><td><input size="10" name="quantite" value="'.__val($tarif->quantite,1,'double',true).'"></td></tr>';
 		print '<tr><td width="20%">';
 		print $langs->trans('Unit');
 		print '</td><td>';
