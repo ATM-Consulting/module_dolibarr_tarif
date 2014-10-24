@@ -27,3 +27,7 @@ ConfirmDelete=Êtes-vous sûr de vouloir supprimer ce tarif ?
 
 #Lignes
 Cond=Cond.
+
+#admin
+tarifConfigSetup=Configuration du module Tarif
+PricesQtyOnTotalInvoiceQty=Calculer les tarifs par quantité sur la totalité des quantités facturé au client
