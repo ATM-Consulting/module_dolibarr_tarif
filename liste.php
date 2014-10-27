@@ -142,7 +142,7 @@
 		$remise = $tarif->remise_percent;		
 		// Remise
 		print '<tr><td width="20%">';
-		print $langs->trans('Remise');
+		print $langs->trans('Remise(%)');
 		print '</td><td><input id="remise" size="10" name="remise" value="'.$remise.'" />%</td></tr>';
 		
 		?>
@@ -152,13 +152,13 @@
 					var n_percent = $(this).val();
 					var price = $('#prix').val();
 					if(n_percent>100 || n_percent<0) {
-						alert('<?php echo $langs->trans('Remise'); ?>');
+						alert('<?php echo $langs->trans('Remise(%)'); ?>');
 						return false;
 					}
 					if($('#type_prix').val() != 'PERCENT/PRICE') {
 						$('[name=prix_visu]').val(((100 - n_percent) * price / 100).toFixed(2));
 					}
-				});			
+				});
 				
 				$('input[name=prix_visu]').change(function() {
 					if($('#type_prix').val() != 'PERCENT/PRICE') {
@@ -171,9 +171,7 @@
 						
 					}
 				});
-				
-						
-				
+
 			</script>
 		<?				
 		
@@ -342,7 +340,7 @@
 			,'type_price' =>$langs->trans('PriceType')
 			,'unite'=>$langs->trans('Unit')
 			,'prix'=>$langs->trans('Tarif')
-			,'remise' =>$langs->trans('Remise')
+			,'remise' =>$langs->trans('Remise(%)')
 			,'tva'=>$langs->trans('TVA')
 			,'Total' =>$langs->trans('Total')
 			,'Supprimer' =>$langs->trans('Delete')
