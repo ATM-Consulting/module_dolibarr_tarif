@@ -293,7 +293,7 @@ class InterfaceTarifWorkflow
 
 				if($resql = $this->db->query($sql)){
 					$res = $this->db->fetch_object($resql);
-					$qtyline = $res->totalQty;
+					$qtyline = $res->totalQty + $object->qty;
 				}
 
 			}
