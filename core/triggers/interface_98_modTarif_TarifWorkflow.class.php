@@ -145,7 +145,7 @@ class InterfaceTarifWorkflow
 			
 			//pre($object,true);
 			//exit('UPDATE '.MAIN_DB_PREFIX.$tabledet.' SET devise_pu = '.$prix_devise.', devise_mt_ligne = '.(($prix_devise * $object->qty) * ( 1 - ($object->remise_percent/100))).' WHERE rowid = '.$object->rowid);
-			$this->db->query('UPDATE '.MAIN_DB_PREFIX.$tabledet.' SET devise_pu = '.$prix_devise.', devise_mt_ligne = '.(($prix_devise * $object->qty) * ( 1 - ($object->remise_percent/100))).' WHERE rowid = '.$object->rowid);
+			$this->db->query('UPDATE '.MAIN_DB_PREFIX.$tabledet.' SET devise_pu = '.(float)$prix_devise.', devise_mt_ligne = '.(($prix_devise * $object->qty) * ( 1 - ($object->remise_percent/100))).' WHERE rowid = '.$object->rowid);
 			//exit("$prix $prix_devise");
 		}
 		//exit;
@@ -273,7 +273,6 @@ class InterfaceTarifWorkflow
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)
 			&& (!empty($object->fk_product) || !empty($_REQUEST['idprodfournprice']))
 			&& (!empty($_REQUEST['addline_predefined']) || !empty($_REQUEST['addline_libre'])  || !empty($_REQUEST['prod_entry_mode']))) {
-			
 			//print_r($object);
 			$qtyline = $object->qty;
 			//prendre le tarif par quantité correspondant à la sommes des quantités facturé pour ce produit au client
@@ -341,7 +340,6 @@ class InterfaceTarifWorkflow
 			else{ //Sinon on est sur un tarif à l'unité donc pas de gestion de poids => 69 chiffre pris au hasard
 				$weight_units = 69;
 			}
-
 
 			if($idProd>0) {
 				
@@ -600,7 +598,8 @@ class InterfaceTarifWorkflow
 				 $tabledet = 'facturedet';
 			}
 			
-			$resql = $this->db->query("SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$tabledet." WHERE rowid = ".$object->rowid);
+			$sql = "SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$tabledet." WHERE rowid = ".$object->rowid;
+			$resql = $this->db->query($sql);
 			$res = $this->db->fetch_object($resql);
 			
 			$weight_units = __get('weight_units',0,'integer');
@@ -678,9 +677,10 @@ class InterfaceTarifWorkflow
 					$this->_updateTotauxLine($object,$object->qty);
 					
 				}
-
-				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
-
+				
+				$sql = "UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".(float)price2num($poids).", poids = ".(int)$weight_units." WHERE rowid = ".$object->rowid;
+				$this->db->query($sql);
+				
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
