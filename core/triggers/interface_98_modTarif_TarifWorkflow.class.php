@@ -266,19 +266,38 @@ class InterfaceTarifWorkflow
 		dol_include_once('/comm/propal/class/propal.class.php');
 		dol_include_once('/dispatch/class/dispatchdetail.class.php');
 		
-		global $user, $db;
-
-/*echo $action;
-pre($_REQUEST, true);
-pre($object, true);
-exit;*/
+		global $user, $db,$conf;
 
 		//Création d'une ligne de facture, propale ou commande, ou commande fournisseur
 		if (($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT' || $action === 'LINEORDER_SUPPLIER_CREATE') 
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)
 			&& (!empty($object->fk_product) || !empty($_REQUEST['idprodfournprice']))
 			&& (!empty($_REQUEST['addline_predefined']) || !empty($_REQUEST['addline_libre'])  || !empty($_REQUEST['prod_entry_mode']))) {
+			
+			//print_r($object);
+			$qtyline = $object->qty;
+			//prendre le tarif par quantité correspondant à la sommes des quantités facturé pour ce produit au client
+			if($conf->global->TARIF_TOTAL_QTY_ON_TOTAL_INVOICE_QTY){
+				
+				$element_parent = strtr($object->element,array('det'=>''));
+				
+				$sql = "SELECT SUM(fd.qty) as totalQty
+						FROM ".MAIN_DB_PREFIX."facturedet as fd
+							LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON (f.rowid = fd.fk_facture)
+						WHERE f.fk_soc = (SELECT s.rowid 
+										  FROM ".MAIN_DB_PREFIX."societe as s
+										  	LEFT JOIN ".MAIN_DB_PREFIX.$element_parent." as ep ON (s.rowid = ep.fk_soc )
+										  WHERE ep.rowid = ".$object->{"fk_".$element_parent}.")
+							AND f.fk_statut > 0
+							AND fd.fk_product = ".$object->fk_product;
 
+				if($resql = $this->db->query($sql)){
+					$res = $this->db->fetch_object($resql);
+					$qtyline = $res->totalQty + $object->qty;
+				}
+
+			}
+			
 			if($action == 'LINEORDER_SUPPLIER_CREATE') { // Gestion commande fournisseur
 				$tmpObject = $object;
 				$object = new CommandeFournisseurLigne($db);
@@ -367,7 +386,7 @@ exit;*/
 
 				$prix_devise = $remise = false;
 				
-				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie, $object->remise_percent);
+				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$idProd,$qtyline,$poids,$weight_units, $fk_country, $TFk_categorie, $object->remise_percent);
 				if($type_prix == '') {
 					$tvatx = $object->tva_tx;
 				}
@@ -381,7 +400,7 @@ exit;*/
 						$price_level = $object_parent->client->price_level;
 						$fk_country = $object_parent->client->country_id;*/
 											
-						$TRes = TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie);
+						$TRes = TTarif::getPrix($this->db,$idProd,$qtyline*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie);
 						if(is_array($TRes)) {
 							$prix_devise = $TRes[0];
 							$tvatx = $TRes[1];
@@ -395,7 +414,7 @@ exit;*/
 					if($prix_devise !== false) {
 						
 						$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !
-						$this->_updateTotauxLine($object,$object->qty);
+						$this->_updateTotauxLine($object,$qtyline);
 
 					} 
 					
@@ -411,10 +430,8 @@ exit;*/
 					}
 				}				
 				//MAJ du poids et de l'unité de la ligne
-				
 				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
-				//pre($object,true); exit;
-				//echo "1 "; exit;
+
 			} 
 			
 			// Sinon, Si l'object origine est renseigné et est soit une propale soit une commande

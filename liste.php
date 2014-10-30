@@ -83,6 +83,7 @@
 	if(isset($_REQUEST['action']) && !empty($_REQUEST['action']) && ($action == 'add' || $action == 'edit' )){
 		
 		$tarif = new TTarif;
+		$tarif->type_price = defined('TARIF_DEFAULT_TYPE') ? TARIF_DEFAULT_TYPE : '';
 		if($action=='edit') $tarif->load($ATMdb, __get('id',0,'integer'));
 
 		print '<table class="notopnoleftnoright" width="100%" border="0" style="margin-bottom: 2px;" summary="">';
@@ -141,7 +142,7 @@
 		$remise = $tarif->remise_percent;		
 		// Remise
 		print '<tr><td width="20%">';
-		print $langs->trans('Remise');
+		print $langs->trans('Remise(%)');
 		print '</td><td><input id="remise" size="10" name="remise" value="'.$remise.'" />%</td></tr>';
 		
 		?>
@@ -151,13 +152,13 @@
 					var n_percent = $(this).val();
 					var price = $('#prix').val();
 					if(n_percent>100 || n_percent<0) {
-						alert('<?php echo $langs->trans('Remise'); ?>');
+						alert('<?php echo $langs->trans('Remise(%)'); ?>');
 						return false;
 					}
 					if($('#type_prix').val() != 'PERCENT/PRICE') {
 						$('[name=prix_visu]').val(((100 - n_percent) * price / 100).toFixed(2));
 					}
-				});			
+				});
 				
 				$('input[name=prix_visu]').change(function() {
 					if($('#type_prix').val() != 'PERCENT/PRICE') {
@@ -170,17 +171,14 @@
 						
 					}
 				});
-				
-						
-				
+
 			</script>
 		<?				
 		
 		//Quantité
 		print '<tr><td width="20%">';
 		print $langs->trans('Quantity');
-		print '</td><td><input size="10" name="quantite" value="'.__val($tarif->quantite,1,'integer',true).'"></td></tr>';
-		
+		print '</td><td><input size="10" name="quantite" value="'.__val($tarif->quantite,1,'double',true).'"></td></tr>';
 		print '<tr><td width="20%">';
 		print $langs->trans('Unit');
 		print '</td><td>';
@@ -342,7 +340,7 @@
 			,'type_price' =>$langs->trans('PriceType')
 			,'unite'=>$langs->trans('Unit')
 			,'prix'=>$langs->trans('Tarif')
-			,'remise' =>$langs->trans('Remise')
+			,'remise' =>$langs->trans('Remise(%)')
 			,'tva'=>$langs->trans('TVA')
 			,'Total' =>$langs->trans('Total')
 			,'Supprimer' =>$langs->trans('Delete')

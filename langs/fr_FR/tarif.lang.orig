@@ -28,11 +28,16 @@ ConfirmDelete=Êtes-vous sûr de vouloir supprimer ce tarif ?
 #Lignes
 Cond=Cond.
 
+<<<<<<< HEAD
+
 #conf
 tarifTARIF_CAN_SET_PACKAGE_ON_LINE=Le conditionnement de poids peut se définir ligne à ligne
 tarifTARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO=Utilise le niveau de prix précédent si celui-ci est à zéro
 tarifTARIF_FACTURE_DISPATCH_ON_EXPEDITION=Liaison du module dispatch sur expédition
 tarifTARIF_DONT_ADD_UNIT_SELECT=Ne pas ajouter la sélection du l'unité
 tarifTARIF_DOL_DEFAULT_UNIT=Unité par défaut
+=======
+#admin
 tarifConfigSetup=Configuration du module Tarif
 PricesQtyOnTotalInvoiceQty=Calculer les tarifs par quantité sur la totalité des quantités facturé au client
+>>>>>>> 536c39ce2dafefcd4bf1555b6ed69851679cf18c

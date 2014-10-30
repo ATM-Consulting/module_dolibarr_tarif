@@ -26,3 +26,6 @@ ConfirmDelete=Are you sure you want to delete this rate?
 
 #Lignes
 Cond=Package
+
+#admin
+tarifConfigSetup=Prices module configuration

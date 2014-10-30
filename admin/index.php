@@ -28,16 +28,14 @@
 include '../config.php';
 // Change this following line to use the correct relative path from htdocs (do not remove DOL_DOCUMENT_ROOT)
 
+$langs->load("admin");
 $langs->load('tarif@tarif');
 
 dol_include_once('/core/lib/admin.lib.php');
 dol_include_once('/product/class/html.formproduct.class.php');
 
-// Protection if external user
-if ($user->societe_id > 0)
-{
-	accessforbidden();
-}
+// Security check
+if (! $user->admin) accessforbidden();
 
 
 $action=__get('action','');
@@ -57,19 +55,11 @@ if($action=='save') {
 	setEventMessage("Configuration enregistrée");
 }
 
-
-/***************************************************
-* PAGE
-*
-* Put here all code to build page
-****************************************************/
-
-
-
-llxHeader('','Gestion du module Tarif, à propos','');
+llxHeader('',$langs->trans("tarifConfigSetup"));
 
 $linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
-print_fiche_titre('Gestion du module Tarif',$linkback,'setup');
+print_fiche_titre($langs->trans("tarifConfigSetup"),$linkback,'tarif@tarif');
+
 
 $form=new TFormCore;
 
@@ -86,6 +76,9 @@ function showParameters(&$form) {
 	<table width="100%" class="noborder" style="background-color: #fff;">
 		<tr class="liste_titre">
 			<td colspan="2"><?php echo $langs->trans('Parameters') ?></td>
+		</tr>
+		<tr>
+			<td><?php echo $langs->trans('PricesQtyOnTotalInvoiceQty') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_TOTAL_QTY_ON_TOTAL_INVOICE_QTY]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_TOTAL_QTY_ON_TOTAL_INVOICE_QTY)  ?></td>				
 		</tr>
 		<tr>
 			<td><?php echo $langs->trans('tarifTARIF_CAN_SET_PACKAGE_ON_LINE') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_CAN_SET_PACKAGE_ON_LINE]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE)  ?></td>				
@@ -134,17 +127,3 @@ function showParameters(&$form) {
 	</tr>
 </table>
 <?php
-
-// Put here content of your page
-// ...
-
-/***************************************************
-* LINKED OBJECT BLOCK
-*
-* Put here code to view linked object
-****************************************************/
-//$somethingshown=$asset->showLinkedObjectBlock();
-
-// End of page
-$db->close();
-llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
