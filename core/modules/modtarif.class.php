@@ -262,6 +262,9 @@ class modTarif extends DolibarrModules
 		$res = $extrafields->addExtraField('unite_vente', 'Unité de vente', 'select', 0, '', 'product', 0, 0, '', array("options"=> array("weight" => "Poids", "size" => "Longueur", "surface" => "Surface", "volume" => "Volume", "unite" => "Unité")));		
 		
 		dolibarr_set_const($this->db, 'TARIF_CAN_SET_PACKAGE_ON_LINE', isset($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) ? $conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE : 1 ,'chaine',1,'Affiche ou pas le champs de saisie de conditionnement sur la ligne de propale/comm/facture',0);
+		dolibarr_set_const($this->db, 'TARIF_FACTURE_DISPATCH_ON_EXPEDITION', isset($conf->global->TARIF_FACTURE_DISPATCH_ON_EXPEDITION) ? $conf->global->TARIF_FACTURE_DISPATCH_ON_EXPEDITION : 1 ,'chaine',1,'',0);
+		dolibarr_set_const($this->db, 'TARIF_DONT_ADD_UNIT_SELECT', isset($conf->global->TARIF_DONT_ADD_UNIT_SELECT) ? $conf->global->TARIF_DONT_ADD_UNIT_SELECT : 0 ,'chaine',1,'',0);
+		dolibarr_set_const($this->db, 'TARIF_DOL_DEFAULT_UNIT', isset($conf->global->TARIF_DOL_DEFAULT_UNIT) ? $conf->global->TARIF_DOL_DEFAULT_UNIT : 'weight' ,'chaine',1,'',0);
 		
 		return $this->_init($sql, $options);
 	}

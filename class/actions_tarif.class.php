@@ -13,18 +13,6 @@ class ActionsTarif
 	  function formEditProductOptions($parameters, &$object, &$action, $hookmanager) 
     {
     	global $db,$conf;
-		include_once(DOL_DOCUMENT_ROOT."/commande/class/commande.class.php");
-		include_once(DOL_DOCUMENT_ROOT."/compta/facture/class/facture.class.php");
-		include_once(DOL_DOCUMENT_ROOT."/comm/propal/class/propal.class.php");
-		include_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
-		include_once(DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php');
-		
-		define('INC_FROM_DOLIBARR', true);
-		dol_include_once('/tarif/config.php');
-		
-		if(!defined('DOL_DEFAULT_UNIT')){
-			define('DOL_DEFAULT_UNIT','weight');
-		}
 		
 		
     	if (in_array('propalcard',explode(':',$parameters['context']))
@@ -33,39 +21,56 @@ class ActionsTarif
     		|| in_array('invoicecard',explode(':',$parameters['context'])))
         {
 			
-			if($action === "editline" || $action === "edit_line"){
+			
+			dol_include_once('/commande/class/commande.class.php');
+			dol_include_once("/compta/facture/class/facture.class.php");
+			dol_include_once("/comm/propal/class/propal.class.php");
+			dol_include_once("/core/lib/product.lib.php");
+			dol_include_once('/product/class/html.formproduct.class.php');
+			
+			define('INC_FROM_DOLIBARR', true);
+			dol_include_once('/tarif/config.php');
+			
+			if(!defined('DOL_DEFAULT_UNIT')){
+				define('DOL_DEFAULT_UNIT','weight');
+			}
+			
+			
+			
+			if($action === 'editline' || $action === "edit_line"){
+				
+				$currentLine = &$parameters['line'];
 				
 				?>
 				<script type="text/javascript">
+					/* script tarif */
 					$(document).ready(function(){
-						$('#tablelines form').attr('name','editline');
 						
 						<?php
 						$formproduct = new FormProduct($db);
-						foreach($object->lines as $line){
-	         				$resql = $db->query("SELECT e.tarif_poids, e.poids, pe.unite_vente 
+						
+						if(defined('DONT_ADD_UNIT_SELECT') && DONT_ADD_UNIT_SELECT) {
+							null;
+						}	
+						else {
+							$sql = "SELECT e.tarif_poids, e.poids, pe.unite_vente 
 	         									 FROM ".MAIN_DB_PREFIX.$object->table_element_line." as e 
 	         									 	LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as pe ON (e.fk_product = pe.fk_object)
-	         									 WHERE e.rowid = ".$line->rowid);
+	         									 WHERE e.rowid = ".$currentLine->id;
+							$resql = $db->query($sql);
 							$res = $db->fetch_object($resql);
-							if($line->rowid == $_REQUEST['lineid'] && $line->product_type == 0){
-								
-								if(defined('DONT_ADD_UNIT_SELECT') && DONT_ADD_UNIT_SELECT) {
-									null;
-								}	
-								else {
-									?>$('input[name=qty]').parent().after('<td align="right"><?php
-									
-											if($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) {
-												?><input id="poidsAff" type="text" value="<?php echo (!is_null($res->tarif_poids)) ? number_format($res->tarif_poids,2,",","") : '' ?>" name="poidsAff" size="6" /><?php	
-											}
+							
+							?>$('input[name=qty]').parent().after('<td align="right"><?php
+							
+									if($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) {
+										?><input id="poidsAff" type="text" value="<?php echo (!is_null($res->tarif_poids)) ? number_format($res->tarif_poids,2,",","") : '' ?>" name="poidsAff_product" size="6" /><?php	
+									}
+ 									print ($res->poids==69) ? 'U' : $formproduct->select_measuring_units("weight_unitsAff_product", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT, $res->poids); 
+							?></td>');
 
-									?></td>');
-
-									<?php
-								}
-							}
-				        }
+							<?php
+						}
+						
 						?>
 
 					});
@@ -79,7 +84,6 @@ class ActionsTarif
     }
 
 	function formBuilddocOptions ($parameters, &$object, &$action, $hookmanager) {
-		
 		global $db,$langs,$conf;
 		include_once(DOL_DOCUMENT_ROOT."/commande/class/commande.class.php");
 		include_once(DOL_DOCUMENT_ROOT."/compta/facture/class/facture.class.php");
