@@ -567,7 +567,7 @@ class InterfaceTarifWorkflow
 			}
 		}
 
-		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE') 
+		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE'  || $action==='LINEORDER_SUPPLIER_UPDATE') 
 				&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
 			
 			$idProd = __val( $object->fk_product, $object->oldline->fk_product, 'integer');
@@ -597,8 +597,15 @@ class InterfaceTarifWorkflow
 				 $table = 'facture';
 				 $tabledet = 'facturedet';
 			}
+			elseif(get_class($object) == 'CommandeFournisseur'){
+				$table = "commande_fournisseur"; 
+				$tabledet = 'commande_fournisseurdet'; 
+				$parentfield = 'fk_commande';
+			}
 			
-			$sql = "SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$tabledet." WHERE rowid = ".$object->rowid;
+			$idLine = __val($object->rowid, $object->id); 
+			
+			$sql = "SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$tabledet." WHERE rowid = ".$idLine;
 			$resql = $this->db->query($sql);
 			$res = $this->db->fetch_object($resql);
 			
@@ -678,7 +685,7 @@ class InterfaceTarifWorkflow
 					
 				}
 				
-				$sql = "UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".(float)price2num($poids).", poids = ".(int)$weight_units." WHERE rowid = ".$object->rowid;
+				$sql = "UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".(float)price2num($poids).", poids = ".(int)$weight_units." WHERE rowid = ".$idLine;
 				$this->db->query($sql);
 				
 			}
