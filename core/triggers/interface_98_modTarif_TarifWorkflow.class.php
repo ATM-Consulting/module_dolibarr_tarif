@@ -423,6 +423,7 @@ class InterfaceTarifWorkflow
 					if(is_array($TFirst_price_diff_zero)){
 						$object->price = $TFirst_price_diff_zero[0];
 						$object->subprice = $TFirst_price_diff_zero[0];
+						$object->total_ht = $TFirst_price_diff_zero[0] * $object->qty;
 						$object->tva_tx = $TFirst_price_diff_zero[1];
 						$object->update($user,1);
 					}
