@@ -17,19 +17,21 @@
 	$langs->Load("other");
 	$langs->Load("tarif@tarif");
 	
+	$fk_product = GETPOST('fk_product','int');
+	
 	//pre($langs);exit;
 	
 	llxHeader('',$langs->trans('TarifList'),'','');
 	
 	$ATMdb = new TPDOdb;
 	
-	$ATMdb->Execute("SELECT unite_vente FROM ".MAIN_DB_PREFIX."product_extrafields WHERE fk_object = ".$_REQUEST['fk_product']);
+	$ATMdb->Execute("SELECT unite_vente FROM ".MAIN_DB_PREFIX."product_extrafields WHERE fk_object = ".$fk_product);
 	$ATMdb->Get_line();
 	$type_unite = $ATMdb->Get_field('unite_vente');
 	
 	$TTarif = new TTarif;
 	$product = new Product($db);
-	$result=$product->fetch($_REQUEST['fk_product']);	
+	$result=$product->fetch($fk_product);
 		
 	$head=product_prepare_head($product, $user);
 	$titre=$langs->trans("CardProduct".$product->type);
@@ -79,8 +81,9 @@
 	 ***********************************/
 	 
 	$action=__get('action','list');
+	$id_tarif=__get('id',0,'integer');
 	 
-	if(isset($_REQUEST['action']) && !empty($_REQUEST['action']) && ($action == 'add' || $action == 'edit' )){
+	if(!empty($action) && ($action == 'add' || $action == 'edit' )){
 		
 		$tarif = new TTarif;
 		$tarif->type_price = defined('TARIF_DEFAULT_TYPE') ? TARIF_DEFAULT_TYPE : '';
@@ -94,8 +97,8 @@
 		
 		print '<form action="" method="POST">';
 		print '<input type="hidden" name="action" value="add_conditionnement">';
-		print '<input type="hidden" name="id" value="'.$object->id.'">';
-		print '<input type="hidden" name="id_tarif" value="'.$tarif->getId().'">';
+		print '<input type="hidden" name="fk_product" value="'.$object->id.'">';
+		print '<input type="hidden" name="id" value="'.$tarif->getId().'">';
 		print '<table class="border" width="100%">';
 
 		// VAT
@@ -137,7 +140,7 @@
 		print $langs->trans('SellingPrice');
 		print '</td><td>
 		<input type="hidden" name="prix" id="prix" value="'.$prix.'">
-		<input size="10" name="prix_visu" value="'.number_format($prix,2,",","").'"></td></tr>';
+		<input size="10" name="prix_visu" value="'.price($prix).'"></td></tr>';
 		
 		$remise = $tarif->remise_percent;		
 		// Remise
@@ -193,7 +196,7 @@
 
 		print '<br></form>';
 	}
-	elseif(isset($_REQUEST['action']) && !empty($_REQUEST['action']) && $_REQUEST['action'] == 'add_conditionnement' && isset($_REQUEST['save'])) {
+	elseif(!empty($action) && $action == 'add_conditionnement' && isset($_REQUEST['save'])) {
 		
 		//pre($_REQUEST,true);
 		
@@ -208,45 +211,47 @@
 		
 		$Ttarif = new TTarif;
 		
-		if($_REQUEST['id_tarif']>0) $Ttarif->load($ATMdb, $_REQUEST['id_tarif']);
+		if($id_tarif>0) $Ttarif->load($ATMdb, $id_tarif);
 		//pre($Ttarif,true);exit;
 		
-		$Ttarif->tva_tx = $_POST['tva_tx'];
+		$Ttarif->tva_tx = GETPOST('tva_tx','int');
 		$Ttarif->price_base_type = 'HT';
 		$Ttarif->fk_user_author = $user->id;
-		$Ttarif->type_price = $_REQUEST['type_prix'];
-		$Ttarif->currency_code = $_REQUEST['currency'];
-		$Ttarif->fk_country = $_REQUEST['fk_country'];		
+		$Ttarif->type_price = GETPOST('type_prix');
+		$Ttarif->currency_code = GETPOST('currency');
+		$Ttarif->fk_country = GETPOST('fk_country','int');
 		
-		if($_REQUEST['type_prix'] == 'PERCENT/PRICE'){
-			$Ttarif->prix = price2num($_POST['prix_visu'],2,1);
-			$Ttarif->remise_percent = __get('remise',0,'float');
+		$prix = price2num(GETPOST('prix_visu'));
+		$remise = price2num(GETPOST('remise'));
+		
+		if($Ttarif->type_price == 'PERCENT/PRICE'){
+			$Ttarif->prix = $prix;
+			$Ttarif->remise_percent = $remise;
 		}
-		else if($_REQUEST['type_prix'] == 'PRICE'){
-			
-			$Ttarif->prix =price2num($_POST['prix_visu'],2,1);
-
+		else if($Ttarif->type_price == 'PRICE'){
+			$Ttarif->prix = $prix;
 		}
 		else{
-			$Ttarif->prix = price2num($_POST['prix_visu'],2,1);
-			$Ttarif->remise_percent = __get('remise',0,'float') ;
+			$Ttarif->prix = $prix;
+			$Ttarif->remise_percent = $remise;
 		}
-		$Ttarif->quantite = $_POST['quantite'];
+		
+		$Ttarif->quantite = price2num(GETPOST('quantite'));
 		//$Ttarif->quantite =  number_format(str_replace(",", ".", $_POST['quantite']),2,".","");
 		$Ttarif->unite = $unite;
 		
-		$Ttarif->unite_value = $_POST['weight_units'];
-		$Ttarif->fk_product = $_POST['id'];
-		$Ttarif->fk_categorie_client = $_REQUEST['fk_categorie_client'];
+		$Ttarif->unite_value = GETPOST('weight_units');
+		$Ttarif->fk_product = $fk_product;
+		$Ttarif->fk_categorie_client = GETPOST('fk_categorie_client','int');
 		//$ATMdb->db->debug=true;
 			
 		//pre($Ttarif,true);exit;
 		$Ttarif->save($ATMdb);
 	}
-	elseif(isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
+	elseif(!empty($action) && $action == 'delete' && !empty($id_tarif))
 	{
 		$Ttarif = new TTarif;
-		$Ttarif->load($ATMdb,$_GET['id']);
+		$Ttarif->load($ATMdb,$id_tarif);
 		$Ttarif->delete($ATMdb);
 	}
 	
