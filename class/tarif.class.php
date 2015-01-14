@@ -157,6 +157,15 @@ class TTarif extends TObjetStd {
 		return $price;
 	}
 	
+	function save(&$ATMdb) {
+		global $conf;
+		
+		if(empty($this->currency_code)) $this->currency_code = $conf->currency; 
+		
+		parent::save($ATMdb);
+		
+	}
+	
 }
 
 class TTarifCommandedet extends TObjetStd {
