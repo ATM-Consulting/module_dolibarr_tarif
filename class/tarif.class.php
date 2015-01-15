@@ -37,7 +37,7 @@ class TTarif extends TObjetStd {
 			$sql.=" AND tc.fk_country IN (0, $fk_country)";
 			
 		}
-		if(!empty($TFk_categorie)) {
+		if(!empty($TFk_categorie) && is_array($TFk_categorie) ) {
 			
 			$sql.=" AND tc.fk_categorie_client IN (-1,0, ".implode(',', $TFk_categorie).")";
 
@@ -85,7 +85,7 @@ class TTarif extends TObjetStd {
 			$sql.=" AND tc.fk_country IN (0, $fk_country)";
 			
 		}
-		if(!empty($TFk_categorie)) {
+		if(!empty($TFk_categorie) && is_array($TFk_categorie)) {
 			
 			$sql.=" AND tc.fk_categorie_client IN (-1,0, ".implode(',', $TFk_categorie).")";
 
@@ -129,10 +129,14 @@ class TTarif extends TObjetStd {
 		
 		$categ = new Categorie($db);
 		$TFk_categorie = array();
-		foreach($categ->containing($socid, 2) as $cat) {
+
+		$Tab = $categ->containing($socid, 2);
+		if(!empty($Tab) && is_array($Tab) ) {
+//var_dump($Tab);
+		foreach($Tab as $cat) {
 			$TFk_categorie[] = $cat->id;
 		}
-		
+		}
 		return $TFk_categorie;
 	}
 	
