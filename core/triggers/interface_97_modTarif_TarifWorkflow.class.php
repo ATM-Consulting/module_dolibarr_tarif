@@ -112,7 +112,7 @@ class InterfaceTarifWorkflow
 		$object->remise_percent = $remise;
 		
 		$object->subprice = $prix ;
-		$object->tva_tx = $tvatx;
+		if(!defined('TARIF_DONT_USE_TVATX') || TARIF_DONT_USE_TVATX == 0) $object->tva_tx = $tvatx;
 		
 		$object->price = $object->subprice; // TODO qu'est-ce ? Due à un deprecated incertain, dans certains cas price est utilisé et dans d'autres c'est subprice
 		//echo $object->subprice; exit;
