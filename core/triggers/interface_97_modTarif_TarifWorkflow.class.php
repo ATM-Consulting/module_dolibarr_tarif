@@ -379,7 +379,6 @@ class InterfaceTarifWorkflow
 				$fk_country = $object_parent->client->country_id;
 				
 				// On récupère les catégories dont le client fait partie
-				
 				$TFk_categorie = TTarif::getCategClient($object_parent->thirdparty->id); // $this->getCategClient($object_parent);
 
 				$prix_devise = $remise = false;
@@ -663,9 +662,10 @@ class InterfaceTarifWorkflow
 					$object_parent = $this->_getObjectParent($object);
 					$price_level = $object_parent->client->price_level;
 					$fk_country = $object_parent->client->country_id;
-					
+
 					// On récupère les catégories dont le client fait partie
-					$TFk_categorie = TTarif::getCategClient($object_parent->thirdparty->id); 
+					if (!empty($object_parent->thirdparty->id))
+						$TFk_categorie = TTarif::getCategClient($object_parent->thirdparty->id); 
 					
 					list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie);
 					$prix = __val($object->subprice,$object->price,'float',true);
