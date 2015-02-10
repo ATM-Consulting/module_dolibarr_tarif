@@ -640,7 +640,7 @@ class InterfaceTarifWorkflow
 			}			
 			
 			
-			if($object->oldline->qty != $object->qty || floatval($res->tarif_poids * pow(10, $res->poids)) != floatval($poids * pow(10, $weight_units))){
+			if($object->oldline->qty != $object->qty || (floatval($res->tarif_poids * pow(10, $res->poids)) != floatval($poids * pow(10, $weight_units)) && !$conf->global->TARIF_DONT_ADD_UNIT_SELECT)){
 				
 				if(!empty($idProd)){
 					if($conf->multidevise->enabled){
