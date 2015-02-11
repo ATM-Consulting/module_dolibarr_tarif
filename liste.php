@@ -201,7 +201,7 @@
 		//pre($_REQUEST,true);
 		
 		//logueur, poids, etc
-		if(!empty($_REQUEST['weight_units'])){
+		if(!is_null($_REQUEST['weight_units'])){
 			$unite = measuring_units_string($_REQUEST['weight_units'],$type_unite);
 			$unite = $langs->trans($unite);
 		}
