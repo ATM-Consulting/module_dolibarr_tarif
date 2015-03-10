@@ -162,21 +162,15 @@ class ActionsTarif
 					}
 		         	});
 
-		         	$('#np_desc').parent().next().after('<td align="right" tarif-col="conditionnement_product"><span id="AffUnite" style="display:none;"><?php echo $langs->trans('Unit'); ?></span><?php
+		         	$('#dp_desc').parent().next().next().next().after('<td align="right" tarif-col="conditionnement_product" type_unite="<?php echo $type_unite; ?>"><?php
 			         		if($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) {
 			         			?><input class="poidsAff" type="text" value="0" name="poidsAff_product" id="poidsAffProduct" size="6" /><?php
 							}
-		         			//print ($type_unite=='unite') ? 'U' :  $formproduct->select_measuring_units("weight_unitsAff_product", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT,0); 
+							print ($type_unite=='unite') ? 'U' :  $formproduct->select_measuring_units("weight_unitsAff_product", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT,0); 
 		         			
 		         			?></td>');
 
-		         	$('#dp_desc').parent().next().next().next().after('<td align="right" tarif-col="conditionnement_libre"><?
-		         		if($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) {
-		         			?><input class="poidsAff" type="text" value="0" name="poidsAff_libre" size="6"><?php	
-						}
-		         	
-		         		//print ($type_unite=='unite') ? 'U' :  $formproduct->select_measuring_units("weight_unitsAff_libre", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT,0); 
-		         		?></td>');  	<?php 
+		         	  	<?php 
 				}
 					
 	         	
@@ -212,6 +206,7 @@ class ActionsTarif
 							type: $(this).attr('id')
 						}
 						},"json").then(function(select){
+							$('td[tarif-col=conditionnement_product]').attr('type_unite', select.unite);
 							if(select.unite != ""){
 								if(select.unite_vente != ""){
 									$('select[name=weight_unitsAff_product]').remove();
