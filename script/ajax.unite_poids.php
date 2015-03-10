@@ -47,6 +47,10 @@ if($ATMdb->Get_field('fk_product_type') == 0) { // On ne renvoie un poids que s'
 	$Tres["poids"] = !empty($poids) ? $poids : 1;
 	if($unite == "length") $unite = "size";
 	$Tres["unite_vente"] = $formproduct->load_measuring_units("weight_unitsAff_product", $unite) ;
+} elseif($conf->global->TARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES && $conf->peinture->enabled) {
+	// Si c'est un service et que le module peinture et activé, et qu'on autorise l'affichage du champ conditionnement pour les services,
+	// alors, on affiche le champ conditionnement ainsi que le lien vers le popin du métré
+	$Tres['keep_field_cond'] = 1;
 }
 
 echo json_encode($Tres);

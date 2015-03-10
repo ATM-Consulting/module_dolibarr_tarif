@@ -93,10 +93,14 @@ function showParameters(&$form) {
 			<td><?php echo $langs->trans('tarifTARIF_DONT_ADD_UNIT_SELECT') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_DONT_ADD_UNIT_SELECT]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_DONT_ADD_UNIT_SELECT)  ?></td>				
 		</tr>
 		<tr>
+			<td><?php echo $langs->trans('tarifTARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES)  ?></td>				
+		</tr>
+		<tr>
+			<td><?php echo $langs->trans('tarifTARIF_USE_METRE') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_USE_METRE]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_USE_METRE)  ?></td>				
+		</tr>
+		<tr>
 			<td><?php echo $langs->trans('tarifTARIF_DOL_DEFAULT_UNIT') ?></td><td><?php echo 'définition non disponible ici. cf.divers'  ?></td>				
 		</tr>
-		
-		
 		
 	</table>
 	<p align="right">

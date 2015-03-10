@@ -10,7 +10,46 @@ class ActionsTarif
       */ 
      
      var $module_number = 104190;
-	  function formEditProductOptions($parameters, &$object, &$action, $hookmanager) 
+	
+	function formObjectOptions ($parameters, &$object, &$action, $hookmanager) {
+		global $db,$conf;
+		
+		
+    	if (in_array('propalcard',explode(':',$parameters['context']))
+    		|| in_array('ordercard',explode(':',$parameters['context']))
+			|| in_array('ordersuppliercard',explode(':',$parameters['context']))
+    		|| in_array('invoicecard',explode(':',$parameters['context'])))
+        {
+			?>
+				<script type="text/javascript">
+					var dialog = '<div id="dialog-metre" title="Basic dialog"><p><textarea name="metre_desc"></textarea></p></div>';
+					$(document).ready(function() {
+						$('body').append(dialog);
+						$('#dialog-metre').dialog({
+							autoOpen:false
+							,close: function( event, ui ) {
+								var metre = $('textarea[name=metre_desc]').val();
+								$('input[name=metre]').val(metre );
+								$('input[name=poidsAff_product]').val( eval(metre) );		
+							}
+						});
+					});
+					
+					function showMetre() {
+						$('textarea[name=metre_desc]').val( $('input[name=metre]').val() );	
+						$('#dialog-metre').dialog('open');	
+					}
+	
+				</script>
+					
+				
+				<?php
+		
+		}
+		
+	}
+	 
+	function formEditProductOptions($parameters, &$object, &$action, $hookmanager) 
     {
     	global $db,$conf;
 		
@@ -37,6 +76,7 @@ class ActionsTarif
 			
 			
 			
+			
 			if($action === 'editline' || $action === "edit_line"){
 				
 				$currentLine = &$parameters['line'];
@@ -53,7 +93,7 @@ class ActionsTarif
 							null;
 						}	
 						else {
-							$sql = "SELECT e.tarif_poids, e.poids, pe.unite_vente 
+							$sql = "SELECT e.tarif_poids, e.poids, pe.unite_vente,e.metre 
 	         									 FROM ".MAIN_DB_PREFIX.$object->table_element_line." as e 
 	         									 	LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as pe ON (e.fk_product = pe.fk_object)
 	         									 WHERE e.rowid = ".$currentLine->id;
@@ -66,6 +106,11 @@ class ActionsTarif
 										?><input id="poidsAff" type="text" value="<?php echo (!is_null($res->tarif_poids)) ? number_format($res->tarif_poids,2,",","") : '' ?>" name="poidsAff_product" size="6" /><?php	
 									}
  									print ($res->poids==69) ? 'U' : $formproduct->select_measuring_units("weight_unitsAff_product", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT, $res->poids); 
+							
+									if($conf->global->TARIF_USE_METRE) {
+										print '<a href="javascript:showMetre()">M</a><input type="hidden" name="metre" value="'.$res->metre.'" />';
+									}
+							
 							?></td>');
 
 							<?php
@@ -168,6 +213,10 @@ class ActionsTarif
 							}
 							print ($type_unite=='unite') ? 'U' :  $formproduct->select_measuring_units("weight_unitsAff_product", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT,0); 
 		         			
+							if($conf->global->TARIF_USE_METRE) {
+								print '<a href="javascript:showMetre(0)">M</a><input type="hidden" name="metre" value="" />';
+							}
+							
 		         			?></td>');
 
 		         	  	<?php 
@@ -219,6 +268,9 @@ class ActionsTarif
 								$('select[name=weight_unitsAff_product]').show();
 								$('#AffUnite').hide();
 							}
+							else if(select.keep_field_cond == 1) {
+								$('select[name=weight_unitsAff_product]').hide();
+							}
 							else{
 								$('select[name=weight_unitsAff_product]').prev().hide();
 								$('select[name=weight_unitsAff_product]').hide();
@@ -226,6 +278,7 @@ class ActionsTarif
 							}
 						});
 				});
+
          	</script>
          	<?php
         }

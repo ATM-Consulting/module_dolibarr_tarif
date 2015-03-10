@@ -34,5 +34,7 @@ tarifTARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO=Utilise le niveau de prix préc�
 tarifTARIF_FACTURE_DISPATCH_ON_EXPEDITION=Liaison du module dispatch sur expédition
 tarifTARIF_DONT_ADD_UNIT_SELECT=Ne pas ajouter la sélection du l'unité
 tarifTARIF_DOL_DEFAULT_UNIT=Unité par défaut
+tarifTARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES = Conserver le champ conditionnement pour les services
+tarifTARIF_USE_METRE = Utiliser la gestion du métré
 tarifConfigSetup=Configuration du module Tarif
 PricesQtyOnTotalInvoiceQty=Calculer les tarifs par quantité sur la totalité des quantités facturé au client
