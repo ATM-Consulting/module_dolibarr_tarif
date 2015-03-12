@@ -346,7 +346,7 @@ class InterfaceTarifWorkflow
 				$product =new Product($db);
 				$product->fetch($idProd);
 
-				if($product->type==1)$poids=1;
+				if($product->type==1 && empty($conf->global->TARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES))$poids=1;
 
 			}
 			//echo $poids." ".$weight_units;
@@ -428,7 +428,8 @@ class InterfaceTarifWorkflow
 					}
 				}				
 				//MAJ du poids et de l'unité de la ligne
-				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
+				$sql = "UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid;
+				$this->db->query($sql);
 
 			} 
 			
