@@ -38,3 +38,4 @@ tarifTARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES = Conserver le champ conditio
 tarifTARIF_USE_METRE = Utiliser la gestion du métré
 tarifConfigSetup=Configuration du module Tarif
 PricesQtyOnTotalInvoiceQty=Calculer les tarifs par quantité sur la totalité des quantités facturé au client
+tarifSaveMetre = Enregistrement du métré
