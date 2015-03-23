@@ -23,7 +23,7 @@ class ActionsTarif
         {
 			?>
 				<script type="text/javascript">
-					var dialog = '<div id="dialog-metre" title="<?php print $langs->trans('tarifSaveMetre'); ?>"><p><textarea name="metre_desc"></textarea></p></div>';
+					var dialog = '<div id="dialog-metre" title="<?php print $langs->trans('tarifSaveMetre'); ?>"><p><input type="text" name="metre_desc" /></p></div>';
 					$(document).ready(function() {
 						$('body').append(dialog);
 						$('#dialog-metre').dialog({
@@ -37,7 +37,7 @@ class ActionsTarif
 										}
 									  }
 							,close: function( event, ui ) {
-								var metre = $('textarea[name=metre_desc]').val();
+								var metre = $('input[name=metre_desc]').val();
 								$('input[name=metre]').val(metre );
 								$('input[name=poidsAff_product]').val( eval(metre) );		
 							}
