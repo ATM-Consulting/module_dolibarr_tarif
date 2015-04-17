@@ -195,7 +195,7 @@ class ActionsTarif
 									print ' U';
 								}
 							}
-						?></td>'); <?
+						?></td>'); <?php
 						//if($line->error != '') echo "alert('".$line->error."');";
 					}
 

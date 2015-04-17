@@ -176,7 +176,7 @@
 				});
 
 			</script>
-		<?				
+		<?php			
 		
 		//Quantité
 		print '<tr><td width="20%">';
