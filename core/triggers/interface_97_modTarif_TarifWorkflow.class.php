@@ -153,9 +153,9 @@ class InterfaceTarifWorkflow
 	
 	function _updateTotauxLine(&$object,$qty){
 		//MAJ des totaux de la ligne
-		$object->total_ht = $object->subprice * $qty * (1 - $object->remise_percent / 100);
-		$object->total_tva = ($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht;
-		$object->total_ttc = $object->total_ht + $object->total_tva;
+		$object->total_ht  = price2num($object->subprice * $qty * (1 - $object->remise_percent / 100), 'MT');
+		$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
+		$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
 		$object->update_total();
 	}
 	
