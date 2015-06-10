@@ -24,13 +24,13 @@ class TTarif extends TObjetStd {
 		);
 	}
 	
-	static function getRemise(&$db, $idProd,$qty,$conditionnement,$weight_units, $fk_country=0, $TFk_categorie=array()){
+	static function getRemise(&$db, $idProd,$qty,$conditionnement,$weight_units, $devise,$fk_country=0, $TFk_categorie=array()){
 		
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure !!!)
 		$sql = "SELECT p.type_remise as type_remise, tc.quantite as quantite, tc.type_price, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent";
 		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product";
-		$sql.= " WHERE fk_product = ".$idProd;
+		$sql.= " WHERE fk_product = ".$idProd." AND (tc.currency_code = '".$devise."' OR tc.currency_code IS NULL)";
 		
 		if($fk_country>0) {
 			
@@ -94,12 +94,12 @@ class TTarif extends TObjetStd {
 		
 		
 		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC";
-		
+		//echo $sql;
 		$resql = $db->query($sql);
 		
 		if($resql->num_rows > 0) {
 			while($res = $db->fetch_object($resql)) {
-				
+				//pre($res,true);
 				if(strpos($res->type_price,'PRICE') !== false){
 					
 					if($res->type_remise == "qte" && $qty >= $res->quantite){
