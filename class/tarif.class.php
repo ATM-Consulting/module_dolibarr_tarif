@@ -99,10 +99,10 @@ class TTarif extends TObjetStd {
 		
 		if($resql->num_rows > 0) {
 			while($res = $db->fetch_object($resql)) {
-				//pre($res,true);
+				//pre($res,true);exit;
 				if(strpos($res->type_price,'PRICE') !== false){
 					
-					if($res->type_remise == "qte" && $qty >= $res->quantite){
+					if(($res->type_remise == "qte" || $res->type_remise == 0) && $qty >= $res->quantite){
 						//Ici on récupère le pourcentage correspondant et on arrête la boucle
 						return array(TTarif::price_with_multiprix($res->prix, $price_level), $res->tva_tx);
 					} 
