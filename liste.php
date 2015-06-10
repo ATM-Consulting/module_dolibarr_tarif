@@ -264,10 +264,10 @@
 	 * Liste des tarifs
 	 **********************************/
 	$TConditionnement = array();
-	
+
 	if($conf->multidevise->enabled){
 
-		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price, pays.libelle as 'Pays', cat.label as 'Catégorie',
+		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price, ".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays', cat.label as 'Catégorie',
 					   tc.price_base_type AS base, tc.quantite as quantite,
 					   tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix ";
 		
@@ -296,13 +296,13 @@
 				FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
 					LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)
 					LEFT JOIN ".MAIN_DB_PREFIX."currency AS c ON (c.code = tc.currency_code)
-					LEFT JOIN ".MAIN_DB_PREFIX."c_pays AS pays ON (pays.rowid = tc.fk_country)
+					LEFT JOIN ".MAIN_DB_PREFIX.((DOL_VERSION >= 3.7) ? "c_country" : "c_pays")." AS pays ON (pays.rowid = tc.fk_country)
 					LEFT JOIN ".MAIN_DB_PREFIX."categorie AS cat ON (cat.rowid = tc.fk_categorie_client)
 				WHERE fk_product = ".$product->id."
 				ORDER BY unite_value, quantite ASC";
 	}
 	else {
-		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price,pays.libelle as 'Pays', cat.label as 'Catégorie', tc.price_base_type AS base, tc.quantite as quantite,";
+		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price,".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays', cat.label as 'Catégorie', tc.price_base_type AS base, tc.quantite as quantite,";
 		if($type_unite == "unite") {
 			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, tc.unite_value AS unite_value,";
 			$sql.=			  "tc.quantite * tc.prix * (100-tc.remise_percent)/100 AS 'Total',";
@@ -318,7 +318,7 @@
 		$sql.=			   "'' AS 'Actions'
 				FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
 					LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)
-					LEFT JOIN ".MAIN_DB_PREFIX."c_pays AS pays ON (pays.rowid = tc.fk_country)
+					LEFT JOIN ".MAIN_DB_PREFIX.((DOL_VERSION >= 3.7) ? "c_country" : "c_pays")." AS pays ON (pays.rowid = tc.fk_country)
 					LEFT JOIN ".MAIN_DB_PREFIX."categorie AS cat ON (cat.rowid = tc.fk_categorie_client)
 					
 				WHERE fk_product = ".$product->id."
