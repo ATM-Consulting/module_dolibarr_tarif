@@ -264,7 +264,7 @@
 	 * Liste des tarifs
 	 **********************************/
 	$TConditionnement = array();
-	
+
 	if($conf->multidevise->enabled){
 
 		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price, pays.libelle as 'Pays', cat.label as 'Catégorie',
@@ -296,7 +296,7 @@
 				FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
 					LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)
 					LEFT JOIN ".MAIN_DB_PREFIX."currency AS c ON (c.code = tc.currency_code)
-					LEFT JOIN ".MAIN_DB_PREFIX."c_pays AS pays ON (pays.rowid = tc.fk_country)
+					LEFT JOIN ".MAIN_DB_PREFIX.((DOL_VERSION >= 3.7) ? "c_country" : "c_pays")." AS pays ON (pays.rowid = tc.fk_country)
 					LEFT JOIN ".MAIN_DB_PREFIX."categorie AS cat ON (cat.rowid = tc.fk_categorie_client)
 				WHERE fk_product = ".$product->id."
 				ORDER BY unite_value, quantite ASC";
@@ -318,7 +318,7 @@
 		$sql.=			   "'' AS 'Actions'
 				FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
 					LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)
-					LEFT JOIN ".MAIN_DB_PREFIX."c_pays AS pays ON (pays.rowid = tc.fk_country)
+					LEFT JOIN ".MAIN_DB_PREFIX.((DOL_VERSION >= 3.7) ? "c_country" : "c_pays")." AS pays ON (pays.rowid = tc.fk_country)
 					LEFT JOIN ".MAIN_DB_PREFIX."categorie AS cat ON (cat.rowid = tc.fk_categorie_client)
 					
 				WHERE fk_product = ".$product->id."
