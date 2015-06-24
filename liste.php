@@ -267,7 +267,7 @@
 
 	if($conf->multidevise->enabled){
 
-		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price, pays.libelle as 'Pays', cat.label as 'Catégorie',
+		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price, ".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays', cat.label as 'Catégorie',
 					   tc.price_base_type AS base, tc.quantite as quantite,
 					   tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix ";
 		
@@ -302,7 +302,7 @@
 				ORDER BY unite_value, quantite ASC";
 	}
 	else {
-		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price,pays.libelle as 'Pays', cat.label as 'Catégorie', tc.price_base_type AS base, tc.quantite as quantite,";
+		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price,".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays', cat.label as 'Catégorie', tc.price_base_type AS base, tc.quantite as quantite,";
 		if($type_unite == "unite") {
 			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, tc.unite_value AS unite_value,";
 			$sql.=			  "tc.quantite * tc.prix * (100-tc.remise_percent)/100 AS 'Total',";

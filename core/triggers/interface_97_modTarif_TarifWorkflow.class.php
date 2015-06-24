@@ -383,12 +383,12 @@ class InterfaceTarifWorkflow
 
 				$prix_devise = $remise = false;
 				
-				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$idProd,$qtyline,$poids,$weight_units, $fk_country, $TFk_categorie, $object->remise_percent);
+				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$idProd,$qtyline,$poids,$weight_units,$devise, $fk_country, $TFk_categorie, $object->remise_percent);
 				if($type_prix == '') {
 					$tvatx = $object->tva_tx;
 				}
 				$prix = __val($object->subprice,$object->price,'float',true);
-
+//echo $remise;exit;
 				if($remise !== false) {
 				
 					if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
@@ -396,7 +396,7 @@ class InterfaceTarifWorkflow
 						/*$object_parent = $this->_getObjectParent($object);
 						$price_level = $object_parent->client->price_level;
 						$fk_country = $object_parent->client->country_id;*/
-											
+						//echo $devise;exit;					
 						$TRes = TTarif::getPrix($this->db,$idProd,$qtyline*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie);
 						if(is_array($TRes)) {
 							$prix_devise = $TRes[0];
@@ -408,6 +408,8 @@ class InterfaceTarifWorkflow
 						
 						$prix = $prix_devise / $coef_conv;
 					}
+					
+					//pre($TRes,true);exit;
 					if($prix_devise !== false) {
 						
 						$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !
@@ -416,7 +418,7 @@ class InterfaceTarifWorkflow
 					} 
 					
 				}
-
+				
 				if($remise === false && $prix_devise ===false && $conf->global->TARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO) {
 					$TFirst_price_diff_zero = $this->_getFirstPriceDifferentDeZero($object);
 					if(is_array($TFirst_price_diff_zero)){
