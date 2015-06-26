@@ -12,8 +12,9 @@ class ActionsTarif
      var $module_number = 104190;
 	
 	function formObjectOptions ($parameters, &$object, &$action, $hookmanager) {
-		global $db,$conf;
+		global $db,$conf,$langs;
 		
+		$langs->load('tarif@tarif');
 		
     	if (in_array('propalcard',explode(':',$parameters['context']))
     		|| in_array('ordercard',explode(':',$parameters['context']))
@@ -22,13 +23,21 @@ class ActionsTarif
         {
 			?>
 				<script type="text/javascript">
-					var dialog = '<div id="dialog-metre" title="Basic dialog"><p><textarea name="metre_desc"></textarea></p></div>';
+					var dialog = '<div id="dialog-metre" title="<?php print $langs->trans('tarifSaveMetre'); ?>"><p><input type="text" name="metre_desc" /></p></div>';
 					$(document).ready(function() {
 						$('body').append(dialog);
 						$('#dialog-metre').dialog({
 							autoOpen:false
+							,buttons: {
+										"Ok": function() {
+											$(this).dialog("close");
+										}
+										,"Annuler": function() {
+											$(this).dialog("close");
+										}
+									  }
 							,close: function( event, ui ) {
-								var metre = $('textarea[name=metre_desc]').val();
+								var metre = $('input[name=metre_desc]').val();
 								$('input[name=metre]').val(metre );
 								$('input[name=poidsAff_product]').val( eval(metre) );		
 							}
