@@ -48,7 +48,7 @@ class TTarif extends TObjetStd {
 		
 		$resql = $db->query($sql);
 //exit($sql);		
-		if($resql->num_rows > 0) {
+		if($db->num_rows($resql) > 0) {
 			$pallier = 0;
 			while($res = $db->fetch_object($resql)) {
 				
@@ -97,7 +97,7 @@ class TTarif extends TObjetStd {
 		//echo $sql;
 		$resql = $db->query($sql);
 		
-		if($resql->num_rows > 0) {
+		if($db->num_rows($resql) > 0) {
 			while($res = $db->fetch_object($resql)) {
 				//pre($res,true);exit;
 				if(strpos($res->type_price,'PRICE') !== false){
