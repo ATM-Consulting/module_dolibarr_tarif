@@ -275,6 +275,7 @@ class InterfaceTarifWorkflow
 			&& (!empty($_REQUEST['addline_predefined']) || !empty($_REQUEST['addline_libre'])  || !empty($_REQUEST['prod_entry_mode']))) {
 			//print_r($object);
 			$qtyline = $object->qty;
+			
 			//prendre le tarif par quantité correspondant à la sommes des quantités facturé pour ce produit au client
 			if($conf->global->TARIF_TOTAL_QTY_ON_TOTAL_INVOICE_QTY){
 				
@@ -388,7 +389,13 @@ class InterfaceTarifWorkflow
 					$tvatx = $object->tva_tx;
 				}
 				$prix = __val($object->subprice,$object->price,'float',true);
-//echo $remise;exit;
+				
+				// La saisie d'une réduction manuellement prévaut sur la devise renseignée dans tarif
+				if (empty($_REQUEST['remise_percent']) === false) {
+					$remise = $_REQUEST['remise_percent'];
+					$type_prix = 'PERCENT/PRICE';
+				}
+				
 				if($remise !== false) {
 				
 					if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
