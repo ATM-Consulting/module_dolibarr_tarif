@@ -232,6 +232,7 @@ class InterfaceTarifWorkflow
 		if(!empty($prod->multiprices)) {
 			
 			while($price_level > 0) {
+				if($obj_parent->type == 2) $prod->multiprices[$price_level] *= -1;
 				if($prod->multiprices[$price_level] != 0) {
 					return array($prod->multiprices[$price_level], $prod->multiprices_tva_tx[$price_level]);
 				}
