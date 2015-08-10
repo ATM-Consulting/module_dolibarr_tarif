@@ -28,7 +28,7 @@ class TTarif extends TObjetStd {
 	static function getRemise(&$db, $idProd,$qty,$conditionnement,$weight_units, $devise,$fk_country=0, $TFk_categorie=array()){
 		
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure !!!)
-		$sql = "SELECT p.type_remise as type_remise, tc.quantite as quantite, tc.type_price, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent";
+		$sql = "SELECT p.type_remise as type_remise, tc.quantite as quantite, tc.type_price, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, tc.date_fin as date_fin";
 		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product";
 		$sql.= " WHERE fk_product = ".$idProd." AND (tc.currency_code = '".$devise."' OR tc.currency_code IS NULL)";
@@ -51,7 +51,10 @@ class TTarif extends TObjetStd {
 //exit($sql);		
 		if($db->num_rows($resql) > 0) {
 			$pallier = 0;
+			
 			while($res = $db->fetch_object($resql)) {
+				
+				if(($res->date_fin !== '0000-00-00 00:00:00') && (strtotime($res->date_fin) <= (strtotime(date('Y-m-d'))))) continue;
 				
 				if( strpos($res->type_price,'PERCENT')!==false ){
 					
@@ -75,7 +78,7 @@ class TTarif extends TObjetStd {
 	global $conf;
 		
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure)
-		$sql = "SELECT p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, pr.weight";
+		$sql = "SELECT p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, tc.date_fin as date_fin, pr.weight";
 		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product
 				 LEFT JOIN ".MAIN_DB_PREFIX."product pr ON p.fk_object=pr.rowid ";
@@ -101,6 +104,8 @@ class TTarif extends TObjetStd {
 		if($db->num_rows($resql) > 0) {
 			while($res = $db->fetch_object($resql)) {
 				//pre($res,true);exit;
+				if(($res->date_fin !== '0000-00-00 00:00:00') && (strtotime($res->date_fin) <= (strtotime(date('Y-m-d'))))) continue;
+				
 				if(strpos($res->type_price,'PRICE') !== false){
 					
 					if(($res->type_remise == "qte" || $res->type_remise == 0) && $qty >= $res->quantite){
