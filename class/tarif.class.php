@@ -11,6 +11,7 @@ class TTarif extends TObjetStd {
 		parent::add_champs('fk_categorie_client','type=entier;');
 		parent::add_champs('prix,tva_tx,quantite,remise_percent','type=float;');
 		parent::add_champs('fk_user_author,fk_product,fk_country','type=entier;index;');
+		parent::add_champs('date_fin','type=date;');
 		
 		parent::_init_vars();
 		parent::start();

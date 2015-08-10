@@ -102,18 +102,18 @@
 		print '<table class="border" width="100%">';
 
 		// VAT
-        print '<tr><td width="20%">'.$langs->trans("VATRate").'</td><td>';
+        print '<tr><td width="30%">'.$langs->trans("VATRate").'</td><td>';
         print $form->load_tva("tva_tx", ($action=='edit') ? $tarif->tva_tx : $object->tva_tx,$mysoc,'',$object->id,$object->tva_npr);
         print '</td></tr>';
 
 		// Price base
-		print '<tr><td width="20%">'.$langs->trans('PriceBase').'</td>';
+		print '<tr><td width="30%">'.$langs->trans('PriceBase').'</td>';
 		print '<td>';
 		//print $form->select_PriceBaseType($object->price_base_type, "price_base_type");
 		print 'HT</td>';
 		print '</tr>';
 		
-		print '<tr><td width="20%">'.$langs->trans('PriceType').'</td><td>';
+		print '<tr><td width="30%">'.$langs->trans('PriceType').'</td><td>';
         print $form->selectarray("type_prix",$TTarif->TType_price,$tarif->type_price);
         print '</td></tr>';
         
@@ -136,7 +136,7 @@
 		
 		$prix = ( ($action=='edit') ? $tarif->prix :$object->price);
 		// Price
-		print '<tr><td width="20%">';
+		print '<tr><td width="30%">';
 		print $langs->trans('SellingPrice');
 		print '</td><td>
 		<input type="hidden" name="prix" id="prix" value="'.$prix.'">
@@ -144,7 +144,7 @@
 		
 		$remise = $tarif->remise_percent;		
 		// Remise
-		print '<tr><td width="20%">';
+		print '<tr><td width="30%">';
 		print $langs->trans('Remise(%)');
 		print '</td><td><input id="remise" size="10" name="remise" value="'.$remise.'" />%</td></tr>';
 		
@@ -179,14 +179,19 @@
 		<?php			
 		
 		//Quantité
-		print '<tr><td width="20%">';
+		print '<tr><td width="30%">';
 		print $langs->trans('Quantity');
 		print '</td><td><input size="10" name="quantite" value="'.__val($tarif->quantite,1,'double',true).'"></td></tr>';
-		print '<tr><td width="20%">';
+		print '<tr><td width="30%">';
 		print $langs->trans('Unit');
 		print '</td><td>';
 		if($type_unite=='unite') print 'U';
 		else print $formproduct->select_measuring_units("weight_units", $type_unite, ($action=='edit') ? $tarif->unite_value : $object->{$type_unite.'_units'});
+		print '</td></tr>';
+		print '<tr><td width="30%">';
+		print $langs->trans('DateEndTarif');
+		print '</td><td>';
+		$form->select_date($tarif->date_fin,'date_fin','','','',"add",1,1);
 		print '</td></tr>';
 
 		print '</table>';
@@ -243,6 +248,7 @@
 		$Ttarif->unite_value = GETPOST('weight_units');
 		$Ttarif->fk_product = $fk_product;
 		$Ttarif->fk_categorie_client = GETPOST('fk_categorie_client','int');
+		$Ttarif->date_fin = $Ttarif->set_date('date_fin',$_REQUEST['date_fin']);
 		//$ATMdb->db->debug=true;
 			
 		//pre($Ttarif,true);exit;
