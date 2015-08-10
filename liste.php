@@ -282,7 +282,7 @@
 
 		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price, ".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays', cat.label as 'Catégorie',
 					   tc.price_base_type AS base, tc.quantite as quantite,
-					   tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, tc.date_fin ";
+					   tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, CASE tc.date_fin WHEN '0000-00-00 00:00:00' THEN '".$langs->trans('AlwaysAvailable')."' ELSE CONCAT(DAY(tc.date_fin), '/', MONTH(tc.date_fin), '/', YEAR(tc.date_fin)) END AS date_fin, tc.prix AS prix ";
 		
 		if($type_unite == "unite") {
 
@@ -328,7 +328,7 @@
 			}
 			$sql .=			  " AS 'Total',";
 		}
-		$sql.= 		' tc.date_fin, ';
+		$sql.= 		' CASE tc.date_fin WHEN "0000-00-00 00:00:00" THEN "'.$langs->trans('AlwaysAvailable').'" ELSE CONCAT(DAY(tc.date_fin), "/", MONTH(tc.date_fin), "/", YEAR(tc.date_fin)) END AS date_fin, ';
 		$sql.=			   "'' AS 'Actions' ";
 		
 		$sql.=		" FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
@@ -367,7 +367,7 @@
 			,'Supprimer' =>$langs->trans('Delete')
 			,'Pays' =>$langs->trans('Country')
 		)
-		,'type'=>array('date_debut'=>'date','date_fin'=>'date','tva' => 'number', 'prix'=>'number', 'Total' => 'number' , 'quantite' => 'number')
+		,'type'=>array('date_debut'=>'date',/*'date_fin'=>'date',*/'tva' => 'number', 'prix'=>'number', 'Total' => 'number' , 'quantite' => 'number')
 		,'hide'=> $THide
 		,'link'=>array(
 			'Actions'=>'

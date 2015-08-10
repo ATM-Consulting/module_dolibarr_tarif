@@ -25,6 +25,7 @@ SellingPrice=Prix de vente
 ErreurPercent=Votre pourcentage doit être inférieur ou égal à cent
 ConfirmDelete=Êtes-vous sûr de vouloir supprimer ce tarif ?
 DateEndTarif=Date de fin d'application du tarif (toujours disponible si non renseigné)
+AlwaysAvailable=Toujours disponible
 
 #Lignes
 Cond=Cond.
