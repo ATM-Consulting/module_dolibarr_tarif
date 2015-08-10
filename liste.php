@@ -191,7 +191,14 @@
 		print '<tr><td width="30%">';
 		print $langs->trans('DateEndTarif');
 		print '</td><td>';
-		$form->select_date($tarif->date_fin,'date_fin','','','',"add",1,1);
+		
+		// Par défaut les tarifs n'ont pas de date de fin
+		if($action === 'add' || ($action === 'edit' && $tarif->date_fin === 0)) {
+			$show_empty = 1;
+			$tarif->date_fin = '';
+		}
+		
+		$form->select_date($tarif->date_fin,'date_fin','','',$show_empty,"add",1,1);
 		print '</td></tr>';
 
 		print '</table>';
@@ -275,7 +282,7 @@
 
 		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price, ".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays', cat.label as 'Catégorie',
 					   tc.price_base_type AS base, tc.quantite as quantite,
-					   tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix ";
+					   tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, tc.date_fin ";
 		
 		if($type_unite == "unite") {
 
@@ -321,8 +328,10 @@
 			}
 			$sql .=			  " AS 'Total',";
 		}
-		$sql.=			   "'' AS 'Actions'
-				FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
+		$sql.= 		' tc.date_fin, ';
+		$sql.=			   "'' AS 'Actions' ";
+		
+		$sql.=		" FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
 					LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)
 					LEFT JOIN ".MAIN_DB_PREFIX.((DOL_VERSION >= 3.7) ? "c_country" : "c_pays")." AS pays ON (pays.rowid = tc.fk_country)
 					LEFT JOIN ".MAIN_DB_PREFIX."categorie AS cat ON (cat.rowid = tc.fk_categorie_client)
@@ -346,6 +355,7 @@
 		'limit'=>array('nbLine'=>1000)
 		,'title'=>array(
 			'base' =>$langs->trans('PriceBase')
+			,'date_fin'=>'Date fin application'
 			,'quantite'=>$langs->trans('Quantity')
 			,'currency'=>$langs->trans('Devise')
 			,'type_price' =>$langs->trans('PriceType')
