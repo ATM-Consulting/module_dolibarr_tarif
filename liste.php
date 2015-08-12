@@ -15,6 +15,7 @@
 	global $langs;
 	
 	$langs->Load("other");
+	$langs->Load("bank");
 	$langs->Load("tarif@tarif");
 	
 	$fk_product = GETPOST('fk_product','int');
@@ -188,11 +189,32 @@
 		if($type_unite=='unite') print 'U';
 		else print $formproduct->select_measuring_units("weight_units", $type_unite, ($action=='edit') ? $tarif->unite_value : $object->{$type_unite.'_units'});
 		print '</td></tr>';
+		
+		
+		
+		print '<tr><td width="30%">';
+		print $langs->trans('DateBeginTarif');
+		print '</td><td>';
+		
+		// Par défaut les tarifs n'ont pas de date de fin
+		$show_empty = 0;
+		if($action === 'add' || ($action === 'edit' && $tarif->date_debut === 0)) {
+			$show_empty = 1;
+			$tarif->date_debut = '';
+		}
+		
+		$form->select_date($tarif->date_debut,'date_debut','','',$show_empty,"add",1,1);
+		print '</td></tr>';
+		
+		
+		
+		
 		print '<tr><td width="30%">';
 		print $langs->trans('DateEndTarif');
 		print '</td><td>';
 		
 		// Par défaut les tarifs n'ont pas de date de fin
+		$show_empty = 0;
 		if($action === 'add' || ($action === 'edit' && $tarif->date_fin === 0)) {
 			$show_empty = 1;
 			$tarif->date_fin = '';
@@ -200,6 +222,8 @@
 		
 		$form->select_date($tarif->date_fin,'date_fin','','',$show_empty,"add",1,1);
 		print '</td></tr>';
+
+
 
 		print '</table>';
 
@@ -256,6 +280,7 @@
 		$Ttarif->fk_product = $fk_product;
 		$Ttarif->fk_categorie_client = GETPOST('fk_categorie_client','int');
 		$Ttarif->date_fin = $Ttarif->set_date('date_fin',$_REQUEST['date_fin']);
+		$Ttarif->date_debut = $Ttarif->set_date('date_debut',$_REQUEST['date_debut']);
 		//$ATMdb->db->debug=true;
 			
 		//pre($Ttarif,true);exit;
@@ -282,7 +307,7 @@
 
 		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price, ".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays', cat.label as 'Catégorie',
 					   tc.price_base_type AS base, tc.quantite as quantite,
-					   tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, CASE tc.date_fin WHEN '0000-00-00 00:00:00' THEN '".$langs->trans('AlwaysAvailable')."' ELSE CONCAT(DAY(tc.date_fin), '/', MONTH(tc.date_fin), '/', YEAR(tc.date_fin)) END AS date_fin, tc.prix AS prix ";
+					   tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, CASE tc.date_debut WHEN '0000-00-00 00:00:00' THEN '' ELSE CONCAT(DAY(tc.date_debut), '/', MONTH(tc.date_debut), '/', YEAR(tc.date_debut)) END AS date_debut, CASE tc.date_fin WHEN '0000-00-00 00:00:00' THEN '' ELSE CONCAT(DAY(tc.date_fin), '/', MONTH(tc.date_fin), '/', YEAR(tc.date_fin)) END AS date_fin, tc.prix AS prix ";
 		
 		if($type_unite == "unite") {
 
@@ -328,7 +353,8 @@
 			}
 			$sql .=			  " AS 'Total',";
 		}
-		$sql.= 		' CASE tc.date_fin WHEN "0000-00-00 00:00:00" THEN "'.$langs->trans('AlwaysAvailable').'" ELSE CONCAT(DAY(tc.date_fin), "/", MONTH(tc.date_fin), "/", YEAR(tc.date_fin)) END AS date_fin, ';
+		$sql.= 		' CASE tc.date_debut WHEN "0000-00-00 00:00:00" THEN "" ELSE CONCAT(DAY(tc.date_debut), "/", MONTH(tc.date_debut), "/", YEAR(tc.date_debut)) END AS date_debut, ';
+		$sql.= 		' CASE tc.date_fin WHEN "0000-00-00 00:00:00" THEN "" ELSE CONCAT(DAY(tc.date_fin), "/", MONTH(tc.date_fin), "/", YEAR(tc.date_fin)) END AS date_fin, ';
 		$sql.=			   "'' AS 'Actions' ";
 		
 		$sql.=		" FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
@@ -355,7 +381,8 @@
 		'limit'=>array('nbLine'=>1000)
 		,'title'=>array(
 			'base' =>$langs->trans('PriceBase')
-			,'date_fin'=>'Date fin application'
+			,'date_debut'=>$langs->trans('StartDate')
+			,'date_fin'=>$langs->trans('EndDate')
 			,'quantite'=>$langs->trans('Quantity')
 			,'currency'=>$langs->trans('Devise')
 			,'type_price' =>$langs->trans('PriceType')
@@ -367,7 +394,7 @@
 			,'Supprimer' =>$langs->trans('Delete')
 			,'Pays' =>$langs->trans('Country')
 		)
-		,'type'=>array('date_debut'=>'date',/*'date_fin'=>'date',*/'tva' => 'number', 'prix'=>'number', 'Total' => 'number' , 'quantite' => 'number')
+		,'type'=>array(/*'date_debut'=>'date','date_fin'=>'date',*/'tva' => 'number', 'prix'=>'number', 'Total' => 'number' , 'quantite' => 'number')
 		,'hide'=> $THide
 		,'link'=>array(
 			'Actions'=>'
