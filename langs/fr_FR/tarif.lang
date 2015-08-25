@@ -24,8 +24,8 @@ CategoriesCustomer= Catégorie client
 SellingPrice=Prix de vente
 ErreurPercent=Votre pourcentage doit être inférieur ou égal à cent
 ConfirmDelete=Êtes-vous sûr de vouloir supprimer ce tarif ?
-DateBeginTarif=Date de début d'application du tarif (toujours disponible si non renseigné)
-DateEndTarif=Date de fin d'application du tarif (toujours disponible si non renseigné)
+DateBeginTarif=Date de début d'application du tarif <br /><small>(toujours disponible si non renseigné)</small>
+DateEndTarif=Date de fin d'application du tarif  <br /><small>(toujours disponible si non renseigné)</small>
 AlwaysAvailable=Toujours disponible
 
 #Lignes

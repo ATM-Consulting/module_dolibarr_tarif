@@ -385,7 +385,7 @@ class InterfaceTarifWorkflow
 
 				$prix_devise = $remise = false;
 				
-				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$idProd,$qtyline,$poids,$weight_units,$devise, $fk_country, $TFk_categorie, $object->remise_percent);
+				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$idProd,$qtyline,$poids,$weight_units,$devise, $fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
 				if($type_prix == '') {
 					$tvatx = $object->tva_tx;
 				}
@@ -397,7 +397,7 @@ class InterfaceTarifWorkflow
 					$type_prix = 'PERCENT/PRICE';
 				}
 				
-				if($remise !== false) {
+				if($remise !== false || $type_prix!='PERCENT') {
 				
 					if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
 						//exit('1');
@@ -405,7 +405,7 @@ class InterfaceTarifWorkflow
 						$price_level = $object_parent->client->price_level;
 						$fk_country = $object_parent->client->country_id;*/
 						//echo $devise;exit;					
-						$TRes = TTarif::getPrix($this->db,$idProd,$qtyline*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie);
+						$TRes = TTarif::getPrix($this->db,$idProd,$qtyline*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
 						if(is_array($TRes)) {
 							$prix_devise = $TRes[0];
 							$tvatx = $TRes[1];
@@ -417,7 +417,7 @@ class InterfaceTarifWorkflow
 						$prix = $prix_devise / $coef_conv;
 					}
 					
-					//pre($TRes,true);exit;
+					//var_dump( $TRes);exit;
 					if($prix_devise !== false) {
 						
 						$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !

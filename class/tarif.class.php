@@ -8,9 +8,8 @@ class TTarif extends TObjetStd {
 		parent::add_champs('unite','type=chaine;');
 		parent::add_champs('unite_value','type=entier;');
 		parent::add_champs('price_base_type,type_price,currency_code','type=chaine;');
-		parent::add_champs('fk_categorie_client','type=entier;');
 		parent::add_champs('prix,tva_tx,quantite,remise_percent','type=float;');
-		parent::add_champs('fk_user_author,fk_product,fk_country','type=entier;index;');
+		parent::add_champs('fk_user_author,fk_product,fk_country,fk_categorie_client,fk_soc,fk_project','type=entier;index;');
 		parent::add_champs('date_debut,date_fin','type=date;');
 		
 		parent::_init_vars();
@@ -25,7 +24,7 @@ class TTarif extends TObjetStd {
 		);
 	}
 	
-	static function getRemise(&$db, $idProd,$qty,$conditionnement,$weight_units, $devise,$fk_country=0, $TFk_categorie=array()){
+	static function getRemise(&$db, $idProd,$qty,$conditionnement,$weight_units, $devise,$fk_country=0, $TFk_categorie=array(), $fk_soc = 0, $fk_project = 0){
 		
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure !!!)
 		$sql = "SELECT p.type_remise as type_remise, tc.quantite as quantite, tc.type_price, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, tc.date_debut as date_debut, tc.date_fin as date_fin";
@@ -34,18 +33,19 @@ class TTarif extends TObjetStd {
 		$sql.= " WHERE fk_product = ".$idProd." AND (tc.currency_code = '".$devise."' OR tc.currency_code IS NULL)";
 		
 		if($fk_country>0) {
-			
-			$sql.=" AND tc.fk_country IN (0, $fk_country)";
-			
+			$sql.=" AND tc.fk_country IN (-1,0, $fk_country)";
 		}
 		if(!empty($TFk_categorie) && is_array($TFk_categorie) ) {
-			
 			$sql.=" AND tc.fk_categorie_client IN (-1,0, ".implode(',', $TFk_categorie).")";
-
-			
 		}		
+        if($fk_soc>0) {
+            $sql.=" AND tc.fk_soc IN (-1,0, $fk_soc)";
+        }
+        if($fk_project>0) {
+            $sql.=" AND tc.fk_project IN (-1,0, $fk_project)";
+        }
 		
-		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC";
+		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC, tc.fk_soc DESC, tc.fk_project DESC";
 		
 		$resql = $db->query($sql);
 //exit($sql);		
@@ -74,7 +74,7 @@ class TTarif extends TObjetStd {
 	}
 	
 	
-	static function getPrix(&$db, $idProd,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1,$fk_country=0, $TFk_categorie=array()){
+	static function getPrix(&$db, $idProd,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1,$fk_country=0, $TFk_categorie=array(), $fk_soc = 0, $fk_project = 0){
 	global $conf;
 		
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure)
@@ -86,7 +86,7 @@ class TTarif extends TObjetStd {
 		
 		if($fk_country>0) {
 			
-			$sql.=" AND tc.fk_country IN (0, $fk_country)";
+			$sql.=" AND tc.fk_country IN (-1,0, $fk_country)";
 			
 		}
 		if(!empty($TFk_categorie) && is_array($TFk_categorie)) {
@@ -95,15 +95,20 @@ class TTarif extends TObjetStd {
 
 			
 		}
+		if($fk_soc>0) {
+            $sql.=" AND tc.fk_soc IN (-1,0, $fk_soc)";
+        }
+        if($fk_project>0) {
+            $sql.=" AND tc.fk_project IN (-1,0, $fk_project)";
+        }
 		
+		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC, tc.fk_soc DESC, tc.fk_project DESC";
 		
-		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC";
-		//echo $sql;
 		$resql = $db->query($sql);
-		
+		//print ($sql);
 		if($db->num_rows($resql) > 0) {
 			while($res = $db->fetch_object($resql)) {
-				//pre($res,true);exit;
+				
 				if((($res->date_debut !== '0000-00-00 00:00:00') && (strtotime($res->date_debut) > (strtotime(date('Y-m-d'))))) || (($res->date_fin !== '0000-00-00 00:00:00') && (strtotime($res->date_fin) <= (strtotime(date('Y-m-d')))))) continue;
 				
 				if(strpos($res->type_price,'PRICE') !== false){

@@ -1,17 +1,22 @@
 <?php
 	require('config.php');
 	require('class/tarif.class.php');
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
-	require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+	dol_include_once('/core/lib/product.lib.php');
+	dol_include_once('/product/class/product.class.php');
+	dol_include_once('/product/class/html.formproduct.class.php');
+	dol_include_once('/core/class/extrafields.class.php');
 	
-	if(is_file(DOL_DOCUMENT_ROOT."/lib/product.lib.php")) require_once(DOL_DOCUMENT_ROOT."/lib/product.lib.php");
-	else require_once(DOL_DOCUMENT_ROOT."/core/lib/product.lib.php");
+	if(is_file(DOL_DOCUMENT_ROOT."/lib/product.lib.php")) dol_include_once("/lib/product.lib.php");
+	else dol_include_once("/core/lib/product.lib.php");
 	
-	require_once(DOL_DOCUMENT_ROOT."/product/class/product.class.php");
+	dol_include_once("/product/class/product.class.php");
 	dol_include_once('/categories/class/categorie.class.php');
 	
+    if (! empty($conf->projet->enabled)) {
+        dol_include_once( '/projet/class/project.class.php');
+        dol_include_once( '/core/class/html.formprojet.class.php');
+    }
+    
 	global $langs;
 	
 	$langs->Load("other");
@@ -96,7 +101,7 @@
 		print '</tr></tbody>';
 		print '</table>';
 		
-		print '<form action="" method="POST">';
+		print '<form action="'.$_SERVER['PHP_SELF'].'" method="POST">';
 		print '<input type="hidden" name="action" value="add_conditionnement">';
 		print '<input type="hidden" name="fk_product" value="'.$object->id.'">';
 		print '<input type="hidden" name="id" value="'.$tarif->getId().'">';
@@ -131,9 +136,50 @@
 		print $form->select_country( ($action=='edit') ? $tarif->fk_country : 0,"fk_country");
 		print '</td></tr>';
 		
+         //client
+        print '<tr><td>'.$langs->trans('Customer').'</td><td colspan="3">';
+        print $form->select_company($tarif->fk_soc, 'fk_soc','',1);
+        print '</td></tr>';
+        
+        //categorie
 		print '<tr><td>'.$langs->trans('CategoriesCustomer').'</td><td colspan="3">';
 		print $form->select_all_categories(2, ($action=='edit') ? $tarif->fk_categorie_client : 'auto', 'fk_categorie_client');
 		print '</td></tr>';
+    
+          //Projet
+        $formproject = new FormProjets($db);
+        print '<tr><td>'.$langs->trans('Project').'</td><td colspan="3">';
+        print $formproject->select_projects(-1, $tarif->fk_project, 'fk_project');
+        print '</td></tr>';
+        
+        // dates
+        print '<tr><td width="30%">';
+        print $langs->trans('DateBeginTarif');
+        print '</td><td>';
+        
+        // Par défaut les tarifs n'ont pas de date de fin
+        $show_empty = 0;
+        if($action === 'add' || ($action === 'edit' && $tarif->date_debut === 0)) {
+            $show_empty = 1;
+            $tarif->date_debut = '';
+        }
+        
+        $form->select_date($tarif->date_debut,'date_debut','','',$show_empty,"add",1,1);
+        print '</td></tr>';
+        
+        print '<tr><td width="30%">';
+        print $langs->trans('DateEndTarif');
+        print '</td><td>';
+        
+        // Par défaut les tarifs n'ont pas de date de fin
+        $show_empty = 0;
+        if($action === 'add' || ($action === 'edit' && $tarif->date_fin === 0)) {
+            $show_empty = 1;
+            $tarif->date_fin = '';
+        }
+        
+        $form->select_date($tarif->date_fin,'date_fin','','',$show_empty,"add",1,1);
+        print '</td></tr>';
 		
 		$prix = ( ($action=='edit') ? $tarif->prix :$object->price);
 		// Price
@@ -191,38 +237,7 @@
 		print '</td></tr>';
 		
 		
-		
-		print '<tr><td width="30%">';
-		print $langs->trans('DateBeginTarif');
-		print '</td><td>';
-		
-		// Par défaut les tarifs n'ont pas de date de fin
-		$show_empty = 0;
-		if($action === 'add' || ($action === 'edit' && $tarif->date_debut === 0)) {
-			$show_empty = 1;
-			$tarif->date_debut = '';
-		}
-		
-		$form->select_date($tarif->date_debut,'date_debut','','',$show_empty,"add",1,1);
-		print '</td></tr>';
-		
-		
-		
-		
-		print '<tr><td width="30%">';
-		print $langs->trans('DateEndTarif');
-		print '</td><td>';
-		
-		// Par défaut les tarifs n'ont pas de date de fin
-		$show_empty = 0;
-		if($action === 'add' || ($action === 'edit' && $tarif->date_fin === 0)) {
-			$show_empty = 1;
-			$tarif->date_fin = '';
-		}
-		
-		$form->select_date($tarif->date_fin,'date_fin','','',$show_empty,"add",1,1);
-		print '</td></tr>';
-
+	
 
 
 		print '</table>';
@@ -257,6 +272,9 @@
 		$Ttarif->currency_code = GETPOST('currency');
 		$Ttarif->fk_country = GETPOST('fk_country','int');
 		
+        $Ttarif->fk_soc = GETPOST('fk_soc','int');
+        $Ttarif->fk_project = GETPOST('fk_project','int');
+        
 		$prix = price2num(GETPOST('prix_visu'));
 		$remise = price2num(GETPOST('remise'));
 		
@@ -305,9 +323,12 @@
 
 	if($conf->multidevise->enabled){
 
-		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price, ".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays', cat.label as 'Catégorie',
-					   tc.price_base_type AS base, tc.quantite as quantite,
-					   tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, CASE tc.date_debut WHEN '0000-00-00 00:00:00' THEN '' ELSE CONCAT(DAY(tc.date_debut), '/', MONTH(tc.date_debut), '/', YEAR(tc.date_debut)) END AS date_debut, CASE tc.date_fin WHEN '0000-00-00 00:00:00' THEN '' ELSE CONCAT(DAY(tc.date_fin), '/', MONTH(tc.date_fin), '/', YEAR(tc.date_fin)) END AS date_fin, tc.prix AS prix ";
+		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price, ".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays'
+		              , cat.label as 'Catégorie'
+		              , tc.price_base_type AS base, tc.quantite as quantite,
+					   tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva
+					   , CASE tc.date_debut WHEN '0000-00-00 00:00:00' THEN '' ELSE CONCAT(DAY(tc.date_debut), '/', MONTH(tc.date_debut), '/', YEAR(tc.date_debut)) END AS date_debut, CASE tc.date_fin WHEN '0000-00-00 00:00:00' THEN '' ELSE CONCAT(DAY(tc.date_fin), '/', MONTH(tc.date_fin), '/', YEAR(tc.date_fin)) END AS date_fin, tc.prix AS prix 
+					   ";
 		
 		if($type_unite == "unite") {
 
