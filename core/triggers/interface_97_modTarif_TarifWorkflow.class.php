@@ -686,7 +686,7 @@ class InterfaceTarifWorkflow
 						$price_level = $object_parent->client->price_level;
 						$fk_country = $object_parent->client->country_id;*/
 		
-						list($prix_devise, $tvatx) =TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie);
+						list($prix_devise, $tvatx) =TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie,$object_parent->thirdparty->id, $object_parent->fk_project);
 						if($prix_devise !== false) @$prix = $prix_devise / $coef_conv;
 					}
 					
