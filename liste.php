@@ -324,6 +324,7 @@
 	if($conf->multidevise->enabled){
 
 		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price, ".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays'
+		              , tc.fk_soc
 		              , cat.label as 'Catégorie'
 		              , tc.price_base_type AS base, tc.quantite as quantite,
 					   tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva
@@ -361,7 +362,7 @@
 				ORDER BY unite_value, quantite ASC";
 	}
 	else {
-		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price,".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays', cat.label as 'Catégorie', tc.price_base_type AS base, tc.quantite as quantite,";
+		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price,".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays', tc.fk_soc, cat.label as 'Catégorie', tc.price_base_type AS base, tc.quantite as quantite,";
 		if($type_unite == "unite") {
 			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, tc.unite_value AS unite_value,";
 			$sql.=			  "tc.quantite * tc.prix * (100-tc.remise_percent)/100 AS 'Total',";
@@ -402,6 +403,7 @@
 		'limit'=>array('nbLine'=>1000)
 		,'title'=>array(
 			'base' =>$langs->trans('PriceBase')
+			, 'fk_soc'=>$langs->trans('Company')
 			,'date_debut'=>$langs->trans('StartDate')
 			,'date_fin'=>$langs->trans('EndDate')
 			,'quantite'=>$langs->trans('Quantity')
@@ -425,6 +427,7 @@
 		)
 		,'eval'=>array(
 			'type_price'=>'_getTypePrice("@val@")'
+			,'fk_soc'=>'_getNomURLSoc(@val@)'
 		)
 	));
 
@@ -437,6 +440,19 @@
 		$TTarif = new TTarif;
 
 		return $langs->trans($TTarif->TType_price[$idPriceCondi]);
+	}
+	
+	function _getNomURLSoc($id_soc) {
+		
+		global $db;
+		
+		$s = new Societe($db);
+		$s->fetch($id_soc);
+		
+		if($s->id > 0) {
+			return $s->getNomUrl(1);
+		}
+		
 	}
 	
 	
