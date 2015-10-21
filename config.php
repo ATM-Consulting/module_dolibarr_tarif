@@ -14,4 +14,5 @@
 	    define('DOL_DEFAULT_UNIT', $conf->global->TARIF_DOL_DEFAULT_UNIT ); //'unite'  //Définie l'unité de vente par défaut des lignes de propale, commande, facture : weight, size, surface, volume
 
 	if(!defined('TARIF_DONT_USE_TVATX'))
-		define('TARIF_DONT_USE_TVATX', $conf->global->TARIF_DONT_USE_TVATX); // Garder le taux de TVA déterminé par Dolibarr
+		if(! empty($conf->global->TARIF_DONT_USE_TVATX))
+			define('TARIF_DONT_USE_TVATX', $conf->global->TARIF_DONT_USE_TVATX); // Garder le taux de TVA déterminé par Dolibarr
