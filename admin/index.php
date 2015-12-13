@@ -99,6 +99,9 @@ function showParameters(&$form) {
 			<td><?php echo $langs->trans('tarifTARIF_USE_METRE') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_USE_METRE]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_USE_METRE)  ?></td>				
 		</tr>
 		<tr>
+			<td><?php echo $langs->trans('tarifTARIF_ONLY_UPDATE_LINE_PRICE') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_ONLY_UPDATE_LINE_PRICE]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_ONLY_UPDATE_LINE_PRICE)  ?></td>				
+		</tr>
+		<tr>
 			<td><?php echo $langs->trans('tarifTARIF_DOL_DEFAULT_UNIT') ?></td><td><?php echo 'définition non disponible ici. cf.divers'  ?></td>				
 		</tr>
 		

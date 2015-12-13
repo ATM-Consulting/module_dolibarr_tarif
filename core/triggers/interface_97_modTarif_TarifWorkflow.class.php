@@ -351,6 +351,7 @@ class InterfaceTarifWorkflow
 				if($product->type==1 && empty($conf->global->TARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES))$poids=1;
 
 			}
+			
 			//echo $poids." ".$weight_units;
 			//pre($product,true);
 			//exit;
@@ -436,7 +437,15 @@ class InterfaceTarifWorkflow
 						$object->tva_tx = $TFirst_price_diff_zero[1];
 						$object->update($user,1);
 					}
-				}				
+				}
+				
+				if($remise === false && $prix_devise === false && $conf->global->TARIF_ONLY_UPDATE_LINE_PRICE) {
+					$prix_devise = $object->subprice * $poids;
+					$prix = $prix_devise;
+					$tvatx = $object->tva_tx;
+					$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !
+					$this->_updateTotauxLine($object,$qtyline);
+				} 
 				//MAJ du poids et de l'unité de la ligne
 				$sql = "UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid;
 				$this->db->query($sql);
