@@ -3,25 +3,30 @@
  * Script créant et vérifiant que les champs requis s'ajoutent bien
  * 
  */
- 	define('INC_FROM_CRON_SCRIPT', true);
+	if(!defined('INC_FROM_DOLIBARR')) {
+		define('INC_FROM_CRON_SCRIPT', true);
+		
+		require('../config.php');
 	
-	require('../config.php');
-	require('../class/tarif.class.php');
+	}
 
-	$ATMdb=new TPDOdb;
-	$ATMdb->debug=true;
+	dol_include_once('/tarif/class/tarif.class.php');
+	
+	$PDOdb=new TPDOdb;
+	$PDOdb->debug=true;
 
 	$o=new TTarif;
-	$o->init_db_by_vars($ATMdb);
+	$o->init_db_by_vars($PDOdb);
 	
 	$o=new TTarifCommandedet;
-	$o->init_db_by_vars($ATMdb);
+	$o->init_db_by_vars($PDOdb);
 	
 	$o=new TTarifPropaldet;
-	$o->init_db_by_vars($ATMdb);
+	$o->init_db_by_vars($PDOdb);
 	
 	$o=new TTarifFacturedet;
-	$o->init_db_by_vars($ATMdb);
+	$o->init_db_by_vars($PDOdb);
 	
 	$o=new TTarifCommandeFourndet;
-	$o->init_db_by_vars($ATMdb);
+	$o->init_db_by_vars($PDOdb);
+	
