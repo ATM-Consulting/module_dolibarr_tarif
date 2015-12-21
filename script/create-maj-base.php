@@ -13,7 +13,7 @@
 	dol_include_once('/tarif/class/tarif.class.php');
 	
 	$PDOdb=new TPDOdb;
-	$PDOdb->debug=true;
+	//$PDOdb->debug=true;
 
 	$o=new TTarif;
 	$o->init_db_by_vars($PDOdb);
