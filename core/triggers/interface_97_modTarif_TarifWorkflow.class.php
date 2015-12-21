@@ -686,8 +686,8 @@ class InterfaceTarifWorkflow
 					// On récupère les catégories dont le client fait partie
 					if (!empty($object_parent->thirdparty->id))
 						$TFk_categorie = TTarif::getCategClient($object_parent->thirdparty->id); 
-					
-					list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $fk_country, $TFk_categorie);
+
+					list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $conf->currency,$fk_country, $TFk_categorie);
 					$prix = __val($object->subprice,$object->price,'float',true);
 					
 					if($remise == 0 || $type_prix=='PERCENT/PRICE'){
