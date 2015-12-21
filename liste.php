@@ -146,12 +146,15 @@
 		print $form->select_all_categories(2, ($action=='edit') ? $tarif->fk_categorie_client : 'auto', 'fk_categorie_client');
 		print '</td></tr>';
     
-          //Projet
-        $formproject = new FormProjets($db);
-        print '<tr><td>'.$langs->trans('Project').'</td><td colspan="3">';
-        print $formproject->select_projects(-1, $tarif->fk_project, 'fk_project');
-        print '</td></tr>';
-        
+    	//Projet
+    	if (! empty($conf->projet->enabled)) 
+    	{
+	        $formproject = new FormProjets($db);
+	        print '<tr><td>'.$langs->trans('Project').'</td><td colspan="3">';
+	        print $formproject->select_projects(-1, $tarif->fk_project, 'fk_project');
+	        print '</td></tr>';
+		}
+		
         // dates
         print '<tr><td width="30%">';
         print $langs->trans('DateBeginTarif');
