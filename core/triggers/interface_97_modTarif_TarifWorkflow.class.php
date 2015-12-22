@@ -439,7 +439,8 @@ class InterfaceTarifWorkflow
 					}
 				}
 				
-				if($remise === false && $prix_devise === false && $conf->global->TARIF_ONLY_UPDATE_LINE_PRICE) {
+				$dolibarr_version = (float) DOL_VERSION;
+				if($dolibarr_version < 3.8 && ($remise === false && $prix_devise === false && $conf->global->TARIF_ONLY_UPDATE_LINE_PRICE)) {
 					$prix_devise = $object->subprice * $poids;
 					$prix = $prix_devise;
 					$tvatx = $object->tva_tx;
