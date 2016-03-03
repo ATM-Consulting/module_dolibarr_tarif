@@ -45,7 +45,12 @@ class TTarif extends TObjetStd {
             $sql.=" AND tc.fk_project IN (-1,0, $fk_project)";
         }
 		
-		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC, tc.fk_soc DESC, tc.fk_project DESC";
+		$sql .= 'ORDER BY ';
+		if($fk_country>0) {
+			$sql .= 'tc.fk_country DESC, ';
+		}
+		$sql.= 'quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC, tc.fk_soc DESC, tc.fk_project DESC';
+		
 		
 		$resql = $db->query($sql);
 //exit($sql);		
@@ -53,8 +58,23 @@ class TTarif extends TObjetStd {
 			$pallier = 0;
 			
 			while($res = $db->fetch_object($resql)) {
+					
 				
-				if((($res->date_debut !== '0000-00-00 00:00:00') && (strtotime($res->date_debut) > (strtotime(date('Y-m-d'))))) || (($res->date_fin !== '0000-00-00 00:00:00') && (strtotime($res->date_fin) <= (strtotime(date('Y-m-d')))))) continue;
+				if ($res->date_debut !== '0000-00-00 00:00:00')
+				{
+					if (strtotime($res->date_debut) > strtotime(date('Y-m-d')))
+					{
+						continue;
+					}	
+				}
+					
+				if ($res->date_fin !== '0000-00-00 00:00:00')
+				{
+					if (strtotime($res->date_fin) <= strtotime(date('Y-m-d')))
+					{
+						continue;
+					}
+				}
 				
 				if( strpos($res->type_price,'PERCENT')!==false ){
 					
@@ -102,7 +122,11 @@ class TTarif extends TObjetStd {
             $sql.=" AND tc.fk_project IN (-1,0, $fk_project)";
         }
 		
-		$sql.= " ORDER BY quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC, tc.fk_soc DESC, tc.fk_project DESC";
+		$sql .= 'ORDER BY ';
+		if($fk_country>0) {
+			$sql .= 'tc.fk_country DESC, ';
+		}
+		$sql.= 'quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC, tc.fk_soc DESC, tc.fk_project DESC';
 		
 		$resql = $db->query($sql);
 		//print ($sql);
