@@ -664,6 +664,8 @@ class InterfaceTarifWorkflow
 			
 			if($object->oldline->qty != $object->qty || (floatval($res->tarif_poids * pow(10, $res->poids)) != floatval($poids * pow(10, $weight_units)) && !$conf->global->TARIF_DONT_ADD_UNIT_SELECT)){
 				
+				if (!empty($conf->global->TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE)) return 1;
+				
 				if(!empty($idProd)){
 					if($conf->multidevise->enabled){
 						$sql = "SELECT devise_code as code, devise_taux as coef FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".__val($object->{"fk_".$table},$_REQUEST['id'],'integer'); //Récup devise du parent + taux de conv 
