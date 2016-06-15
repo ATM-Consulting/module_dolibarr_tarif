@@ -692,6 +692,7 @@ class InterfaceTarifWorkflow
 						$TFk_categorie = TTarif::getCategClient($object_parent->thirdparty->id); 
 
 					list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $conf->currency,$fk_country, $TFk_categorie);
+					$_REQUEST['remise_percent'] = $remise;
 					$prix = __val($object->subprice,$object->price,'float',true);
 					
 					if($remise == 0 || $type_prix=='PERCENT/PRICE'){
