@@ -104,6 +104,9 @@ function showParameters(&$form) {
 		<tr>
 			<td><?php echo $langs->trans('tarifTARIF_DOL_DEFAULT_UNIT') ?></td><td><?php echo 'définition non disponible ici. cf.divers'  ?></td>				
 		</tr>
+		<tr>
+			<td><?php echo $langs->trans('TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE)  ?></td>				
+		</tr>
 		
 	</table>
 	<p align="right">
