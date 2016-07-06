@@ -23,6 +23,7 @@ CategoriesCustomer=Customer Category
 SellingPrice=Selling price
 ErreurPercent=Percente discount should be less than or equal 100
 ConfirmDelete=Are you sure you want to delete this rate?
+tarif_percent_not_between_0_100=The percentage must be between 0 and 100
 
 #Lignes
 Cond=Package
