@@ -60,7 +60,7 @@ class TTarif extends TObjetStd {
 			while($res = $db->fetch_object($resql)) {
 					
 				
-				if ($res->date_debut !== '0000-00-00 00:00:00')
+				if ($res->date_debut !== '0000-00-00 00:00:00' && $res->date_debut !== '1000-01-01 00:00:00')
 				{
 					if (strtotime($res->date_debut) > strtotime(date('Y-m-d')))
 					{
@@ -68,7 +68,7 @@ class TTarif extends TObjetStd {
 					}	
 				}
 					
-				if ($res->date_fin !== '0000-00-00 00:00:00')
+				if ($res->date_fin !== '0000-00-00 00:00:00' && $res->date_fin !== '1000-01-01 00:00:00')
 				{
 					if (strtotime($res->date_fin) <= strtotime(date('Y-m-d')))
 					{
@@ -133,7 +133,7 @@ class TTarif extends TObjetStd {
 		if($db->num_rows($resql) > 0) {
 			while($res = $db->fetch_object($resql)) {
 				
-				if((($res->date_debut !== '0000-00-00 00:00:00') && (strtotime($res->date_debut) > (strtotime(date('Y-m-d'))))) || (($res->date_fin !== '0000-00-00 00:00:00') && (strtotime($res->date_fin) <= (strtotime(date('Y-m-d')))))) continue;
+				if((($res->date_debut !== '0000-00-00 00:00:00' && $res->date_debut !== '1000-01-01 00:00:00') && (strtotime($res->date_debut) > (strtotime(date('Y-m-d'))))) || (($res->date_fin !== '0000-00-00 00:00:00' && $res->date_fin !== '1000-01-01 00:00:00') && (strtotime($res->date_fin) <= (strtotime(date('Y-m-d')))))) continue;
 				
 				if(strpos($res->type_price,'PRICE') !== false){
 					
@@ -200,10 +200,6 @@ class TTarif extends TObjetStd {
 		global $conf;
 		
 		if(empty($this->currency_code)) $this->currency_code = $conf->currency; 
-		
-		// Si les champs sont vides ça éviter d'enregistrer en base la date 1000-01-01 01:00:00
-		if (empty($Ttarif->date_debut)) $Ttarif->date_debut = strtotime('0000-00-00 00:00:00');
-		if (empty($Ttarif->date_fin)) $Ttarif->date_fin = strtotime('0000-00-00 00:00:00');
 		
 		parent::save($ATMdb);
 	}
