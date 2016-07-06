@@ -201,8 +201,11 @@ class TTarif extends TObjetStd {
 		
 		if(empty($this->currency_code)) $this->currency_code = $conf->currency; 
 		
-		parent::save($ATMdb);
+		// Si les champs sont vides ça éviter d'enregistrer en base la date 1000-01-01 01:00:00
+		if (empty($Ttarif->date_debut)) $Ttarif->date_debut = strtotime('0000-00-00 00:00:00');
+		if (empty($Ttarif->date_fin)) $Ttarif->date_fin = strtotime('0000-00-00 00:00:00');
 		
+		parent::save($ATMdb);
 	}
 	
 }
