@@ -28,7 +28,8 @@ DateBeginTarif=Date de début d'application du tarif <br /><small>(toujours disp
 DateEndTarif=Date de fin d'application du tarif  <br /><small>(toujours disponible si non renseigné)</small>
 AlwaysAvailable=Toujours disponible
 tarif_percent_not_between_0_100=Le pourcentage de remise ne peut pas être inférieur à 0 ou supérieur à 100
-
+StartDate=Date début application
+EndDate=Date fin application
 #Lignes
 Cond=Cond.
 

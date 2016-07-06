@@ -202,8 +202,8 @@
 			<script type="text/javascript">
 			
 				$('input[name=remise]').change(function() {
-					var n_percent = $(this).val();
-					if (n_percent == '') { 
+					var n_percent = parseInt($(this).val());
+					if (isNaN(n_percent)) { 
 						n_percent = 0;
 						$(this).val(0);
 					}
@@ -449,6 +449,14 @@
 			,'fk_soc'=>'_getNomURLSoc(@val@)'
 		)
 	));
+	
+	print '
+		<style type="text/css">
+			#list_llx_tarif_conditionnement td div {
+				text-align:left !important;
+			}
+		</style>
+	';
 
 
 	function _getTypePrice($idPriceCondi){
