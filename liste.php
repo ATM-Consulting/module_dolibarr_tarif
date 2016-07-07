@@ -202,10 +202,16 @@
 			<script type="text/javascript">
 			
 				$('input[name=remise]').change(function() {
-					var n_percent = $(this).val();
+					var n_percent = parseInt($(this).val());
+					if (isNaN(n_percent)) { 
+						n_percent = 0;
+						$(this).val(0);
+					}
+					
 					var price = $('#prix').val();
 					if(n_percent>100 || n_percent<0) {
-						alert('<?php echo $langs->trans('Remise(%)'); ?>');
+						alert('<?php echo $langs->transnoentities('tarif_percent_not_between_0_100'); ?>');
+						$(this).val(0);
 						return false;
 					}
 					if($('#type_prix').val() != 'PERCENT/PRICE') {
@@ -216,9 +222,19 @@
 				$('input[name=prix_visu]').change(function() {
 					if($('#type_prix').val() != 'PERCENT/PRICE') {
 						var n_price = parseFloat($(this).val());
-						var price = parseFloat($('#prix').val());
+						if (isNaN(n_price)) { 
+							n_price = 0;
+							$(this).val(0);
+						}
 						
-						var percent = - (((n_price - price) / price) *100 );
+						var price = parseFloat($('#prix').val());
+						var percent;
+						
+						if (price == 0) {
+							percent = 0;
+						} else {
+							percent = - (((n_price - price) / price) *100 );
+						}
 						
 						$('#remise').val(percent.toFixed(0));
 						
@@ -439,6 +455,14 @@
 			,'fk_soc'=>'_getNomURLSoc(@val@)'
 		)
 	));
+	
+	print '
+		<style type="text/css">
+			#list_llx_tarif_conditionnement td div {
+				text-align:left !important;
+			}
+		</style>
+	';
 
 
 	function _getTypePrice($idPriceCondi){
