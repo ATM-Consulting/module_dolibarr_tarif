@@ -331,14 +331,9 @@
 		              , cat.label as 'Catégorie'
 		              , tc.price_base_type AS base, tc.quantite as quantite,
 					   tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva
-					   , CASE tc.date_debut 
-					   		WHEN '0000-00-00 00:00:00' THEN '' 
-					   		WHEN '1000-01-01 00:00:00' THEN ''
-					   		ELSE CONCAT(DAY(tc.date_debut), '/', MONTH(tc.date_debut), '/', YEAR(tc.date_debut)) END AS date_debut
-					   	, CASE tc.date_fin 
-				   			WHEN '0000-00-00 00:00:00' THEN '' 
-				   			WHEN '1000-01-01 00:00:00' THEN ''
-				   			ELSE CONCAT(DAY(tc.date_fin), '/', MONTH(tc.date_fin), '/', YEAR(tc.date_fin)) END AS date_fin, tc.prix AS prix 
+					   , IF(tc.date_debut<='1000-01-01 00:00:00', '' , DATE_FORMAT(tc.date_debut,'%d/%m/%Y')) AS date_debut
+					   , IF(tc.date_fin<='1000-01-01 00:00:00', '' , DATE_FORMAT(tc.date_fin,'%d/%m/%Y')) AS date_fin
+					   , tc.prix AS prix
 					   ";
 		
 		if($type_unite == "unite") {
@@ -385,15 +380,13 @@
 			}
 			$sql .=			  " AS 'Total',";
 		}
-		$sql.= 		' CASE tc.date_debut 
-						WHEN "0000-00-00 00:00:00" THEN "" 
-						WHEN "1000-01-01 00:00:00" THEN ""
-						ELSE CONCAT(DAY(tc.date_debut), "/", MONTH(tc.date_debut), "/", YEAR(tc.date_debut)) END AS date_debut, ';
-		$sql.= 		' CASE tc.date_fin 
-						WHEN "0000-00-00 00:00:00" THEN "" 
-						WHEN "1000-01-01 00:00:00" THEN ""
-						ELSE CONCAT(DAY(tc.date_fin), "/", MONTH(tc.date_fin), "/", YEAR(tc.date_fin)) END AS date_fin, ';
-		$sql.=			   "'' AS 'Actions' ";
+		
+		$sql .= "
+				 IF(tc.date_debut<='1000-01-01 00:00:00', '' , DATE_FORMAT(tc.date_debut,'%d/%m/%Y')) AS date_debut
+				, IF(tc.date_fin<='1000-01-01 00:00:00', '' , DATE_FORMAT(tc.date_fin,'%d/%m/%Y')) AS date_fin
+		";
+	
+		$sql.=			   ", '' AS 'Actions' ";
 		
 		$sql.=		" FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
 					LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)

@@ -386,7 +386,7 @@ class InterfaceTarifWorkflow
 
 				$prix_devise = $remise = false;
 				
-				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$idProd,$qtyline,$poids,$weight_units,$devise, $fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
+				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$object,$qtyline,$poids,$weight_units,$devise, $fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
 				//var_dump($remise);exit;
 				if($type_prix == '') {
 					$tvatx = $object->tva_tx;
