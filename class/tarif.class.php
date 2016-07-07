@@ -24,7 +24,17 @@ class TTarif extends TObjetStd {
 		);
 	}
 	
-	static function getRemise(&$db, $idProd,$qty,$conditionnement,$weight_units, $devise,$fk_country=0, $TFk_categorie=array(), $fk_soc = 0, $fk_project = 0){
+	static function getRemise(&$db, &$line,$qty,$conditionnement,$weight_units, $devise,$fk_country=0, $TFk_categorie=array(), $fk_soc = 0, $fk_project = 0){
+		
+		if (!is_object($line)) $idProd = $line; // Ancien comportement, le paramètre est en fait l'id du produit
+		else {
+			$idProd = $line->fk_product;
+			$class = get_class($line);
+			if($class == 'PropaleLigne'){ $parent = new Propal($db); $parent->fetch($line->fk_propal); }
+			else if($class == 'OrderLine'){ $parent = new Commande($db); $parent->fetch($line->fk_commande); }
+			else if($class == 'FactureLigne'){ $parent = new Facture($db); $parent->fetch($line->fk_facture); }
+			else if($class == 'CommandeFournisseurLigne'){ $parent = new CommandeFournisseur($db); $parent->fetch($line->fk_commande); }
+		}
 		
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure !!!)
 		$sql = "SELECT p.type_remise as type_remise, tc.quantite as quantite, tc.type_price, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, tc.date_debut as date_debut, tc.date_fin as date_fin";
@@ -58,19 +68,35 @@ class TTarif extends TObjetStd {
 			$pallier = 0;
 			
 			while($res = $db->fetch_object($resql)) {
-					
 				
-				if ($res->date_debut !== '0000-00-00 00:00:00')
+				if ($res->date_debut !== '0000-00-00 00:00:00' && $res->date_debut !== '1000-01-01 00:00:00')
 				{
-					if (strtotime($res->date_debut) > strtotime(date('Y-m-d')))
+					$date_deb_remise = $db->jdate($res->date_debut);
+					
+					if (is_object($line) && (!empty($line->date_start) || !empty($parent->date)) )
+					{
+						if (!empty($line->date_start) && $date_deb_remise > $line->date_start) continue;
+						// Test si j'ai pas de date de saisie sur la ligne dans ce cas la je test la date du document
+						elseif (empty($line->date_start) && !empty($parent->date) && $date_deb_remise > $parent->date) continue;
+					}
+					// Keep old behavior
+					elseif ($date_deb_remise > strtotime(date('Y-m-d')))
 					{
 						continue;
 					}	
 				}
 					
-				if ($res->date_fin !== '0000-00-00 00:00:00')
+				if ($res->date_fin !== '0000-00-00 00:00:00' && $res->date_fin !== '1000-01-01 00:00:00')
 				{
-					if (strtotime($res->date_fin) <= strtotime(date('Y-m-d')))
+					$date_fin_remise = $db->jdate($res->date_fin);
+					if (is_object($line) && (!empty($line->date_start) || !empty($parent->date)))
+					{
+						if (!empty($line->date_start) && $date_fin_remise <= $line->date_start) continue;
+						// Test si j'ai pas de date de saisie sur la ligne dans ce cas la je test la date du document
+						elseif (empty($line->date_start) && !empty($parent->date) && $date_fin_remise <= $parent->date) continue;
+					}
+					// Keep old behavior
+					elseif ($date_fin_remise <= strtotime(date('Y-m-d')))
 					{
 						continue;
 					}
@@ -94,8 +120,18 @@ class TTarif extends TObjetStd {
 	}
 	
 	
-	static function getPrix(&$db, $idProd,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1,$fk_country=0, $TFk_categorie=array(), $fk_soc = 0, $fk_project = 0){
+	static function getPrix(&$db, &$line,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1,$fk_country=0, $TFk_categorie=array(), $fk_soc = 0, $fk_project = 0){
 	global $conf;
+		
+		if (!is_object($line)) $idProd = $line; // Ancien comportement, le paramètre est en fait l'id du produit
+		else {
+			$idProd = $line->fk_product;
+			$class = get_class($line);
+			if($class == 'PropaleLigne'){ $parent = new Propal($db); $parent->fetch($line->fk_propal); }
+			else if($class == 'OrderLine'){ $parent = new Commande($db); $parent->fetch($line->fk_commande); }
+			else if($class == 'FactureLigne'){ $parent = new Facture($db); $parent->fetch($line->fk_facture); }
+			else if($class == 'CommandeFournisseurLigne'){ $parent = new CommandeFournisseur($db); $parent->fetch($line->fk_commande); }
+		}
 		
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure)
 		$sql = "SELECT p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, tc.date_debut as date_debut, tc.date_fin as date_fin, pr.weight";
@@ -132,8 +168,39 @@ class TTarif extends TObjetStd {
 		//print ($sql);
 		if($db->num_rows($resql) > 0) {
 			while($res = $db->fetch_object($resql)) {
-				
-				if((($res->date_debut !== '0000-00-00 00:00:00') && (strtotime($res->date_debut) > (strtotime(date('Y-m-d'))))) || (($res->date_fin !== '0000-00-00 00:00:00') && (strtotime($res->date_fin) <= (strtotime(date('Y-m-d')))))) continue;
+					
+				if ($res->date_debut !== '0000-00-00 00:00:00' && $res->date_debut !== '1000-01-01 00:00:00')
+				{
+					$date_deb_remise = $db->jdate($res->date_debut);
+					
+					if (is_object($line) && (!empty($line->date_start) || !empty($parent->date)) )
+					{
+						if (!empty($line->date_start) && $date_deb_remise > $line->date_start) continue;
+						// Test si j'ai pas de date de saisie sur la ligne dans ce cas la je test la date du document
+						elseif (empty($line->date_start) && !empty($parent->date) && $date_deb_remise > $parent->date) continue;
+					}
+					// Keep old behavior
+					elseif ($date_deb_remise > strtotime(date('Y-m-d')))
+					{
+						continue;
+					}	
+				}
+					
+				if ($res->date_fin !== '0000-00-00 00:00:00' && $res->date_fin !== '1000-01-01 00:00:00')
+				{
+					$date_fin_remise = $db->jdate($res->date_fin);
+					if (is_object($line) && (!empty($line->date_start) || !empty($parent->date)))
+					{
+						if (!empty($line->date_start) && $date_fin_remise <= $line->date_start) continue;
+						// Test si j'ai pas de date de saisie sur la ligne dans ce cas la je test la date du document
+						elseif (empty($line->date_start) && !empty($parent->date) && $date_fin_remise <= $parent->date) continue;
+					}
+					// Keep old behavior
+					elseif ($date_fin_remise <= strtotime(date('Y-m-d')))
+					{
+						continue;
+					}
+				}
 				
 				if(strpos($res->type_price,'PRICE') !== false){
 					
@@ -202,7 +269,6 @@ class TTarif extends TObjetStd {
 		if(empty($this->currency_code)) $this->currency_code = $conf->currency; 
 		
 		parent::save($ATMdb);
-		
 	}
 	
 }
