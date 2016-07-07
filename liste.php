@@ -235,7 +235,6 @@
 						} else {
 							percent = - (((n_price - price) / price) *100 );
 						}
-						
 						$('#remise').val(percent.toFixed(0));
 						
 					}

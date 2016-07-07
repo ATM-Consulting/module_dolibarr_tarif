@@ -407,7 +407,7 @@ class InterfaceTarifWorkflow
 						$price_level = $object_parent->client->price_level;
 						$fk_country = $object_parent->client->country_id;*/
 						//echo $devise;exit;					
-						$TRes = TTarif::getPrix($this->db,$idProd,$qtyline*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
+						$TRes = TTarif::getPrix($this->db,$object,$qtyline*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
 						if(is_array($TRes)) {
 							$prix_devise = $TRes[0];
 							$tvatx = $TRes[1];
@@ -691,7 +691,7 @@ class InterfaceTarifWorkflow
 					if (!empty($object_parent->thirdparty->id))
 						$TFk_categorie = TTarif::getCategClient($object_parent->thirdparty->id); 
 
-					list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $conf->currency,$fk_country, $TFk_categorie);
+					list($remise, $type_prix) = TTarif::getRemise($this->db,$object,$object->qty,$poids,$weight_units, $conf->currency,$fk_country, $TFk_categorie);
 					$_REQUEST['remise_percent'] = $remise;
 					$prix = __val($object->subprice,$object->price,'float',true);
 					
@@ -700,7 +700,7 @@ class InterfaceTarifWorkflow
 						$price_level = $object_parent->client->price_level;
 						$fk_country = $object_parent->client->country_id;*/
 		
-						list($prix_devise, $tvatx) =TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie,$object_parent->thirdparty->id, $object_parent->fk_project);
+						list($prix_devise, $tvatx) =TTarif::getPrix($this->db,$object,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie,$object_parent->thirdparty->id, $object_parent->fk_project);
 						if($prix_devise !== false) @$prix = $prix_devise / $coef_conv;
 					}
 					
