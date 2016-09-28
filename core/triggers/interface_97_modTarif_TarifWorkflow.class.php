@@ -156,7 +156,8 @@ class InterfaceTarifWorkflow
 		$object->total_ht  = price2num($object->subprice * $qty * (1 - $object->remise_percent / 100), 'MT');
 		$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
 		$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
-		$object->update_total();
+		if (method_exists($object, 'update_total')) $object->update_total();
+		elseif (method_exists($object, 'updateTotal')) $object->updateTotal();
 	}
 	
 	function _getObjectParent(&$object){
@@ -619,7 +620,7 @@ class InterfaceTarifWorkflow
 				 $table = 'facture';
 				 $tabledet = 'facturedet';
 			}
-			elseif(get_class($object) == 'CommandeFournisseur'){
+			elseif(get_class($object) == 'CommandeFournisseur' || get_class($object) == 'CommandeFournisseurLigne'){
 				$table = "commande_fournisseur"; 
 				$tabledet = 'commande_fournisseurdet'; 
 				$parentfield = 'fk_commande';
@@ -628,6 +629,7 @@ class InterfaceTarifWorkflow
 			$idLine = __val($object->rowid, $object->id); 
 			
 			$sql = "SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$tabledet." WHERE rowid = ".$idLine;
+			
 			$resql = $this->db->query($sql);
 			$res = $this->db->fetch_object($resql);
 			
