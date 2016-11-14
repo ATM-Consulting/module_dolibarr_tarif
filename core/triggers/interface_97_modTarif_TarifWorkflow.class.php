@@ -153,9 +153,17 @@ class InterfaceTarifWorkflow
 	
 	function _updateTotauxLine(&$object,$qty){
 		//MAJ des totaux de la ligne
-		$object->total_ht  = price2num($object->subprice * $qty * (1 - $object->remise_percent / 100), 'MT');
-		$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
-		$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
+		if(!empty($object->array_options['options_longueur']) && !empty($object->array_options['options_largeur']) ){
+			
+			$object->total_ht  = price2num($object->subprice * $qty * (1 - $object->remise_percent / 100)*$object->array_options['options_longueur']*$object->array_options['options_largeur'], 'MT');
+			$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
+			$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
+
+		} else {
+			$object->total_ht  = price2num($object->subprice * $qty * (1 - $object->remise_percent / 100), 'MT');
+			$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
+			$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
+		}
 		if (method_exists($object, 'update_total')) $object->update_total();
 		elseif (method_exists($object, 'updateTotal')) $object->updateTotal();
 	}
@@ -193,6 +201,7 @@ class InterfaceTarifWorkflow
 	
 	//Calcule le prix de la ligne de facture
 	private function calcule_prix_facture(&$res,&$object){
+		
 		$poids_exedie = ($res->weight * pow(10, $res->weight_unit))* $res->price;
 		$poids_commande = ($res->tarif_poids * pow(10, $res->poids)) * $object->qty;
 		$prix = $poids_exedie / $poids_commande;
@@ -588,6 +597,14 @@ class InterfaceTarifWorkflow
 			if($action == 'LINEORDER_SUPPLIER_CREATE') {
 				$object = $tmpObject;
 			}
+			if(!empty($object->array_options['options_longueur']) && !empty($object->array_options['options_largeur']) ){
+			
+			$object->total_ht  = price2num($object->subprice * $object->qty * (1 - $object->remise_percent / 100)*$object->array_options['options_longueur']*$object->array_options['options_largeur'], 'MT');
+			$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
+			$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
+			
+		}
+			
 		}
 
 		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE'  || $action==='LINEORDER_SUPPLIER_UPDATE') 
