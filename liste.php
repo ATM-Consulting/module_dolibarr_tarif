@@ -18,7 +18,7 @@
     }
     
 	global $langs;
-	
+
 	$langs->Load("other");
 	$langs->Load("bank");
 	$langs->Load("tarif@tarif");

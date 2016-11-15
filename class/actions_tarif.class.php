@@ -20,7 +20,8 @@ class ActionsTarif
     		|| in_array('ordercard',explode(':',$parameters['context']))
 			|| in_array('ordersuppliercard',explode(':',$parameters['context']))
     		|| in_array('invoicecard',explode(':',$parameters['context'])))
-        {
+        { 
+		
 			?>
 				<script type="text/javascript">
 					var dialog = '<div id="dialog-metre" title="<?php print $langs->trans('tarifSaveMetre'); ?>"><p><input type="text" name="metre_desc" /></p></div>';
@@ -61,8 +62,7 @@ class ActionsTarif
 	function formEditProductOptions($parameters, &$object, &$action, $hookmanager) 
     {
     	global $db,$conf;
-		
-		
+
     	if (in_array('propalcard',explode(':',$parameters['context']))
     		|| in_array('ordercard',explode(':',$parameters['context']))
 			|| in_array('ordersuppliercard',explode(':',$parameters['context']))
@@ -292,8 +292,36 @@ class ActionsTarif
          	<?php
         }
 
+
 		return 0;
 	}
-   
+   function addMoreActionsButtons ($parameters, &$object, &$action, $hookmanager) {
+   		if (in_array('propalcard',explode(':',$parameters['context']))
+			|| in_array('ordercard',explode(':',$parameters['context']))
+			|| in_array('invoicecard',explode(':',$parameters['context']))) {
+        		if(!$conf->global->TARIF_PRICE_BY_LENGTH_AND_WIDTH){
+			?>	
+				<script type="text/javascript">
+				var number = 1;
+				while(number<<?php echo sizeof($object->lines)*1.4; ?>){
+				$('.impair.drag.drop')[number].hidden=true;
+				$('.impair.drag.drop')[number+1].hidden=true;
+				$('.pair.drag.drop')[number].hidden=true;
+				$('.pair.drag.drop')[number+1].hidden=true;
+				number+=3;
+				}
+				if(<?php echo sizeof($object->lines); ?>%2!=0){
+					$('.impair.drag.drop')[number].hidden=true;
+					$('.impair.drag.drop')[number+1].hidden=true;
+				}
+				$('.pair.nodrag.nodrop.nohoverpair')[1].hidden = true;
+				$('.pair.nodrag.nodrop.nohoverpair')[2].hidden = true;
+				</script>
+				
+		<?php }
+			
+		}
+   		return 0;
+   }
 	
 }
