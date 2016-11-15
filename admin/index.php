@@ -103,6 +103,14 @@ function showParameters() {
 	
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("PriceByHeightAndWeight").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('TARIF_PRICE_BY_HEIGHT_AND_WEIGHT');
+	print '</td></tr>';
+	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("tarifTARIF_CAN_SET_PACKAGE_ON_LINE").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';

@@ -153,7 +153,7 @@ class InterfaceTarifWorkflow
 	
 	function _updateTotauxLine(&$object,$qty){
 		//MAJ des totaux de la ligne
-		if(!empty($object->array_options['options_longueur']) && !empty($object->array_options['options_largeur']) ){
+		if(!empty($object->array_options['options_longueur']) && !empty($object->array_options['options_largeur']) && $conf->global->TARIF_PRICE_BY_HEIGHT_AND_WEIGHT&& $object->product_type == 0){
 			
 			$object->total_ht  = price2num($object->subprice * $qty * (1 - $object->remise_percent / 100)*$object->array_options['options_longueur']*$object->array_options['options_largeur'], 'MT');
 			$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
@@ -286,7 +286,8 @@ class InterfaceTarifWorkflow
 			&& (!empty($_REQUEST['addline_predefined']) || !empty($_REQUEST['addline_libre'])  || !empty($_REQUEST['prod_entry_mode']))) {
 			//print_r($object);
 			$qtyline = $object->qty;
-			
+		
+		
 			//prendre le tarif par quantité correspondant à la sommes des quantités facturé pour ce produit au client
 			if($conf->global->TARIF_TOTAL_QTY_ON_TOTAL_INVOICE_QTY){
 				
@@ -311,8 +312,13 @@ class InterfaceTarifWorkflow
 			
 			if($action == 'LINEORDER_SUPPLIER_CREATE') { // Gestion commande fournisseur
 				$tmpObject = $object;
+
 				$object = new CommandeFournisseurLigne($db);
-				$object->fetch($tmpObject->rowid);
+				if(empty($tmpObject->rowid)){
+					$object->fetch($tmpObject->id);
+				}else {
+					$object->fetch($tmpObject->rowid);
+				}
 			}
 			
 			$idProd = $object->fk_product;
@@ -597,13 +603,18 @@ class InterfaceTarifWorkflow
 			if($action == 'LINEORDER_SUPPLIER_CREATE') {
 				$object = $tmpObject;
 			}
-			if(!empty($object->array_options['options_longueur']) && !empty($object->array_options['options_largeur']) ){
-			
-			$object->total_ht  = price2num($object->subprice * $object->qty * (1 - $object->remise_percent / 100)*$object->array_options['options_longueur']*$object->array_options['options_largeur'], 'MT');
-			$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
-			$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
-			
-		}
+			if(!empty($object->array_options['options_longueur']) && !empty($object->array_options['options_largeur']) && $conf->global->TARIF_PRICE_BY_HEIGHT_AND_WEIGHT && $object->product_type == 0){
+				$object->total_ht  = price2num($object->subprice * $object->qty * (1 - $object->remise_percent / 100)*$object->array_options['options_longueur']*$object->array_options['options_largeur'], 'MT');
+				$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
+				$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
+				if(!empty($object->multicurrency_subprice)){
+					$object->multicurrency_total_ht = price2num($object->multicurrency_subprice * $object->qty * (1 - $object->remise_percent / 100)*$object->array_options['options_longueur']*$object->array_options['options_largeur'], 'MT');
+					$object->multicurrency_total_tva = price2num(($object->multicurrency_total_ht * (1 + ($object->tva_tx/100))) - $object->multicurrency_total_ht, 'MT');
+					$object->multicurrency_total_ttc =  price2num($object->multicurrency_total_ht + $object->multicurrency_total_tva, 'MT');
+				}
+				
+				$object->update($user,1);
+			}
 			
 		}
 
@@ -733,6 +744,19 @@ class InterfaceTarifWorkflow
 				$sql = "UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".(float)price2num($poids).", poids = ".(int)$weight_units." WHERE rowid = ".$idLine;
 				$this->db->query($sql);
 				
+			}
+
+			if(!empty($object->array_options['options_longueur']) && !empty($object->array_options['options_largeur']) && $conf->global->TARIF_PRICE_BY_HEIGHT_AND_WEIGHT&& $object->product_type == 0){
+			
+				$object->total_ht  = price2num($object->subprice * $object->qty * (1 - $object->remise_percent / 100)*$object->array_options['options_longueur']*$object->array_options['options_largeur'], 'MT');
+				$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
+				$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
+				if(!empty($object->multicurrency_subprice)){
+					$object->multicurrency_total_ht = price2num($object->multicurrency_subprice * $object->qty * (1 - $object->remise_percent / 100)*$object->array_options['options_longueur']*$object->array_options['options_largeur'], 'MT');
+					$object->multicurrency_total_tva = price2num(($object->multicurrency_total_ht * (1 + ($object->tva_tx/100))) - $object->multicurrency_total_ht, 'MT');
+					$object->multicurrency_total_ttc =  price2num($object->multicurrency_total_ht + $object->multicurrency_total_tva, 'MT');
+				}
+				$object->update($user,1);
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
