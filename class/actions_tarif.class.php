@@ -52,8 +52,48 @@ class ActionsTarif
 	
 				</script>
 					
+						
+				<?php //Traitement pour cacher la longueur et la largeur en fonction de la conf
+					if(!$conf->global->TARIF_PRICE_BY_LENGTH_AND_WIDTH){
+			?>	
+				<script type="text/javascript">
+				$(document).ready(function(){
+					//On n'affiche que les éléments de la description ayant une longueur et largeur remplie, et on cache les champs d'entrée de texte
+					var number = 1;
+					var $liste = $('#tablelines tr');
+					$liste.each(function(i) {
+						
+						if(($(this).find('td').eq(0).text() == "Longueur" && ($(this).find('td').eq(1).text() == "" || $(this).find('td').eq(1).text() == " "))|| $(this).find('td').eq(0).text() == "Largeur" && ($(this).find('td').eq(1).text() == ""||$(this).find('td').eq(1).text() == " ")){
+							$(this).hide();
+						}
+					});
 				
-				<?php
+				
+					
+				});
+				</script>
+				
+		<?php }else{
+			?>	
+				<script type="text/javascript">
+				$(document).ready(function(){
+					//On n'affiche que les éléments de la description ayant une longueur et largeur remplie
+					var number = 1;
+					var $liste = $('#tablelines tr');
+					$liste.each(function(i) {
+						   
+
+						if(($(this).find('td').eq(0).text() == "Longueur" && $(this).find('td').eq(1).text() == "" )|| ($(this).find('td').eq(0).text() == "Largeur" && $(this).find('td').eq(1).text()== "")){
+							$(this).hide();
+						}
+					});
+				
+				
+					
+				});
+				</script>
+				
+		<?php }
 		
 		}
 		
@@ -295,33 +335,5 @@ class ActionsTarif
 
 		return 0;
 	}
-   function addMoreActionsButtons ($parameters, &$object, &$action, $hookmanager) {
-   		if (in_array('propalcard',explode(':',$parameters['context']))
-			|| in_array('ordercard',explode(':',$parameters['context']))
-			|| in_array('invoicecard',explode(':',$parameters['context']))) {
-        		if(!$conf->global->TARIF_PRICE_BY_LENGTH_AND_WIDTH){
-			?>	
-				<script type="text/javascript">
-				var number = 1;
-				while(number<<?php echo sizeof($object->lines)*1.4; ?>){
-				$('.impair.drag.drop')[number].hidden=true;
-				$('.impair.drag.drop')[number+1].hidden=true;
-				$('.pair.drag.drop')[number].hidden=true;
-				$('.pair.drag.drop')[number+1].hidden=true;
-				number+=3;
-				}
-				if(<?php echo sizeof($object->lines); ?>%2!=0){
-					$('.impair.drag.drop')[number].hidden=true;
-					$('.impair.drag.drop')[number+1].hidden=true;
-				}
-				$('.pair.nodrag.nodrop.nohoverpair')[1].hidden = true;
-				$('.pair.nodrag.nodrop.nohoverpair')[2].hidden = true;
-				</script>
-				
-		<?php }
-			
-		}
-   		return 0;
-   }
 	
 }
