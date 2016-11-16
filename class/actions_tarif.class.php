@@ -59,21 +59,36 @@ class ActionsTarif
 				<script type="text/javascript">
 				$(document).ready(function(){
 					//On n'affiche que les éléments de la description ayant une longueur et largeur remplie, et on cache les champs d'entrée de texte
-					var number = 1;
+					//Function verifiant si le td est vide.
+					function verifTdVide(td) {
+  						if (td.text() == "" || td.text() == " "){
+  							return true;
+  						}
+  						return false;
+					}
+					//Fonction vérifiant si les td sont ceux de la longueur et de la largeur
+					function verifExtraTarifLengthWidth(td){
+						if(td.attr('class').match('extras_tarif_longueur$')!=null || td.attr('class').match('extras_tarif_largeur$')!=null){
+							return true;
+						}
+						return false;
+					}
+					
+					
+					
 					var $liste = $('#tablelines tr');
 					$liste.each(function(i) {
-						
-						if(($(this).find('td').eq(0).text() == "Longueur" && ($(this).find('td').eq(1).text() == "" || $(this).find('td').eq(1).text() == " "))|| $(this).find('td').eq(0).text() == "Largeur" && ($(this).find('td').eq(1).text() == ""||$(this).find('td').eq(1).text() == " ")){
-							$(this).hide();
+						var td = $(this).find('td').eq(1);
+						if(td.attr('class')){
+							if( verifExtraTarifLengthWidth(td) && verifTdVide(td)){
+								$(this).hide();
+							}
 						}
 					});
-				
-				
-					
 				});
 				</script>
 				
-		<?php }else{
+		<?php  } /*else{
 			?>	
 				<script type="text/javascript">
 				$(document).ready(function(){
@@ -93,7 +108,7 @@ class ActionsTarif
 				});
 				</script>
 				
-		<?php }
+		<?php }*/
 		
 		}
 		
