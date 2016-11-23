@@ -52,10 +52,8 @@ class ActionsTarif
 	
 				</script>
 					
-						
-				<?php //Traitement pour cacher la longueur et la largeur en fonction de la conf
-					if(!$conf->global->TARIF_PRICE_BY_LENGTH_AND_WIDTH){
-			?>	
+			<!--			
+			/*
 				<script type="text/javascript">
 				$(document).ready(function(){
 					//On n'affiche que les éléments de la description ayant une longueur et largeur remplie, et on cache les champs d'entrée de texte
@@ -66,15 +64,15 @@ class ActionsTarif
   						}
   						return false;
 					}
-					//Fonction vérifiant si les td sont ceux de la longueur et de la largeur
+					//Fonction vérifiant si les td sont ceux de la longueur et de la largeurtarif
 					function verifExtraTarifLengthWidth(td){
-						if(td.attr('class').match('extras_tarif_longueur$')!=null || td.attr('class').match('extras_tarif_largeur$')!=null){
+						if(td.attr('class').match('extras_tarif_longueur$')!=null || td.attr('class').match('extras_tarif_hauteur$')!=null){
 							return true;
 						}
 						return false;
 					}
 					
-					
+
 					
 					var $liste = $('#tablelines tr');
 					$liste.each(function(i) {
@@ -88,7 +86,31 @@ class ActionsTarif
 				});
 				</script>
 				
-		<?php  } /*else{
+		<?php 	$stockSurf = array();
+				$i = 0;
+				$nbExtraField = 0;
+				
+				foreach($object->lines as $l){
+					$p = new Product($db);
+					if(!empty($l->fk_product)){
+						$p->fetch($l->fk_product);
+					}
+					if($p->array_options['options_unite_vente'] == "surface"){
+						array_push($stockSurf,$i+1);
+					}
+					$i++;
+				}
+				  foreach($stockSurf as $s){
+				  	var_dump($s);
+				  	?>
+				  	<script type="text/javascript">
+				  		$(document).ready(function() {
+				  			$('#tablelines tr:nth-child(<?php print (($s)*4); ?>)').show();
+				  		});
+				  	</script>
+				  	 <?php
+				  }
+				//else{
 			?>	
 				<script type="text/javascript">
 				$(document).ready(function(){
@@ -105,13 +127,33 @@ class ActionsTarif
 				
 				
 					
-				});
-				</script>
+				});*/
+				</script>-->
 				
-		<?php }*/
+		<?php  // <---- WTF ERREUR SI ON ENLEVE LE FIN DCOM
 		
 		}
 		
+	}
+
+	function printObjectLine($parameters, &$object, &$action, $hookmanager){
+		global $db,$conf;
+
+    	if (in_array('propalcard',explode(':',$parameters['context']))
+    		|| in_array('ordercard',explode(':',$parameters['context']))
+    		|| in_array('invoicecard',explode(':',$parameters['context'])))
+        {
+			$p = new Product($db);
+			if(!empty($parameters['line']->fk_product)){
+				$p->fetch($parameters['line']->fk_product);
+			} 
+			if($p->array_options['options_unite_vente'] != "surface"){
+				$parameters['extrafieldsline'] = null;
+				$object->printObjectLine($action,$parameters['line'],$parameters['var'],$parameters['num'],$parameters['i'],$parameters['dateSelector'],$parameters['seller'],$parameters['buyer'],$parameters['selected'],$parameters['extrafieldsline']); 
+				return 1;   
+			}
+			var_dump("halo");
+		}
 	}
 	 
 	function formEditProductOptions($parameters, &$object, &$action, $hookmanager) 
