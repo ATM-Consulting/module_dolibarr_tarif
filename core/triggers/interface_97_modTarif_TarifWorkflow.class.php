@@ -603,10 +603,16 @@ class InterfaceTarifWorkflow
 			if($action == 'LINEORDER_SUPPLIER_CREATE') {
 				$object = $tmpObject;
 			}
-			if(!empty($object->array_options['options_tarif_longueur']) && !empty($object->array_options['options_tarif_hauteur']) && $object->product_type == 0){
+			
+			$p = new Product($db);
+			if(!empty($object->fk_product)){
+				$p->fetch($object->fk_product);
+			} 
+			if(!empty($object->array_options['options_tarif_longueur']) && !empty($object->array_options['options_tarif_hauteur']) && $object->product_type == 0 && $p->array_options['options_unite_vente'] == "surface"){
 				$object->total_ht  = price2num($object->subprice * $object->qty * (1 - $object->remise_percent / 100)*$object->array_options['options_tarif_longueur']*$object->array_options['options_tarif_hauteur'], 'MT');
 				$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
 				$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
+				
 				if(!empty($conf->multicurrency->enabled)){
 					$object->multicurrency_total_ht = price2num($object->multicurrency_subprice * $object->qty * (1 - $object->remise_percent / 100)*$object->array_options['options_tarif_longueur']*$object->array_options['options_tarif_hauteur'], 'MT');
 					$object->multicurrency_total_tva = price2num(($object->multicurrency_total_ht * (1 + ($object->tva_tx/100))) - $object->multicurrency_total_ht, 'MT');
@@ -762,7 +768,7 @@ class InterfaceTarifWorkflow
 			}
 
 			if(!empty($object->array_options['options_tarif_longueur']) && !empty($object->array_options['options_tarif_hauteur']) && $object->product_type == 0){
-			
+				
 				$object->total_ht  = price2num($object->subprice * $object->qty * (1 - $object->remise_percent / 100)*$object->array_options['options_tarif_longueur']*$object->array_options['options_tarif_hauteur'], 'MT');
 				$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
 				$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');

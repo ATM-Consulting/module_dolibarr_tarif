@@ -130,7 +130,7 @@ class ActionsTarif
 				});*/
 				</script>-->
 				
-		<?php  // <---- WTF ERREUR SI ON ENLEVE LE FIN DCOM
+		<?php  // 
 		
 		}
 		
@@ -152,7 +152,6 @@ class ActionsTarif
 				$object->printObjectLine($action,$parameters['line'],$parameters['var'],$parameters['num'],$parameters['i'],$parameters['dateSelector'],$parameters['seller'],$parameters['buyer'],$parameters['selected'],$parameters['extrafieldsline']); 
 				return 1;   
 			}
-			var_dump("halo");
 		}
 	}
 	 
