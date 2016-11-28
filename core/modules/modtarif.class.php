@@ -267,6 +267,12 @@ class modTarif extends DolibarrModules
         $extrafields=new ExtraFields($this->db);
 		$res = $extrafields->addExtraField('type_remise', 'Type tarif', 'select', 0, '', 'product', 0, 0, '', array("options"=> array("qte" => "quantite", "conditionnement" => "conditionnement")));		
 		$res = $extrafields->addExtraField('unite_vente', 'Unité de vente', 'select', 0, '', 'product', 0, 0, '', array("options"=> array("weight" => "Poids", "size" => "Longueur", "surface" => "Surface", "volume" => "Volume", "unite" => "Unité")));		
+		$res = $extrafields->addExtraField('tarif_longueur', 'L', 'double', 0, '', 'propaldet', 0, 0, '');
+		$res = $extrafields->addExtraField('tarif_hauteur', 'H', 'double', 0, '', 'propaldet', 0, 0, '');
+		$res = $extrafields->addExtraField('tarif_longueur', 'L', 'double', 0, '', 'commandedet', 0, 0, '');
+		$res = $extrafields->addExtraField('tarif_hauteur', 'H', 'double', 0, '', 'commandedet', 0, 0, '');
+		$res = $extrafields->addExtraField('tarif_longueur', 'L', 'double', 0, '', 'facturedet', 0, 0, '');
+		$res = $extrafields->addExtraField('tarif_hauteur', 'H', 'double', 0, '', 'facturedet', 0, 0, '');
 		
 		return $this->_init($sql, $options);
 	}
@@ -281,8 +287,7 @@ class modTarif extends DolibarrModules
 	 */
 	function remove($options='')
 	{
-		$sql = array();
-
+		$sql = array();	
 		return $this->_remove($sql, $options);
 	}
 
