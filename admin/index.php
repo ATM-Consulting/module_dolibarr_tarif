@@ -37,86 +37,144 @@ dol_include_once('/product/class/html.formproduct.class.php');
 // Security check
 if (! $user->admin) accessforbidden();
 
+$action = GETPOST('action', 'alpha');
 
-$action=__get('action','');
-
-if($action=='save') {
-	
-	foreach($_REQUEST['TOptions'] as $name=>$param) {
-		
-		if(empty($param) && $param == "CAISSE_CMD_PRINT" ){
-			$param = " ";
-		}
-		
-		dolibarr_set_const($db, $name, $param, 'chaine', 0, '', $conf->entity);
-		
+/*
+ * Actions
+ */
+if (preg_match('/set_(.*)/',$action,$reg))
+{
+	$code=$reg[1];
+	if (dolibarr_set_const($db, $code, GETPOST($code), 'chaine', 0, '', $conf->entity) > 0)
+	{
+		header("Location: ".$_SERVER["PHP_SELF"]);
+		exit;
 	}
-	
-	setEventMessage("Configuration enregistrée");
+	else
+	{
+		dol_print_error($db);
+	}
 }
+	
+if (preg_match('/del_(.*)/',$action,$reg))
+{
+	$code=$reg[1];
+	if (dolibarr_del_const($db, $code, 0) > 0)
+	{
+		Header("Location: ".$_SERVER["PHP_SELF"]);
+		exit;
+	}
+	else
+	{
+		dol_print_error($db);
+	}
+}
+
+/**
+ * View
+ */
 
 llxHeader('',$langs->trans("tarifConfigSetup"));
 
 $linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
 print_fiche_titre($langs->trans("tarifConfigSetup"),$linkback,'tarif@tarif');
 
+showParameters();
 
-$form=new TFormCore;
-
-showParameters($form);
-
-function showParameters(&$form) {
-	global $db,$conf,$langs;
+function showParameters() {
+	global $db,$conf,$langs,$bc;
 	
-	$html=new Form($db);
-	$formproduct = new FormProduct($db);
+	$form=new Form($db);
 	
-	?><form action="<?php echo $_SERVER['PHP_SELF'] ?>" name="load-<?php echo $typeDoc ?>" method="POST" enctype="multipart/form-data">
-		<input type="hidden" name="action" value="save" />
-	<table width="100%" class="noborder" style="background-color: #fff;">
-		<tr class="liste_titre">
-			<td colspan="2"><?php echo $langs->trans('Parameters') ?></td>
-		</tr>
-		<tr>
-			<td><?php echo $langs->trans('PricesQtyOnTotalInvoiceQty') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_TOTAL_QTY_ON_TOTAL_INVOICE_QTY]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_TOTAL_QTY_ON_TOTAL_INVOICE_QTY)  ?></td>				
-		</tr>
-		<tr>
-			<td><?php echo $langs->trans('tarifTARIF_CAN_SET_PACKAGE_ON_LINE') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_CAN_SET_PACKAGE_ON_LINE]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE)  ?></td>				
-		</tr>
-		<tr>
-			<td><?php echo $langs->trans('tarifTARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO)  ?></td>				
-		</tr>
-		<tr>
-			<td><?php echo $langs->trans('tarifTARIF_FACTURE_DISPATCH_ON_EXPEDITION') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_FACTURE_DISPATCH_ON_EXPEDITION]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_FACTURE_DISPATCH_ON_EXPEDITION)  ?></td>				
-		</tr>
-		<tr>
-			<td><?php echo $langs->trans('tarifTARIF_DONT_ADD_UNIT_SELECT') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_DONT_ADD_UNIT_SELECT]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_DONT_ADD_UNIT_SELECT)  ?></td>				
-		</tr>
-		<tr>
-			<td><?php echo $langs->trans('tarifTARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES)  ?></td>				
-		</tr>
-		<tr>
-			<td><?php echo $langs->trans('tarifTARIF_USE_METRE') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_USE_METRE]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_USE_METRE)  ?></td>				
-		</tr>
-		<tr>
-			<td><?php echo $langs->trans('tarifTARIF_ONLY_UPDATE_LINE_PRICE') ?></td><td><?php echo $form->combo('', 'TOptions[TARIF_ONLY_UPDATE_LINE_PRICE]',array(0=>'Non',1=>'Oui'), $conf->global->TARIF_ONLY_UPDATE_LINE_PRICE)  ?></td>				
-		</tr>
-		<tr>
-			<td><?php echo $langs->trans('tarifTARIF_DOL_DEFAULT_UNIT') ?></td><td><?php echo 'définition non disponible ici. cf.divers'  ?></td>				
-		</tr>
-		
-	</table>
-	<p align="right">
-		
-		<input type="submit" name="bt_save" value="<?php echo $langs->trans('Save') ?>" /> 
-		
-	</p>
+	$var=false;
+	print '<table class="noborder" width="100%">';
+	print '<tr class="liste_titre">';
+	print '<td>'.$langs->trans("Parameters").'</td>'."\n";
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 	
-	</form>
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("PricesQtyOnTotalInvoiceQty").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('TARIF_TOTAL_QTY_ON_TOTAL_INVOICE_QTY');
+	print '</td></tr>';
 	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("tarifTARIF_CAN_SET_PACKAGE_ON_LINE").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('TARIF_CAN_SET_PACKAGE_ON_LINE');
+	print '</td></tr>';
 	
-	<br /><br />
-	<?php
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("tarifTARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('TARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO');
+	print '</td></tr>';
+	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("tarifTARIF_FACTURE_DISPATCH_ON_EXPEDITION").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('TARIF_FACTURE_DISPATCH_ON_EXPEDITION');
+	print '</td></tr>';
+	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("tarifTARIF_DONT_ADD_UNIT_SELECT").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('TARIF_DONT_ADD_UNIT_SELECT');
+	print '</td></tr>';
+	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("tarifTARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('TARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES');
+	print '</td></tr>';
+	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("tarifTARIF_USE_METRE").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('TARIF_USE_METRE');
+	print '</td></tr>';
+	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("tarifTARIF_ONLY_UPDATE_LINE_PRICE").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('TARIF_ONLY_UPDATE_LINE_PRICE');
+	print '</td></tr>';
+	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("tarifTARIF_DOL_DEFAULT_UNIT").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print 'définition non disponible ici. cf.divers';
+	print '</td></tr>';
+	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE');
+	print '</td></tr>';
+	
+	 
+	print '</table><br />';
 }
 ?>
 
@@ -134,3 +192,5 @@ function showParameters(&$form) {
 	</tr>
 </table>
 <?php
+
+llxFooter();

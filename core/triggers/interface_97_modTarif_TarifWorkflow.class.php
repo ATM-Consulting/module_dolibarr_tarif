@@ -156,7 +156,8 @@ class InterfaceTarifWorkflow
 		$object->total_ht  = price2num($object->subprice * $qty * (1 - $object->remise_percent / 100), 'MT');
 		$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
 		$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
-		$object->update_total();
+		if (method_exists($object, 'update_total')) $object->update_total();
+		elseif (method_exists($object, 'updateTotal')) $object->updateTotal();
 	}
 	
 	function _getObjectParent(&$object){
@@ -386,7 +387,7 @@ class InterfaceTarifWorkflow
 
 				$prix_devise = $remise = false;
 				
-				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$idProd,$qtyline,$poids,$weight_units,$devise, $fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
+				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$object,$qtyline,$poids,$weight_units,$devise, $fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
 				//var_dump($remise);exit;
 				if($type_prix == '') {
 					$tvatx = $object->tva_tx;
@@ -407,7 +408,7 @@ class InterfaceTarifWorkflow
 						$price_level = $object_parent->client->price_level;
 						$fk_country = $object_parent->client->country_id;*/
 						//echo $devise;exit;					
-						$TRes = TTarif::getPrix($this->db,$idProd,$qtyline*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
+						$TRes = TTarif::getPrix($this->db,$object,$qtyline*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
 						if(is_array($TRes)) {
 							$prix_devise = $TRes[0];
 							$tvatx = $TRes[1];
@@ -619,7 +620,7 @@ class InterfaceTarifWorkflow
 				 $table = 'facture';
 				 $tabledet = 'facturedet';
 			}
-			elseif(get_class($object) == 'CommandeFournisseur'){
+			elseif(get_class($object) == 'CommandeFournisseur' || get_class($object) == 'CommandeFournisseurLigne'){
 				$table = "commande_fournisseur"; 
 				$tabledet = 'commande_fournisseurdet'; 
 				$parentfield = 'fk_commande';
@@ -628,6 +629,7 @@ class InterfaceTarifWorkflow
 			$idLine = __val($object->rowid, $object->id); 
 			
 			$sql = "SELECT tarif_poids, poids FROM ".MAIN_DB_PREFIX.$tabledet." WHERE rowid = ".$idLine;
+			
 			$resql = $this->db->query($sql);
 			$res = $this->db->fetch_object($resql);
 			
@@ -664,6 +666,8 @@ class InterfaceTarifWorkflow
 			
 			if($object->oldline->qty != $object->qty || (floatval($res->tarif_poids * pow(10, $res->poids)) != floatval($poids * pow(10, $weight_units)) && !$conf->global->TARIF_DONT_ADD_UNIT_SELECT)){
 				
+				if (!empty($conf->global->TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE)) return 1;
+				
 				if(!empty($idProd)){
 					if($conf->multidevise->enabled){
 						$sql = "SELECT devise_code as code, devise_taux as coef FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".__val($object->{"fk_".$table},$_REQUEST['id'],'integer'); //Récup devise du parent + taux de conv 
@@ -689,7 +693,8 @@ class InterfaceTarifWorkflow
 					if (!empty($object_parent->thirdparty->id))
 						$TFk_categorie = TTarif::getCategClient($object_parent->thirdparty->id); 
 
-					list($remise, $type_prix) = TTarif::getRemise($this->db,$idProd,$object->qty,$poids,$weight_units, $conf->currency,$fk_country, $TFk_categorie);
+					list($remise, $type_prix) = TTarif::getRemise($this->db,$object,$object->qty,$poids,$weight_units, $conf->currency,$fk_country, $TFk_categorie);
+					$_REQUEST['remise_percent'] = $remise;
 					$prix = __val($object->subprice,$object->price,'float',true);
 					
 					if($remise == 0 || $type_prix=='PERCENT/PRICE'){
@@ -697,7 +702,7 @@ class InterfaceTarifWorkflow
 						$price_level = $object_parent->client->price_level;
 						$fk_country = $object_parent->client->country_id;*/
 		
-						list($prix_devise, $tvatx) =TTarif::getPrix($this->db,$idProd,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie,$object_parent->thirdparty->id, $object_parent->fk_project);
+						list($prix_devise, $tvatx) =TTarif::getPrix($this->db,$object,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie,$object_parent->thirdparty->id, $object_parent->fk_project);
 						if($prix_devise !== false) @$prix = $prix_devise / $coef_conv;
 					}
 					
