@@ -275,7 +275,7 @@ class InterfaceTarifWorkflow
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)
 			&& (!empty($object->fk_product) || !empty($_REQUEST['idprodfournprice']))
 			&& (!empty($_REQUEST['addline_predefined']) || !empty($_REQUEST['addline_libre'])  || !empty($_REQUEST['prod_entry_mode']))) {
-			//print_r($object);
+//			var_dump($action,$object);
 			$qtyline = $object->qty;
 			
 			//prendre le tarif par quantité correspondant à la sommes des quantités facturé pour ce produit au client
@@ -303,7 +303,9 @@ class InterfaceTarifWorkflow
 			if($action == 'LINEORDER_SUPPLIER_CREATE') { // Gestion commande fournisseur
 				$tmpObject = $object;
 				$object = new CommandeFournisseurLigne($db);
-				$object->fetch($tmpObject->rowid);
+				$lineid = $db->last_insert_id(MAIN_DB_PREFIX.'commande_fournisseurdet');
+
+				$object->fetch($lineid);
 			}
 			
 			$idProd = $object->fk_product;
