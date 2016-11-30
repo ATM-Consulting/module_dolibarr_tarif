@@ -43,6 +43,51 @@ class ActionsTarif
 								$('input[name=poidsAff_product]').val( eval(metre) );		
 							}
 						});
+						
+						
+						// Début gestion colonne L & H
+						
+						// Generation entêtes
+						tdL = '<td class="linecoltarif_L" align="right">L</td>';
+						tdH = '<td class="linecoltarif_H" align="right">H</td>';
+						$(tdL).insertBefore('tr.liste_titre td.linecolqty');
+						$(tdH).insertBefore('tr.liste_titre td.linecolqty');
+						
+						// Mise à jour du bloc nouveau ou edition ligne
+						tdL = '<td class="nobottom linecoltarif_L" id="newlinecoltarif_L" align="right"></td>';
+						$trL = $('input[name="options_tarif_longueur"]').parent().parent();
+						$(tdL).insertBefore($('input#qty').parent());
+						$('#newlinecoltarif_L').append($('input[name="options_tarif_longueur"]'));
+						
+						tdH = '<td class="nobottom linecoltarif_H" id="newlinecoltarif_H" align="right"></td>';
+						$trH = $('input[name="options_tarif_hauteur"]').parent().parent();
+						$(tdH).insertBefore($('input#qty').parent());
+						$('#newlinecoltarif_H').append($('input[name="options_tarif_hauteur"]'));
+						
+						// Mise à jour affichage en colonne
+						$('td[class*="extras_tarif_longueur"').each(function(i) {
+							result = $(this).attr('id').split('_');
+							val = $(this).html();
+							theId = $(result).last().get(0);
+							$thetr = $('tr#row-' + theId);
+							
+							tdL = '<td class="linecoltarif_L nowrap" align="right">	' + val + ' </td>';
+							$(tdL).insertBefore($thetr.find('td.linecolqty'));
+							$(this).parent().remove();
+						});
+						$('td[class*="extras_tarif_hauteur"').each(function(i) {
+							result = $(this).attr('id').split('_');
+							val = $(this).html();
+							theId = $(result).last().get(0);
+							$thetr = $('tr#row-' + theId);
+							
+							tdH = '<td class="linecoltarif_H nowrap" align="right">	' + val + ' </td>';
+							$(tdH).insertBefore($thetr.find('td.linecolqty'));
+							$(this).parent().remove();
+						});
+						// Fin bloc colonne L & H
+						
+						
 					});
 					
 					function showMetre() {
@@ -51,84 +96,6 @@ class ActionsTarif
 					}
 	
 				</script>
-					
-			<!--			
-			/*
-				<script type="text/javascript">
-				$(document).ready(function(){
-					//On n'affiche que les éléments de la description ayant une longueur et largeur remplie, et on cache les champs d'entrée de texte
-					//Function verifiant si le td est vide.
-					function verifTdVide(td) {
-  						if (td.text() == "" || td.text() == " "){
-  							return true;
-  						}
-  						return false;
-					}
-					//Fonction vérifiant si les td sont ceux de la longueur et de la largeurtarif
-					function verifExtraTarifLengthWidth(td){
-						if(td.attr('class').match('extras_tarif_longueur$')!=null || td.attr('class').match('extras_tarif_hauteur$')!=null){
-							return true;
-						}
-						return false;
-					}
-					
-
-					
-					var $liste = $('#tablelines tr');
-					$liste.each(function(i) {
-						var td = $(this).find('td').eq(1);
-						if(td.attr('class')){
-							if( verifExtraTarifLengthWidth(td) && verifTdVide(td)){
-								$(this).hide();
-							}
-						}
-					});
-				});
-				</script>
-				
-		<?php 	$stockSurf = array();
-				$i = 0;
-				$nbExtraField = 0;
-				
-				foreach($object->lines as $l){
-					$p = new Product($db);
-					if(!empty($l->fk_product)){
-						$p->fetch($l->fk_product);
-					}
-					if($p->array_options['options_unite_vente'] == "surface"){
-						array_push($stockSurf,$i+1);
-					}
-					$i++;
-				}
-				  foreach($stockSurf as $s){
-				  	var_dump($s);
-				  	?>
-				  	<script type="text/javascript">
-				  		$(document).ready(function() {
-				  			$('#tablelines tr:nth-child(<?php print (($s)*4); ?>)').show();
-				  		});
-				  	</script>
-				  	 <?php
-				  }
-				//else{
-			?>	
-				<script type="text/javascript">
-				$(document).ready(function(){
-					//On n'affiche que les éléments de la description ayant une longueur et largeur remplie
-					var number = 1;
-					var $liste = $('#tablelines tr');
-					$liste.each(function(i) {
-						   
-
-						if(($(this).find('td').eq(0).text() == "Longueur" && $(this).find('td').eq(1).text() == "" )|| ($(this).find('td').eq(0).text() == "Largeur" && $(this).find('td').eq(1).text()== "")){
-							$(this).hide();
-						}
-					});
-				
-				
-					
-				});*/
-				</script>-->
 				
 		<?php  // 
 		
@@ -146,12 +113,18 @@ class ActionsTarif
 			$p = new Product($db);
 			if(!empty($parameters['line']->fk_product)){
 				$p->fetch($parameters['line']->fk_product);
-			} 
-			if($p->array_options['options_unite_vente'] != "surface"){
-				$parameters['extrafieldsline'] = null;
-				$object->printObjectLine($action,$parameters['line'],$parameters['var'],$parameters['num'],$parameters['i'],$parameters['dateSelector'],$parameters['seller'],$parameters['buyer'],$parameters['selected'],$parameters['extrafieldsline']); 
-				return 1;   
 			}
+			if($p->array_options['options_unite_vente'] != "surface"){
+				echo 'test ';
+				$parameters['extrafieldsline']->attribute_hidden['tarif_longueur']=1;
+				$parameters['extrafieldsline']->attribute_hidden['tarif_hauteur']=1;
+				
+			}else{
+				$parameters['extrafieldsline']->attribute_hidden['tarif_longueur']=0;
+				$parameters['extrafieldsline']->attribute_hidden['tarif_hauteur']=0;
+			}
+			$object->printObjectLine($action,$parameters['line'],$parameters['var'],$parameters['num'],$parameters['i'],$parameters['dateSelector'],$parameters['seller'],$parameters['buyer'],$parameters['selected'],$parameters['extrafieldsline']); 
+			return 1;   
 		}
 	}
 	 
@@ -390,6 +363,30 @@ class ActionsTarif
 
 
 		return 0;
+	}
+
+	function beforePDFCreation(&$parameters, &$object, &$action, $hookmanager)
+	{
+		global $conf,$user,$langs,$db,$mysoc;
+		
+		if (in_array('pdfgeneration',explode(':',$parameters['context'])))
+		{
+			$parameters['outputlangs']->load('tarif@tarif');
+			$base_object = $parameters['object'];
+			if(isset($base_object) && in_array($base_object->element, array('propal','order_supplier','commande')))
+			{
+				foreach($object->lines as &$line) {
+					// Mise à jour des description de ligne pour y ajouter les dimensions
+					if(!empty($line->array_options['options_tarif_longueur']) || !empty($line->array_options['options_tarif_hauteur'])) {
+						$exdesc = $line->desc;
+						$complementdesc='';
+						if(!empty($exdesc))$complementdesc.="\n";
+						$complementdesc.= 'L '.$line->array_options['options_tarif_longueur'].'cm  x  H '.$line->array_options['options_tarif_hauteur'].'cm';
+						$line->desc = $exdesc.$complementdesc;
+					}
+				}
+			}
+		}
 	}
 	
 }

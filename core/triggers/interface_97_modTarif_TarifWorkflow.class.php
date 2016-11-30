@@ -152,18 +152,10 @@ class InterfaceTarifWorkflow
 	}
 	
 	function _updateTotauxLine(&$object,$qty){
-		//MAJ des totaux de la ligne
-		if(!empty($object->array_options['options_tarif_longueur']) && !empty($object->array_options['options_tarif_hauteur']) && $object->product_type == 0){
-			
-			$object->total_ht  = price2num($object->subprice * $qty * (1 - $object->remise_percent / 100)*$object->array_options['options_tarif_longueur']*$object->array_options['options_tarif_hauteur'], 'MT');
-			$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
-			$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
-
-		} else {
-			$object->total_ht  = price2num($object->subprice * $qty * (1 - $object->remise_percent / 100), 'MT');
-			$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
-			$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
-		}
+		
+		$object->total_ht  = price2num($object->subprice * $qty * (1 - $object->remise_percent / 100), 'MT');
+		$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
+		$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
 		if (method_exists($object, 'update_total')) $object->update_total();
 		elseif (method_exists($object, 'updateTotal')) $object->updateTotal();
 	}
@@ -287,7 +279,6 @@ class InterfaceTarifWorkflow
 			//print_r($object);
 			$qtyline = $object->qty;
 		
-		
 			//prendre le tarif par quantité correspondant à la sommes des quantités facturé pour ce produit au client
 			if($conf->global->TARIF_TOTAL_QTY_ON_TOTAL_INVOICE_QTY){
 				
@@ -407,6 +398,7 @@ class InterfaceTarifWorkflow
 				if($type_prix == '') {
 					$tvatx = $object->tva_tx;
 				}
+								
 				$prix = __val($object->subprice,$object->price,'float',true);
 				
 				// La saisie d'une réduction manuellement prévaut sur la devise renseignée dans tarif
@@ -431,17 +423,20 @@ class InterfaceTarifWorkflow
 							$prix_devise = $TRes;
 							$tvatx = $object->tva_tx;
 						}
-						
+						if(!empty($product->array_options['options_unite_vente']) && $product->array_options['options_unite_vente'] == 'surface') {
+							$longueur = (($object->array_options['options_tarif_longueur']!=0)?$object->array_options['options_tarif_longueur']:1);
+							$hauteur = (($object->array_options['options_tarif_hauteur']!=0)?$object->array_options['options_tarif_hauteur']:1);
+							$prix_devise = $prix_devise * $longueur * $hauteur;
+						}
 						$prix = $prix_devise / $coef_conv;
 					}
-					
 					//var_dump( $TRes);exit;
 					if($prix_devise !== false) {
 						
 						$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !
 						$this->_updateTotauxLine($object,$qtyline);
 
-					} 
+					}
 					
 				}
 				
@@ -623,7 +618,7 @@ class InterfaceTarifWorkflow
 			}
 			
 		}
-		elseif (($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT' || $action === 'LINEORDER_SUPPLIER_CREATE') 
+		/*elseif (($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT' || $action === 'LINEORDER_SUPPLIER_CREATE') 
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)
 			&& (!empty($_REQUEST['addline_predefined']) || !empty($_REQUEST['addline_libre'])  || !empty($_REQUEST['prod_entry_mode']))
 			&& (!empty($object->array_options['options_tarif_longueur']) && !empty($object->array_options['options_tarif_hauteur'])&& $object->product_type == 0)){
@@ -638,11 +633,20 @@ class InterfaceTarifWorkflow
 				
 				$object->update($user,1);
 				
-			}
+			}*/
 		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE'  || $action==='LINEORDER_SUPPLIER_UPDATE') 
 				&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
 		
 			$idProd = __val( $object->fk_product, $object->oldline->fk_product, 'integer');
+			
+			if($idProd>0) {
+				
+				$product =new Product($db);
+				$product->fetch($idProd);
+
+				if($product->type==1 && empty($conf->global->TARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES))$poids=1;
+
+			}
 			
 			if($conf->declinaison->enabled) {
 				$sql = "SELECT fk_parent FROM ".MAIN_DB_PREFIX."declinaison WHERE fk_declinaison = ".$idProd;
@@ -710,10 +714,12 @@ class InterfaceTarifWorkflow
 			}
 			else{ //Sinon on est sur un tarif à l'unité donc pas de gestion de poids => 69 chiffre pris au hasard
 				$weight_units = 69;
-			}			
+			}
 			
-			
-			if($object->oldline->qty != $object->qty || (floatval($res->tarif_poids * pow(10, $res->poids)) != floatval($poids * pow(10, $weight_units)) && !$conf->global->TARIF_DONT_ADD_UNIT_SELECT)){
+			if($object->oldline->qty != $object->qty || 
+			$object->oldline->array_options['options_tarif_longueur'] != $object->array_options['options_tarif_longueur'] || 
+			$object->oldline->array_options['options_tarif_hauteur'] != $object->array_options['options_tarif_hauteur'] || 
+			(floatval($res->tarif_poids * pow(10, $res->poids)) != floatval($poids * pow(10, $weight_units)) && !$conf->global->TARIF_DONT_ADD_UNIT_SELECT)){
 				
 				if (!empty($conf->global->TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE)) return 1;
 				
@@ -752,6 +758,13 @@ class InterfaceTarifWorkflow
 						$fk_country = $object_parent->client->country_id;*/
 		
 						list($prix_devise, $tvatx) =TTarif::getPrix($this->db,$object,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie,$object_parent->thirdparty->id, $object_parent->fk_project);
+						
+						if(!empty($product->array_options['options_unite_vente']) && $product->array_options['options_unite_vente'] == 'surface') {
+							$longueur = (($object->array_options['options_tarif_longueur']!=0)?$object->array_options['options_tarif_longueur']:1);
+							$hauteur = (($object->array_options['options_tarif_hauteur']!=0)?$object->array_options['options_tarif_hauteur']:1);
+							$prix_devise = $prix_devise * $longueur * $hauteur;
+						}
+						
 						if($prix_devise !== false) @$prix = $prix_devise / $coef_conv;
 					}
 					
@@ -765,19 +778,6 @@ class InterfaceTarifWorkflow
 				$sql = "UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".(float)price2num($poids).", poids = ".(int)$weight_units." WHERE rowid = ".$idLine;
 				$this->db->query($sql);
 				
-			}
-
-			if(!empty($object->array_options['options_tarif_longueur']) && !empty($object->array_options['options_tarif_hauteur']) && $object->product_type == 0){
-				
-				$object->total_ht  = price2num($object->subprice * $object->qty * (1 - $object->remise_percent / 100)*$object->array_options['options_tarif_longueur']*$object->array_options['options_tarif_hauteur'], 'MT');
-				$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
-				$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
-				if(!empty($object->multicurrency_subprice)){
-					$object->multicurrency_total_ht = price2num($object->multicurrency_subprice * $object->qty * (1 - $object->remise_percent / 100)*$object->array_options['options_tarif_longueur']*$object->array_options['options_tarif_hauteur'], 'MT');
-					$object->multicurrency_total_tva = price2num(($object->multicurrency_total_ht * (1 + ($object->tva_tx/100))) - $object->multicurrency_total_ht, 'MT');
-					$object->multicurrency_total_ttc =  price2num($object->multicurrency_total_ht + $object->multicurrency_total_tva, 'MT');
-				}
-				$object->update($user,1);
 			}
 			
 			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
