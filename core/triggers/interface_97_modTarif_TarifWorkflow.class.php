@@ -439,7 +439,6 @@ class InterfaceTarifWorkflow
 					}
 					
 				}
-				
 				if($remise === false && $prix_devise ===false && $conf->global->TARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO) {
 					$TFirst_price_diff_zero = $this->_getFirstPriceDifferentDeZero($object);
 					if(is_array($TFirst_price_diff_zero)){

@@ -15,6 +15,7 @@ class ActionsTarif
 		global $db,$conf,$langs;
 		
 		$langs->load('tarif@tarif');
+		$version = (float) DOL_VERSION;
 		
     	if (in_array('propalcard',explode(':',$parameters['context']))
     		|| in_array('ordercard',explode(':',$parameters['context']))
@@ -46,45 +47,94 @@ class ActionsTarif
 						
 						
 						// Début gestion colonne L & H
-						
-						// Generation entêtes
-						tdL = '<td class="linecoltarif_L" align="right">L</td>';
-						tdH = '<td class="linecoltarif_H" align="right">H</td>';
-						$(tdL).insertBefore('tr.liste_titre td.linecolqty');
-						$(tdH).insertBefore('tr.liste_titre td.linecolqty');
-						
-						// Mise à jour du bloc nouveau ou edition ligne
-						tdL = '<td class="nobottom linecoltarif_L" id="newlinecoltarif_L" align="right"></td>';
-						$trL = $('input[name="options_tarif_longueur"]').parent().parent();
-						$(tdL).insertBefore($('input#qty').parent());
-						$('#newlinecoltarif_L').append($('input[name="options_tarif_longueur"]'));
-						
-						tdH = '<td class="nobottom linecoltarif_H" id="newlinecoltarif_H" align="right"></td>';
-						$trH = $('input[name="options_tarif_hauteur"]').parent().parent();
-						$(tdH).insertBefore($('input#qty').parent());
-						$('#newlinecoltarif_H').append($('input[name="options_tarif_hauteur"]'));
-						
-						// Mise à jour affichage en colonne
-						$('td[class*="extras_tarif_longueur"').each(function(i) {
-							result = $(this).attr('id').split('_');
-							val = $(this).html();
-							theId = $(result).last().get(0);
-							$thetr = $('tr#row-' + theId);
+						<?php if($version >= 4) {?>
+							// Version > 4
+							var tdcol = 'td.linecolqty';
+							// Generation entêtes
+							tdL = '<td class="linecoltarif_L" align="right">L</td>';
+							tdH = '<td class="linecoltarif_H" align="right">H</td>';
+							$(tdL).insertBefore('tr.liste_titre '+tdcol);
+							$(tdH).insertBefore('tr.liste_titre '+tdcol);
 							
-							tdL = '<td class="linecoltarif_L nowrap" align="right">	' + val + ' </td>';
-							$(tdL).insertBefore($thetr.find('td.linecolqty'));
-							$(this).parent().remove();
-						});
-						$('td[class*="extras_tarif_hauteur"').each(function(i) {
-							result = $(this).attr('id').split('_');
-							val = $(this).html();
-							theId = $(result).last().get(0);
-							$thetr = $('tr#row-' + theId);
+							// Mise à jour du bloc nouveau ou edition ligne
+							tdL = '<td class="nobottom linecoltarif_L" id="newlinecoltarif_L" align="right"></td>';
+							$trL = $('input[name="options_tarif_longueur"]').parent().parent();
+							$(tdL).insertBefore($('input#qty').parent());
+							$('#newlinecoltarif_L').append($('input[name="options_tarif_longueur"]'));
 							
-							tdH = '<td class="linecoltarif_H nowrap" align="right">	' + val + ' </td>';
-							$(tdH).insertBefore($thetr.find('td.linecolqty'));
-							$(this).parent().remove();
-						});
+							tdH = '<td class="nobottom linecoltarif_H" id="newlinecoltarif_H" align="right"></td>';
+							$trH = $('input[name="options_tarif_hauteur"]').parent().parent();
+							$(tdH).insertBefore($('input#qty').parent());
+							$('#newlinecoltarif_H').append($('input[name="options_tarif_hauteur"]'));
+							
+							// Mise à jour affichage en colonne
+							$('td[class*="extras_tarif_longueur"').each(function(i) {
+								result = $(this).attr('id').split('_');
+								val = $(this).html();
+								theId = $(result).last().get(0);
+								$thetr = $('tr#row-' + theId);
+								
+								tdL = '<td class="linecoltarif_L nowrap" align="right">	' + val + ' </td>';
+								$(tdL).insertBefore($thetr.find("> "+tdcol));
+								$(this).parent().remove();
+							});
+							$('td[class*="extras_tarif_hauteur"').each(function(i) {
+								result = $(this).attr('id').split('_');
+								val = $(this).html();
+								theId = $(result).last().get(0);
+								$thetr = $('tr#row-' + theId);
+								
+								tdH = '<td class="linecoltarif_H nowrap" align="right">	' + val + ' </td>';
+								$(tdH).insertBefore($thetr.find("> "+tdcol));
+								$(this).parent().remove();
+							});
+						<?php }else{ ?>
+							// Version < 4
+							var tdcol = 'td:eq(3)';
+							// Generation entêtes
+							tdL = '<td class="linecoltarif_L" align="right">L</td>';
+							tdH = '<td class="linecoltarif_H" align="right">H</td>';
+							$(tdH).insertBefore('#tablelines tr.liste_titre:eq(0) '+tdcol);
+							$(tdL).insertBefore('#tablelines tr.liste_titre:eq(0) '+tdcol);
+							
+							$(tdH).insertBefore('#tablelines tr.liste_titre:eq(1) '+tdcol);
+							$(tdL).insertBefore('#tablelines tr.liste_titre:eq(1) '+tdcol);
+							
+							// Mise à jour du bloc nouveau ou edition ligne
+							tdL = '<td class="nobottom linecoltarif_L" id="newlinecoltarif_L" align="right"></td>';
+							$trL = $('input[name="options_tarif_longueur"]').parent().parent();
+							$(tdL).insertBefore($('input#qty').parent());
+							$('#newlinecoltarif_L').append($('input[name="options_tarif_longueur"]'));
+							
+							tdH = '<td class="nobottom linecoltarif_H" id="newlinecoltarif_H" align="right"></td>';
+							$trH = $('input[name="options_tarif_hauteur"]').parent().parent();
+							$(tdH).insertBefore($('input#qty').parent());
+							$('#newlinecoltarif_H').append($('input[name="options_tarif_hauteur"]'));
+							
+							// Mise à jour affichage en colonne
+							$('#tablelines tr > td:contains("L"):not(".linecoltarif_L")').filter(function() { 
+								if($(this).text() === 'L') { return this; } else { return false; }
+								}).each(function(i) {
+								$tr = $(this).parent();
+								val = $tr.find('td:eq(1)').html();
+								$thetr = $tr.prev('tr[id*=row]');
+								
+								tdL = '<td class="linecoltarif_L nowrap" align="right">	' + val + ' </td>';
+								$(tdL).insertBefore($thetr.find("> "+tdcol));
+								$(this).parent().remove();
+							});
+							$('#tablelines tr > td:contains("H"):not(".linecoltarif_H")').filter(function() { 
+								if($(this).text() === 'H') { return this; } else { return false; }
+								}).each(function(i) {
+								$tr = $(this).parent();
+								val = $tr.find('td:eq(1)').html();
+								$thetr = $tr.prev('tr[id*=row]');
+								
+								tdH = '<td class="linecoltarif_H nowrap" align="right">	' + val + ' </td>';
+								$(tdH).insertAfter($thetr.find("> td:eq(3)"));
+								$(this).parent().remove();
+							});
+						<?php } ?>
 						// Fin bloc colonne L & H
 						
 						
@@ -373,7 +423,7 @@ class ActionsTarif
 		{
 			$parameters['outputlangs']->load('tarif@tarif');
 			$base_object = $parameters['object'];
-			if(isset($base_object) && in_array($base_object->element, array('propal','order_supplier','commande')))
+			if(isset($base_object) && in_array($base_object->element, array('propal','invoice','commande')))
 			{
 				foreach($object->lines as &$line) {
 					// Mise à jour des description de ligne pour y ajouter les dimensions
