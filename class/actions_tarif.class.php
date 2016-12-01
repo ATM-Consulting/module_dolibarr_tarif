@@ -423,10 +423,11 @@ class ActionsTarif
 		{
 			$parameters['outputlangs']->load('tarif@tarif');
 			$base_object = $parameters['object'];
-			if(isset($base_object) && in_array($base_object->element, array('propal','invoice','commande')))
+			if(isset($base_object) && in_array($base_object->element, array('propal','invoice','facture','expedition','commande')))
 			{
 				foreach($object->lines as &$line) {
 					// Mise à jour des description de ligne pour y ajouter les dimensions
+					$line->fetch_optionals();
 					if(!empty($line->array_options['options_tarif_longueur']) || !empty($line->array_options['options_tarif_hauteur'])) {
 						$exdesc = $line->desc;
 						$complementdesc='';
