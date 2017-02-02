@@ -25,6 +25,7 @@ class TTarif extends TObjetStd {
 	}
 	
 	static function getRemise(&$db, &$line,$qty,$conditionnement,$weight_units, $devise,$fk_country=0, $TFk_categorie=array(), $fk_soc = 0, $fk_project = 0){
+		global $mysoc;
 		
 		if (!is_object($line)) $idProd = $line; // Ancien comportement, le paramètre est en fait l'id du produit
 		else {
@@ -101,14 +102,18 @@ class TTarif extends TObjetStd {
 						continue;
 					}
 				}
+
+				$parent->fetch_thirdparty();
+				$soc = $parent->thirdparty;
+				$tva_tx = get_default_tva($mysoc, $soc, $idprod);
 				
 				if( strpos($res->type_price,'PERCENT')!==false ){
 					
 					if($res->type_remise == "qte" && $qty >= $res->quantite){
-						return array($res->remise_percent, $res->type_price, $res->tva_tx);
+						return array($res->remise_percent, $res->type_price, $tva_tx);
 					} 
 					else if($res->type_remise == "conditionnement" && $conditionnement >= $res->quantite && $res->unite_value == $weight_units) {
-						return array($res->remise_percent, $res->type_price, $res->tva_tx);
+						return array($res->remise_percent, $res->type_price, $tva_tx);
 					}
 				}
 			}
@@ -121,7 +126,7 @@ class TTarif extends TObjetStd {
 	
 	
 	static function getPrix(&$db, &$line,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1,$fk_country=0, $TFk_categorie=array(), $fk_soc = 0, $fk_project = 0){
-	global $conf;
+	global $conf,$mysoc;
 		
 		if (!is_object($line)) $idProd = $line; // Ancien comportement, le paramètre est en fait l'id du produit
 		else {
@@ -201,15 +206,19 @@ class TTarif extends TObjetStd {
 						continue;
 					}
 				}
+
+				$parent->fetch_thirdparty();
+				$soc = $parent->thirdparty;
+				$tva_tx = get_default_tva($mysoc, $soc, $idprod);
 				
 				if(strpos($res->type_price,'PRICE') !== false){
 					
 					if(($res->type_remise == "qte" || $res->type_remise == 0) && $qty >= $res->quantite){
 						//Ici on récupère le pourcentage correspondant et on arrête la boucle
-						return array(TTarif::price_with_multiprix($res->prix, $price_level), $res->tva_tx);
+						return array(TTarif::price_with_multiprix($res->prix, $price_level), $tva_tx);
 					} 
 					else if($res->type_remise == "conditionnement" && $conditionnement >= $res->quantite &&  $res->unite_value == $weight_units) {
-						return array(TTarif::price_with_multiprix($res->prix * ($conditionnement / (($res->weight != 0) ? $res->weight : 1 )), $price_level), $res->tva_tx); // prise en compte unité produit et poid init produit
+						return array(TTarif::price_with_multiprix($res->prix * ($conditionnement / (($res->weight != 0) ? $res->weight : 1 )), $price_level), $tva_tx); // prise en compte unité produit et poid init produit
 					}
 				}
 			}
