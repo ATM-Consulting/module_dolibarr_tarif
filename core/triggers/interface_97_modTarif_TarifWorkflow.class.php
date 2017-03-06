@@ -270,8 +270,13 @@ class InterfaceTarifWorkflow
 		
 		global $user, $db,$conf;
 
+		// 1èrement, on vérifie si on est sur un objet tarif client ou tarif fournisseur
+		if($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT') $class = 'TTarif';	
+		else $class = 'TTarifFournisseur';
+
 		//Création d'une ligne de facture, propale ou commande, ou commande fournisseur
-		if (($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT' || $action === 'LINEORDER_SUPPLIER_CREATE') 
+		if (($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT' || $action === 'LINEORDER_SUPPLIER_CREATE'
+			/*TODO triggers addline fact fourn*/) 
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)
 			&& (!empty($object->fk_product) || !empty($_REQUEST['idprodfournprice']))
 			&& (!empty($_REQUEST['addline_predefined']) || !empty($_REQUEST['addline_libre'])  || !empty($_REQUEST['prod_entry_mode']))) {
@@ -369,11 +374,11 @@ class InterfaceTarifWorkflow
 				$fk_country = $object_parent->client->country_id;
 				
 				// On récupère les catégories dont le client fait partie
-				$TFk_categorie = TTarif::getCategClient($object_parent->thirdparty->id); // $this->getCategClient($object_parent);
+				$TFk_categorie = $class::getCategTiers($object_parent->thirdparty->id); // $this->getCategTiers($object_parent);
 
 				$prix_devise = $remise = false;
 				
-				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$object,$qtyline,$poids,$weight_units,$devise, $fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
+				list($remise, $type_prix, $tvatx) = $class::getRemise($this->db,$object,$qtyline,$poids,$weight_units,$devise, $fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
 				
 				if($type_prix == '') $tvatx = $object->tva_tx;
 				$prix = __val($object->subprice,$object->price,'float',true);
@@ -388,7 +393,7 @@ class InterfaceTarifWorkflow
 				
 					if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
 
-						$TRes = TTarif::getPrix($this->db,$object,$qtyline*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
+						$TRes = $class::getPrix($this->db,$object,$qtyline*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
 						if(is_array($TRes)) {
 							$prix_devise = $TRes[0];
 							$tvatx = $TRes[1];
@@ -632,9 +637,9 @@ class InterfaceTarifWorkflow
 					$fk_country = $object_parent->client->country_id;
 
 					// On récupère les catégories dont le client fait partie
-					if (!empty($object_parent->thirdparty->id)) $TFk_categorie = TTarif::getCategClient($object_parent->thirdparty->id); 
+					if (!empty($object_parent->thirdparty->id)) $TFk_categorie = $class::getCategTiers($object_parent->thirdparty->id); 
 
-					list($remise, $type_prix) = TTarif::getRemise($this->db,$object,$object->qty,$poids,$weight_units, $conf->currency,$fk_country, $TFk_categorie);
+					list($remise, $type_prix) = $class::getRemise($this->db,$object,$object->qty,$poids,$weight_units, $conf->currency,$fk_country, $TFk_categorie);
 					$_REQUEST['remise_percent'] = $remise;
 					$prix = __val($object->subprice,$object->price,'float',true);
 					
@@ -643,7 +648,7 @@ class InterfaceTarifWorkflow
 						$price_level = $object_parent->client->price_level;
 						$fk_country = $object_parent->client->country_id;*/
 		
-						list($prix_devise, $tvatx) =TTarif::getPrix($this->db,$object,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie,$object_parent->thirdparty->id, $object_parent->fk_project);
+						list($prix_devise, $tvatx) = $class::getPrix($this->db,$object,$object->qty*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie,$object_parent->thirdparty->id, $object_parent->fk_project);
 						if($prix_devise !== false) @$prix = $prix_devise / $coef_conv;
 					}
 					

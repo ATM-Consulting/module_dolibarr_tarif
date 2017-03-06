@@ -24,7 +24,7 @@ class TTarif extends TObjetStd {
 		);
 	}
 	
-	static function getRemise(&$db, &$line,$qty,$conditionnement,$weight_units, $devise,$fk_country=0, $TFk_categorie=array(), $fk_soc = 0, $fk_project = 0){
+	static function getRemise(&$db, &$line,$qty,$conditionnement,$weight_units, $devise,$fk_country=0, $TFk_categorie=array(), $fk_soc = 0, $fk_project = 0, $type='CLIENT'){
 		global $mysoc;
 		
 		if (!is_object($line)) $idProd = $line; // Ancien comportement, le paramètre est en fait l'id du produit
@@ -37,9 +37,12 @@ class TTarif extends TObjetStd {
 			else if($class == 'CommandeFournisseurLigne'){ $parent = new CommandeFournisseur($db); $parent->fetch($line->fk_commande); }
 		}
 		
+		if($type === 'CLIENT') $table = 'tarif_conditionnement';
+		else $table = 'tarif_conditionnement_fournisseur';
+		
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure !!!)
 		$sql = "SELECT p.type_remise as type_remise, tc.quantite as quantite, tc.type_price, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, tc.date_debut as date_debut, tc.date_fin as date_fin";
-		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
+		$sql.= " FROM ".MAIN_DB_PREFIX.$type." as tc";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product";
 		$sql.= " WHERE fk_product = ".$idProd." AND (tc.currency_code = '".$devise."' OR tc.currency_code IS NULL)";
 		
@@ -115,7 +118,7 @@ class TTarif extends TObjetStd {
 	}
 	
 	
-	static function getPrix(&$db, &$line,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1,$fk_country=0, $TFk_categorie=array(), $fk_soc = 0, $fk_project = 0){
+	static function getPrix(&$db, &$line,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1,$fk_country=0, $TFk_categorie=array(), $fk_soc = 0, $fk_project = 0, $type='CLIENT'){
 	global $conf,$mysoc;
 		
 		if (!is_object($line)) $idProd = $line; // Ancien comportement, le paramètre est en fait l'id du produit
@@ -128,9 +131,12 @@ class TTarif extends TObjetStd {
 			else if($class == 'CommandeFournisseurLigne'){ $parent = new CommandeFournisseur($db); $parent->fetch($line->fk_commande); }
 		}
 		
+		if($type === 'CLIENT') $table = 'tarif_conditionnement';
+		else $table = 'tarif_conditionnement_fournisseur';
+		
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure)
 		$sql = "SELECT p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, tc.date_debut as date_debut, tc.date_fin as date_fin, pr.weight";
-		$sql.= " FROM ".MAIN_DB_PREFIX."tarif_conditionnement as tc";
+		$sql.= " FROM ".MAIN_DB_PREFIX.$type." as tc";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product
 				 LEFT JOIN ".MAIN_DB_PREFIX."product pr ON p.fk_object=pr.rowid ";
 		$sql.= " WHERE fk_product = ".$idProd." AND (tc.currency_code = '".$devise."' OR tc.currency_code IS NULL)";
@@ -211,7 +217,7 @@ class TTarif extends TObjetStd {
 
 	}
 	
-	static function getCategClient($socid) {
+	static function getCategTiers($socid) {
 		global $db;
 		
 		// On récupère les catégories dont le client fait partie
