@@ -539,16 +539,12 @@ class InterfaceTarifWorkflow
 				}
 			}
 			//Ligne libre
-			else{
-				
-				$this->db->query("UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
-			}
+			else $this->db->query("UPDATE ".MAIN_DB_PREFIX.$tabledet." SET tarif_poids = ".$poids.", poids = ".$weight_units." WHERE rowid = ".$object->rowid);
 			
 			dol_syslog("Trigger '".$this->name."' for actions '$action' launched by ".__FILE__.". id=".$object->rowid);
 			
-			if($action == 'LINEORDER_SUPPLIER_CREATE') {
-				$object = $tmpObject;
-			}
+			if($action == 'LINEORDER_SUPPLIER_CREATE') $object = $tmpObject;
+			
 		}
 
 		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE'  || $action==='LINEORDER_SUPPLIER_UPDATE') 
@@ -558,11 +554,9 @@ class InterfaceTarifWorkflow
 			
 			if($conf->declinaison->enabled) {
 				$sql = "SELECT fk_parent FROM ".MAIN_DB_PREFIX."declinaison WHERE fk_declinaison = ".$idProd;
-					
 				$res = $this->db->query($sql);
 				$resql = $this->db->fetch_object($res);
 				$idParent = $resql->fk_parent;
-				
 				if(!empty($idParent)) $idProd = $idParent;
 			}
 			
@@ -595,7 +589,6 @@ class InterfaceTarifWorkflow
 			$weight_units = __get('weight_units',0,'integer');
 			$poids = __get('poids',1,'float');
 			
-			//echo floatval($res->tarif_poids * pow(10, $res->poids))." ".floatval($_POST['poids'] * pow(10, $_POST['weight_units']));exit;
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
 			// ET si la quantité ou le poids a changé
 			
