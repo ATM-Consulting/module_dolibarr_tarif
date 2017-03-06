@@ -18,6 +18,7 @@ PERCENT=Pourcentage de réduction
 PRICE=Prix unitaire
 PERCENT/PRICE=Mixte
 TarifList=Liste des tarifs par conditionnement
+TarifFournisseurList=Liste des tarifs fournisseurs par conditionnement
 PriceBase=Base du prix
 PriceType=Type de prix
 CategoriesCustomer= Catégorie client

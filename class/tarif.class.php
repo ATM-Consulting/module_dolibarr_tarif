@@ -282,6 +282,33 @@ class TTarif extends TObjetStd {
 	
 }
 
+class TTarifFournisseur extends TTarif{
+	
+	function __construct() { /* declaration */
+		global $langs;
+		
+		parent::set_table(MAIN_DB_PREFIX.'tarif_conditionnement_fournisseur');
+		parent::add_champs('unite','type=chaine;');
+		parent::add_champs('unite_value','type=entier;');
+		parent::add_champs('price_base_type,type_price,currency_code','type=chaine;');
+		parent::add_champs('prix,tva_tx,quantite,remise_percent','type=float;');
+		parent::add_champs('fk_user_author,fk_product,fk_country,fk_categorie_client,fk_soc,fk_project','type=entier;index;');
+		parent::add_champs('date_debut,date_fin','type=date;');
+		
+		parent::_init_vars();
+		parent::start();
+		
+		//$this->fk_categorie_client = 0;
+		
+		$this->TType_price = array(
+			'PERCENT'=>$langs->trans('PERCENT')
+			,'PRICE'=>$langs->trans('PRICE')
+			,'PERCENT/PRICE'=>$langs->trans('PERCENT/PRICE')
+		);
+	}
+	
+}
+
 class TTarifCommandedet extends TObjetStd {
 	function __construct() { /* declaration */
 		global $langs;
