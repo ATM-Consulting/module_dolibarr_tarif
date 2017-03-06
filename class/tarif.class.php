@@ -42,7 +42,7 @@ class TTarif extends TObjetStd {
 		
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure !!!)
 		$sql = "SELECT p.type_remise as type_remise, tc.quantite as quantite, tc.type_price, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, tc.date_debut as date_debut, tc.date_fin as date_fin";
-		$sql.= " FROM ".MAIN_DB_PREFIX.$type." as tc";
+		$sql.= " FROM ".MAIN_DB_PREFIX.$table." as tc";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product";
 		$sql.= " WHERE fk_product = ".$idProd." AND (tc.currency_code = '".$devise."' OR tc.currency_code IS NULL)";
 		
@@ -136,16 +136,12 @@ class TTarif extends TObjetStd {
 		
 		//chargement des prix par conditionnement associé au produit (LISTE des tarifs pour le produit testé & TYPE_REMISE grâce à la jointure)
 		$sql = "SELECT p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, tc.date_debut as date_debut, tc.date_fin as date_fin, pr.weight";
-		$sql.= " FROM ".MAIN_DB_PREFIX.$type." as tc";
+		$sql.= " FROM ".MAIN_DB_PREFIX.$table." as tc";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product
 				 LEFT JOIN ".MAIN_DB_PREFIX."product pr ON p.fk_object=pr.rowid ";
 		$sql.= " WHERE fk_product = ".$idProd." AND (tc.currency_code = '".$devise."' OR tc.currency_code IS NULL)";
 		
-		if($fk_country>0) {
-			
-			$sql.=" AND tc.fk_country IN (-1,0, $fk_country)";
-			
-		}
+		if($fk_country>0) $sql.=" AND tc.fk_country IN (-1,0, $fk_country)";
 		if(!empty($TFk_categorie) && is_array($TFk_categorie)) $sql.=" AND tc.fk_categorie_client IN (-1,0, ".implode(',', $TFk_categorie).")";
 		if($fk_soc>0) $sql.=" AND tc.fk_soc IN (-1,0, $fk_soc)";
         if($fk_project>0) $sql.=" AND tc.fk_project IN (-1,0, $fk_project)";
@@ -155,7 +151,7 @@ class TTarif extends TObjetStd {
 		$sql.= 'quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC, tc.fk_soc DESC, tc.fk_project DESC';
 		
 		$resql = $db->query($sql);
-		//print ($sql);
+		//print ($sql);exit;
 		if($db->num_rows($resql) > 0) {
 			while($res = $db->fetch_object($resql)) {
 					
@@ -287,6 +283,14 @@ class TTarifFournisseur extends TTarif{
 			,'PRICE'=>$langs->trans('PRICE')
 			,'PERCENT/PRICE'=>$langs->trans('PERCENT/PRICE')
 		);
+	}
+	
+	static function getRemise(&$db, &$line,$qty,$conditionnement,$weight_units, $devise,$fk_country=0, $TFk_categorie=array(), $fk_soc = 0, $fk_project = 0, $type='CLIENT'){
+		return parent::getRemise($db, $line, $qty, $conditionnement, $weight_units, $devise, $fk_country, $TFk_categorie, $fk_soc, $fk_project, 'FOURNISSEUR');
+	}
+	
+	static function getPrix(&$db, &$line,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1,$fk_country=0, $TFk_categorie=array(), $fk_soc = 0, $fk_project = 0, $type='CLIENT'){
+		return parent::getPrix($db, $line, $qty, $conditionnement, $weight_units, $subprice, $coef, $devise, $price_level, $fk_country, $TFk_categorie, $fk_soc, $fk_project, 'FOURNISSEUR');
 	}
 	
 }
