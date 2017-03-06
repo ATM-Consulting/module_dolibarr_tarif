@@ -96,7 +96,7 @@ class InterfaceTarifWorkflow
 
 	function _updateLineProduct(&$object,&$user,$idProd,$conditionnement,$weight_units,$remise, $prix ,$prix_devise,$tvatx){
 		
-		global $conf;
+		global $conf, $user;
 		
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
 		dol_include_once('/tarif/config.php');
@@ -123,7 +123,10 @@ class InterfaceTarifWorkflow
 		}
 		
 		if(get_class($object) == 'FactureLigne') $object->update($user, true);
-		else $object->update(true);
+		else {
+			if((float)DOL_VERSION < 5.0) $object->update(true);
+			else $object->update($user, true);
+		}
 		
 		//Cas multidevise
 		if($conf->multidevise->enabled){
