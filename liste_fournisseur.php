@@ -137,8 +137,8 @@
 		print '</td></tr>';
 		
          //client
-        print '<tr><td>'.$langs->trans('Customer').'</td><td colspan="3">';
-        print $form->select_company($tarif->fk_soc, 'fk_soc','',1);
+        print '<tr><td>'.$langs->trans('Supplier').'</td><td colspan="3">';
+        print $form->select_company($tarif->fk_soc, 'fk_soc','fournisseur=1',1);
         print '</td></tr>';
         
         //categorie
