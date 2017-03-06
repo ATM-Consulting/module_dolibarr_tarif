@@ -100,7 +100,7 @@ class InterfaceTarifWorkflow
 		
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
 		dol_include_once('/tarif/config.php');
-		//print $prix.'<br />';
+		
 		$product = new Product($this->db);
 		$product->fetch($idProd);
 		
@@ -108,7 +108,6 @@ class InterfaceTarifWorkflow
 		
 		$conditionnement = $conditionnement * pow(10, ($weight_units - $product->weight_units ));
 		
-		//echo $product->price; exit;
 		$object->remise_percent = $remise;
 		
 		$object->subprice = $prix ;
@@ -120,10 +119,8 @@ class InterfaceTarifWorkflow
  		if(get_class($object_parent) == "Facture" && $object_parent->type == 2){ // facture d'avoir
  			$object->remise_percent = -$object->remise_percent;
 			$object->subprice = -$object->subprice;
-			
 			$object->price = $object->subprice;
 		}
-		//print $object->subprice; exit;
 		
 		if(get_class($object) == 'FactureLigne') $object->update($user, true);
 		else $object->update(true);
@@ -148,7 +145,7 @@ class InterfaceTarifWorkflow
 			$this->db->query('UPDATE '.MAIN_DB_PREFIX.$tabledet.' SET devise_pu = '.(float)$prix_devise.', devise_mt_ligne = '.(($prix_devise * $object->qty) * ( 1 - ($object->remise_percent/100))).' WHERE rowid = '.$object->rowid);
 			//exit("$prix $prix_devise");
 		}
-		//exit;
+
 	}
 	
 	function _updateTotauxLine(&$object,$qty){
@@ -275,7 +272,7 @@ class InterfaceTarifWorkflow
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)
 			&& (!empty($object->fk_product) || !empty($_REQUEST['idprodfournprice']))
 			&& (!empty($_REQUEST['addline_predefined']) || !empty($_REQUEST['addline_libre'])  || !empty($_REQUEST['prod_entry_mode']))) {
-//			var_dump($action,$object);
+
 			$qtyline = $object->qty;
 			
 			//prendre le tarif par quantité correspondant à la sommes des quantités facturé pour ce produit au client
@@ -285,13 +282,15 @@ class InterfaceTarifWorkflow
 				
 				$sql = "SELECT SUM(fd.qty) as totalQty
 						FROM ".MAIN_DB_PREFIX."facturedet as fd
-							LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON (f.rowid = fd.fk_facture)
-						WHERE f.fk_soc = (SELECT s.rowid 
-										  FROM ".MAIN_DB_PREFIX."societe as s
-										  	LEFT JOIN ".MAIN_DB_PREFIX.$element_parent." as ep ON (s.rowid = ep.fk_soc )
-										  WHERE ep.rowid = ".$object->{"fk_".$element_parent}.")
-							AND f.fk_statut > 0
-							AND fd.fk_product = ".$object->fk_product;
+						LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON (f.rowid = fd.fk_facture)
+						WHERE f.fk_soc = (
+											  SELECT s.rowid 
+											  FROM ".MAIN_DB_PREFIX."societe as s
+											  LEFT JOIN ".MAIN_DB_PREFIX.$element_parent." as ep ON (s.rowid = ep.fk_soc )
+											  WHERE ep.rowid = ".$object->{"fk_".$element_parent}."
+										  )
+						AND f.fk_statut > 0
+						AND fd.fk_product = ".$object->fk_product;
 
 				if($resql = $this->db->query($sql)){
 					$res = $this->db->fetch_object($resql);
@@ -304,7 +303,6 @@ class InterfaceTarifWorkflow
 				$tmpObject = $object;
 				$object = new CommandeFournisseurLigne($db);
 				$lineid = $db->last_insert_id(MAIN_DB_PREFIX.'commande_fournisseurdet');
-
 				$object->fetch($lineid);
 			}
 			
@@ -312,14 +310,10 @@ class InterfaceTarifWorkflow
 			
 			if($conf->declinaison->enabled) {
 				$sql = "SELECT fk_parent FROM ".MAIN_DB_PREFIX."declinaison WHERE fk_declinaison = ".$idProd;
-
 				$res = $this->db->query($sql);
 				$resql = $this->db->fetch_object($res);
 				$idParent = $resql->fk_parent;
-
-				if(!empty($idParent)) {
-					$idProd = $idParent;
-				}
+				if(!empty($idParent)) $idProd = $idParent;
 			}
 
 			// Définition des tables. Attention pour commande fournisseur, l'objet commande est passé et non l'objet ligne
@@ -329,52 +323,39 @@ class InterfaceTarifWorkflow
 			else if(get_class($object) == 'CommandeFournisseurLigne'){ $table = "commande_fournisseur"; $tabledet = 'commande_fournisseurdet'; $parentfield = 'fk_commande';}
 				
 			//Gestion du poids et de l'unité transmise
-			if(!empty($_REQUEST['poidsAff_product'])){ //Si un poids produit a été transmis
-				$poids = ($_REQUEST['poidsAff_product'] > 0) ? $_REQUEST['poidsAff_product'] : 1;
-			}
-			elseif(!empty($_REQUEST['poidsAff_libre'])){ //Si un poids ligne libre a été transmis
-				$poids = ($_REQUEST['poidsAff_libre'] > 0) ? $_REQUEST['poidsAff_libre'] : 1;
-			}
-			else{ //Aucun poids transmis = poids reçois 1
-				$poids = 1;
-			}
 			
-			if(isset($_REQUEST['weight_unitsAff_product'])){ //Si on a un unité produit transmise
-				$weight_units = $_REQUEST['weight_unitsAff_product'];
-			}
-			else{ //Sinon on est sur un tarif à l'unité donc pas de gestion de poids => 69 chiffre pris au hasard
-				$weight_units = 69;
-			}
+			//Si un poids produit a été transmis
+			if(!empty($_REQUEST['poidsAff_product'])) $poids = ($_REQUEST['poidsAff_product'] > 0) ? $_REQUEST['poidsAff_product'] : 1;
+			//Si un poids ligne libre a été transmis
+			elseif(!empty($_REQUEST['poidsAff_libre'])) $poids = ($_REQUEST['poidsAff_libre'] > 0) ? $_REQUEST['poidsAff_libre'] : 1;
+			//Aucun poids transmis = poids reçois 1
+			else $poids = 1;
+			
+			//Si on a un unité produit transmise
+			if(isset($_REQUEST['weight_unitsAff_product'])) $weight_units = $_REQUEST['weight_unitsAff_product'];
+			//Sinon on est sur un tarif à l'unité donc pas de gestion de poids => 69 chiffre pris au hasard
+			else $weight_units = 69;
 
 			if($idProd>0) {
-				
 				$product =new Product($db);
 				$product->fetch($idProd);
-
 				if($product->type==1 && empty($conf->global->TARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES))$poids=1;
-
 			}
-			
-			//echo $poids." ".$weight_units;
-			//pre($product,true);
-			//exit;
+
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
 			if($poids > 0 && $idProd > 0 && !isset($_REQUEST['origin'])){
 				
 				if($conf->multidevise->enabled){
 				
-					$sql = "SELECT devise_code as code, devise_taux as coef FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$object->{$parentfield}; //Récup devise du parent + taux de conv 
-					
+					$sql = "SELECT devise_code as code, devise_taux as coef FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".$object->{$parentfield}; //Récup devise du parent + taux de conv
 					$res = $db->query($sql);
 					$resql = $db->fetch_object($res);
-					
 					$coef_conv = $resql->coef;
 					$devise = $resql->code;
 				}
 				
-				
-				if(empty($coef_conv)){ //devise = a celle du système
-				
+				//devise = a celle du système
+				if(empty($coef_conv)) {
 					$coef_conv = 1;
 					$devise = $conf->currency;
 				}
@@ -390,10 +371,8 @@ class InterfaceTarifWorkflow
 				$prix_devise = $remise = false;
 				
 				list($remise, $type_prix, $tvatx) = TTarif::getRemise($this->db,$object,$qtyline,$poids,$weight_units,$devise, $fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
-				//var_dump($remise);exit;
-				if($type_prix == '') {
-					$tvatx = $object->tva_tx;
-				}
+				
+				if($type_prix == '') $tvatx = $object->tva_tx;
 				$prix = __val($object->subprice,$object->price,'float',true);
 				
 				// La saisie d'une réduction manuellement prévaut sur la devise renseignée dans tarif
@@ -405,11 +384,7 @@ class InterfaceTarifWorkflow
 				if($remise !== false || $type_prix!='PERCENT') {
 				
 					if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
-						//exit('1');
-						/*$object_parent = $this->_getObjectParent($object);
-						$price_level = $object_parent->client->price_level;
-						$fk_country = $object_parent->client->country_id;*/
-						//echo $devise;exit;					
+
 						$TRes = TTarif::getPrix($this->db,$object,$qtyline*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
 						if(is_array($TRes)) {
 							$prix_devise = $TRes[0];
@@ -422,12 +397,9 @@ class InterfaceTarifWorkflow
 						$prix = $prix_devise / $coef_conv;
 					}
 					
-					//var_dump( $TRes);exit;
 					if($prix_devise !== false) {
-						
 						$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !
 						$this->_updateTotauxLine($object,$qtyline);
-
 					} 
 					
 				}
@@ -466,17 +438,14 @@ class InterfaceTarifWorkflow
 				//Cas propal on charge la ligne correspondante car non passé dans le post
 				if($_POST['origin'] == "propal"){
 					
-					if(isset($_POST['facnumber']))
-						$table = "facturedet";
-					else
-						$table = "commandedet";
+					if(isset($_POST['facnumber'])) $table = "facturedet";
+					else $table = "commandedet";
 					
 					$propal = new Propal($this->db);
 					$propal->fetch($_POST['originid']);
 					
 					foreach($propal->lines as $line){
-						if($line->rang == $object->rang)
-							$originid = $line->rowid;
+						if($line->rang == $object->rang) $originid = $line->rowid;
 					}
 					$sql = "SELECT tarif_poids as weight, 1 as qty, poids as weight_unit 
 							FROM ".MAIN_DB_PREFIX."propaldet
@@ -498,23 +467,17 @@ class InterfaceTarifWorkflow
 					$table = "facturedet";
 					$originid = $object->origin_id;
 					
-					if(FACTURE_DISPATCH_ON_EXPEDITION && $conf->dispatch->enabled){
-						$sql = "SELECT eda.weight as weight, eda.weight_unit as weight_unit, cd.price, cd.tarif_poids, cd.poids, ed.qty as qty";
-					}
-					else{
-						$sql = "SELECT SUM(eda.weight) as weight, eda.weight_unit as weight_unit, cd.price, cd.tarif_poids, cd.poids, COUNT(eda.weight_unit) as qty";
-					}
+					if(FACTURE_DISPATCH_ON_EXPEDITION && $conf->dispatch->enabled) $sql = "SELECT eda.weight as weight, eda.weight_unit as weight_unit, cd.price, cd.tarif_poids, cd.poids, ed.qty as qty";
+					else $sql = "SELECT SUM(eda.weight) as weight, eda.weight_unit as weight_unit, cd.price, cd.tarif_poids, cd.poids, COUNT(eda.weight_unit) as qty";
 					
 					$sql.= " FROM ".MAIN_DB_PREFIX."expeditiondet_asset eda
-								LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (ed.rowid = eda.fk_expeditiondet)
-								LEFT JOIN ".MAIN_DB_PREFIX."commandedet as cd ON (cd.rowid = ed.fk_origin_line)
-								LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = cd.fk_product)
-							WHERE eda.fk_expeditiondet = ".$originid."
-							AND cd.fk_product = ".$object->fk_product;
+							 LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (ed.rowid = eda.fk_expeditiondet)
+							 LEFT JOIN ".MAIN_DB_PREFIX."commandedet as cd ON (cd.rowid = ed.fk_origin_line)
+							 LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = cd.fk_product)
+							 WHERE eda.fk_expeditiondet = ".$originid."
+							 AND cd.fk_product = ".$object->fk_product;
 							
-					if(!FACTURE_DISPATCH_ON_EXPEDITION && $conf->dispatch->enabled){
-						$sql.= " GROUP BY eda.weight_unit, cd.fk_product ";
-					}
+					if(!FACTURE_DISPATCH_ON_EXPEDITION && $conf->dispatch->enabled) $sql.= " GROUP BY eda.weight_unit, cd.fk_product ";
 					
 					$sql.= " ORDER BY eda.weight_unit ASC";
  				}
@@ -526,10 +489,10 @@ class InterfaceTarifWorkflow
 					$sql = "SELECT cd.tarif_poids as weight, cd.poids as weight_unit, ed.qty as qty";
 					
 					$sql.= " FROM ".MAIN_DB_PREFIX."commandedet as cd
-								LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (cd.rowid = ed.fk_origin_line)
-								LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = cd.fk_product)
-							WHERE ed.fk_expedition = ".$originid."
-							AND cd.fk_product = ".$object->fk_product;
+							 LEFT JOIN ".MAIN_DB_PREFIX."expeditiondet as ed ON (cd.rowid = ed.fk_origin_line)
+							 LEFT JOIN ".MAIN_DB_PREFIX."product as p ON (p.rowid = cd.fk_product)
+							 WHERE ed.fk_expedition = ".$originid."
+							 AND cd.fk_product = ".$object->fk_product;
 							
 					$resql = $this->db->query($sql);
 					$res = $this->db->fetch_object($resql);
@@ -542,11 +505,7 @@ class InterfaceTarifWorkflow
 					
 					return 0;
 				}
-				else{
-					return 0;
-				}
-
-				//echo $sql; exit;
+				else return 0;
 				
 				$resql = $this->db->query($sql);
 				$res = $this->db->fetch_object($resql);
@@ -604,9 +563,7 @@ class InterfaceTarifWorkflow
 				$resql = $this->db->fetch_object($res);
 				$idParent = $resql->fk_parent;
 				
-				if(!empty($idParent)) {
-					$idProd = $idParent;
-				}
+				if(!empty($idParent)) $idProd = $idParent;
 			}
 			
 			
@@ -641,30 +598,19 @@ class InterfaceTarifWorkflow
 			//echo floatval($res->tarif_poids * pow(10, $res->poids))." ".floatval($_POST['poids'] * pow(10, $_POST['weight_units']));exit;
 			// Si on a un poids passé en $_POST alors on viens d'une facture, propale ou commande
 			// ET si la quantité ou le poids a changé
-			//exit($object->oldline->qty." != ".$object->qty." || ".floatval($res->tarif_poids * pow(10, $res->poids))." != ".floatval($poids * pow(10, $weight_units)));
-			//echo $res->tarif_poids;
-			//echo floatval($res->tarif_poids * pow(10, $res->poids)) != floatval($poids * pow(10, $weight_units));
-			
 			
 			//Gestion du poids et de l'unité transmise
+			//Si un poids produit a été transmis
+			if(!empty($_REQUEST['poidsAff_product'])) $poids = ($_REQUEST['poidsAff_product'] > 0) ? $_REQUEST['poidsAff_product'] : 1;
+			//Si un poids ligne libre a été transmis
+			elseif(!empty($_REQUEST['poidsAff_libre'])) $poids = ($_REQUEST['poidsAff_libre'] > 0) ? $_REQUEST['poidsAff_libre'] : 1;
+			//Aucun poids transmis = poids reçoit 1
+			else $poids = 1;
 			
-			if(!empty($_REQUEST['poidsAff_product'])){ //Si un poids produit a été transmis
-				$poids = ($_REQUEST['poidsAff_product'] > 0) ? $_REQUEST['poidsAff_product'] : 1;
-			}
-			elseif(!empty($_REQUEST['poidsAff_libre'])){ //Si un poids ligne libre a été transmis
-				$poids = ($_REQUEST['poidsAff_libre'] > 0) ? $_REQUEST['poidsAff_libre'] : 1;
-			}
-			else{ //Aucun poids transmis = poids reçois 1
-				$poids = 1;
-			}
-			
-			if(isset($_REQUEST['weight_unitsAff_product'])){ //Si on a un unité produit transmise
-				$weight_units = $_REQUEST['weight_unitsAff_product'];
-			}
-			else{ //Sinon on est sur un tarif à l'unité donc pas de gestion de poids => 69 chiffre pris au hasard
-				$weight_units = 69;
-			}			
-			
+			//Si on a un unité produit transmise
+			if(isset($_REQUEST['weight_unitsAff_product'])) $weight_units = $_REQUEST['weight_unitsAff_product'];
+			//Sinon on est sur un tarif à l'unité donc pas de gestion de poids => 69 chiffre pris au hasard
+			else $weight_units = 69;
 			
 			if($object->oldline->qty != $object->qty || (floatval($res->tarif_poids * pow(10, $res->poids)) != floatval($poids * pow(10, $weight_units)) && !$conf->global->TARIF_DONT_ADD_UNIT_SELECT)){
 				
@@ -672,11 +618,9 @@ class InterfaceTarifWorkflow
 				
 				if(!empty($idProd)){
 					if($conf->multidevise->enabled){
-						$sql = "SELECT devise_code as code, devise_taux as coef FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".__val($object->{"fk_".$table},$_REQUEST['id'],'integer'); //Récup devise du parent + taux de conv 
-						
+						$sql = "SELECT devise_code as code, devise_taux as coef FROM ".MAIN_DB_PREFIX.$table." WHERE rowid = ".__val($object->{"fk_".$table},$_REQUEST['id'],'integer'); //Récup devise du parent + taux de conv
 						$res = $db->query($sql);
 						$resql = $db->fetch_object($res);
-						
 						$coef_conv = $resql->coef;
 						$devise = $resql->code;
 					}
@@ -692,8 +636,7 @@ class InterfaceTarifWorkflow
 					$fk_country = $object_parent->client->country_id;
 
 					// On récupère les catégories dont le client fait partie
-					if (!empty($object_parent->thirdparty->id))
-						$TFk_categorie = TTarif::getCategClient($object_parent->thirdparty->id); 
+					if (!empty($object_parent->thirdparty->id)) $TFk_categorie = TTarif::getCategClient($object_parent->thirdparty->id); 
 
 					list($remise, $type_prix) = TTarif::getRemise($this->db,$object,$object->qty,$poids,$weight_units, $conf->currency,$fk_country, $TFk_categorie);
 					$_REQUEST['remise_percent'] = $remise;
@@ -754,11 +697,11 @@ class InterfaceTarifWorkflow
 			//seulement si produit
 			if($object->type == 0){
 				$sql = "INSERT INTO ".MAIN_DB_PREFIX."product_price
-					(price_level,date_price,fk_product,fk_user_author,price,price_ttc,price_base_type,tosell,tva_tx,recuperableonly,localtax1_tx, localtax2_tx, price_min,price_min_ttc,price_by_qty,entity) 
-					VALUES
-					(".$level.",'".$this->db->idate($now)."',".$object->id.",".$user->id.",".$price.",".$price_ttc.",'".$base."',".$object->status.",".$tva_tx.",".$object->tva_npr.",".$object->localtax1_tx."
-					,".$object->localtax2_tx.",".$object->price_min.",".$object->price_min_ttc.",0
-					,".(! empty($conf->multicompany->enabled) && ! empty($conf->multicompany->transverse_mode) ? 1 : $conf->entity).")";
+						(price_level,date_price,fk_product,fk_user_author,price,price_ttc,price_base_type,tosell,tva_tx,recuperableonly,localtax1_tx, localtax2_tx, price_min,price_min_ttc,price_by_qty,entity) 
+						VALUES
+						(".$level.",'".$this->db->idate($now)."',".$object->id.",".$user->id.",".$price.",".$price_ttc.",'".$base."',".$object->status.",".$tva_tx.",".$object->tva_npr.",".$object->localtax1_tx."
+						,".$object->localtax2_tx.",".$object->price_min.",".$object->price_min_ttc.",0
+						,".(! empty($conf->multicompany->enabled) && ! empty($conf->multicompany->transverse_mode) ? 1 : $conf->entity).")";
 				
 				$this->db->query($sql);
 			}

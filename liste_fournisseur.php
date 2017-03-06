@@ -339,7 +339,7 @@
 	 **********************************/
 	$TConditionnement = array();
 
-	/*if($conf->multidevise->enabled){
+	/*if($conf->multidevise->enabled){ TODO pour l'instant on laisse de côté la partie multidevise
 
 		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price, ".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays'
 		              , tc.fk_soc
