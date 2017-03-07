@@ -35,6 +35,7 @@ class TTarif extends TObjetStd {
 			else if($class == 'OrderLine'){ $parent = new Commande($db); $parent->fetch($line->fk_commande); }
 			else if($class == 'FactureLigne'){ $parent = new Facture($db); $parent->fetch($line->fk_facture); }
 			else if($class == 'CommandeFournisseurLigne'){ $parent = new CommandeFournisseur($db); $parent->fetch($line->fk_commande); }
+			else if($class == 'SupplierInvoiceLine'){ $parent = new FactureFournisseur($db); $parent->fetch($line->fk_facture_fourn); }
 		}
 		
 		if($type === 'CLIENT') $table = 'tarif_conditionnement';
@@ -95,10 +96,12 @@ class TTarif extends TObjetStd {
 						continue;
 					}
 				}
-
-				$parent->fetch_thirdparty();
-				$soc = $parent->thirdparty;
-				$tva_tx = get_default_tva($mysoc, $soc, $idprod);
+				
+				if(method_exists($parent, 'fetch_thirdparty')) {
+					$parent->fetch_thirdparty();
+					$soc = $parent->thirdparty;
+					$tva_tx = get_default_tva($mysoc, $soc, $idprod);
+				}
 				
 				if( strpos($res->type_price,'PERCENT')!==false ){
 					
@@ -129,6 +132,7 @@ class TTarif extends TObjetStd {
 			else if($class == 'OrderLine'){ $parent = new Commande($db); $parent->fetch($line->fk_commande); }
 			else if($class == 'FactureLigne'){ $parent = new Facture($db); $parent->fetch($line->fk_facture); }
 			else if($class == 'CommandeFournisseurLigne'){ $parent = new CommandeFournisseur($db); $parent->fetch($line->fk_commande); }
+			else if($class == 'SupplierInvoiceLine'){ $parent = new FactureFournisseur($db); $parent->fetch($line->fk_facture_fourn); }
 		}
 		
 		if($type === 'CLIENT') $table = 'tarif_conditionnement';
@@ -188,9 +192,11 @@ class TTarif extends TObjetStd {
 					}
 				}
 
-				$parent->fetch_thirdparty();
-				$soc = $parent->thirdparty;
-				$tva_tx = get_default_tva($mysoc, $soc, $idprod);
+				if(method_exists($parent, 'fetch_thirdparty')) {
+					$parent->fetch_thirdparty();
+					$soc = $parent->thirdparty;
+					$tva_tx = get_default_tva($mysoc, $soc, $idprod);
+				}
 				
 				if(strpos($res->type_price,'PRICE') !== false){
 					
@@ -342,6 +348,20 @@ class TTarifCommandeFourndet extends TObjetStd {
 		global $langs;
 		
 		parent::set_table(MAIN_DB_PREFIX.'commande_fournisseurdet');
+		parent::add_champs('poids','type=entier;');
+		parent::add_champs('tarif_poids','type=float;');
+		parent::add_champs('metre');
+		
+		parent::_init_vars();
+		parent::start();
+	}
+}
+
+class TTarifFactureFourndet extends TObjetStd {
+	function __construct() { /* declaration */
+		global $langs;
+		
+		parent::set_table(MAIN_DB_PREFIX.'facture_fourn_det');
 		parent::add_champs('poids','type=entier;');
 		parent::add_champs('tarif_poids','type=float;');
 		parent::add_champs('metre');

@@ -33,3 +33,5 @@
 	$o=new TTarifCommandeFourndet;
 	$o->init_db_by_vars($PDOdb);
 	
+	$o=new TTarifFactureFourndet;
+	$o->init_db_by_vars($PDOdb);

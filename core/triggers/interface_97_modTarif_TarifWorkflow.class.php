@@ -122,11 +122,8 @@ class InterfaceTarifWorkflow
 			$object->price = $object->subprice;
 		}
 		
-		if(get_class($object) == 'FactureLigne') $object->update($user, true);
-		else {
-			if((float)DOL_VERSION < 5.0) $object->update(true);
-			else $object->update($user, true);
-		}
+		if(get_class($object) == 'FactureLigne' || (float)DOL_VERSION >= 5.0) $object->update($user, true);
+		else $object->update(true);
 		
 		//Cas multidevise
 		if($conf->multidevise->enabled){
@@ -275,8 +272,8 @@ class InterfaceTarifWorkflow
 		else $class = 'TTarifFournisseur';
 
 		//Création d'une ligne de facture, propale ou commande, ou commande fournisseur
-		if (($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT' || $action === 'LINEORDER_SUPPLIER_CREATE'
-			/*TODO triggers addline fact fourn*/) 
+		if (($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT'
+			|| $action === 'LINEORDER_SUPPLIER_CREATE' || $action === 'LINEBILL_SUPPLIER_CREATE') 
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)
 			&& (!empty($object->fk_product) || !empty($_REQUEST['idprodfournprice']))
 			&& (!empty($_REQUEST['addline_predefined']) || !empty($_REQUEST['addline_libre'])  || !empty($_REQUEST['prod_entry_mode']))) {
@@ -307,10 +304,17 @@ class InterfaceTarifWorkflow
 
 			}
 			
-			if($action == 'LINEORDER_SUPPLIER_CREATE') { // Gestion commande fournisseur
+			if($action == 'LINEORDER_SUPPLIER_CREATE' || $action == 'LINEBILL_SUPPLIER_CREATE') { // Gestion commande fournisseur
 				$tmpObject = $object;
-				$object = new CommandeFournisseurLigne($db);
-				$lineid = $db->last_insert_id(MAIN_DB_PREFIX.'commande_fournisseurdet');
+				if($action === 'LINEORDER_SUPPLIER_CREATE') {
+					$object = new CommandeFournisseurLigne($db);
+					$tab = 'commande_fournisseurdet';
+				}
+				elseif($action === 'LINEBILL_SUPPLIER_CREATE') {
+					$object = new SupplierInvoiceLine($db);
+					$tab = 'facture_fourn_det';
+				}
+				$lineid = $db->last_insert_id(MAIN_DB_PREFIX.$tab);
 				$object->fetch($lineid);
 			}
 			
@@ -329,6 +333,7 @@ class InterfaceTarifWorkflow
 			else if(get_class($object) == 'OrderLine'){$table = "commande"; $tabledet = 'commandedet'; $parentfield = 'fk_commande';}
 			else if(get_class($object) == 'FactureLigne'){ $table = "facture"; $tabledet = 'facturedet'; $parentfield = 'fk_facture';}
 			else if(get_class($object) == 'CommandeFournisseurLigne'){ $table = "commande_fournisseur"; $tabledet = 'commande_fournisseurdet'; $parentfield = 'fk_commande';}
+			else if(get_class($object) == 'SupplierInvoiceLine'){ $table = "facture_fournisseur"; $tabledet = 'facture_fourn_det'; $parentfield = 'fk_facture_fourn';}
 				
 			//Gestion du poids et de l'unité transmise
 			
@@ -555,7 +560,8 @@ class InterfaceTarifWorkflow
 			
 		}
 
-		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE'  || $action==='LINEORDER_SUPPLIER_UPDATE') 
+		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE'
+				|| $action==='LINEORDER_SUPPLIER_UPDATE' || $action === 'LINEBILL_SUPPLIER_UPDATE') 
 				&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
 			
 			$idProd = __val( $object->fk_product, $object->oldline->fk_product, 'integer');
@@ -585,6 +591,11 @@ class InterfaceTarifWorkflow
 				$table = "commande_fournisseur"; 
 				$tabledet = 'commande_fournisseurdet'; 
 				$parentfield = 'fk_commande';
+			}
+			elseif(get_class($object) == 'FactureFournisseur' || get_class($object) == 'SupplierInvoiceLine'){
+				$table = "facture_fournisseur"; 
+				$tabledet = 'facture_fourn_det'; 
+				$parentfield = 'fk_facture_fourn';
 			}
 			
 			$idLine = __val($object->rowid, $object->id); 
