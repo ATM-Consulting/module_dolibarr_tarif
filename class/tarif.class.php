@@ -101,9 +101,10 @@ class TTarif extends TObjetStd {
 					$parent->fetch_thirdparty();
 					$soc = $parent->thirdparty;
 					$tva_tx = get_default_tva($mysoc, $soc, $idprod);
+					//if(empty($tva_tx)) $tva_tx=$res->tva_tx; TODO, ici en fait on réucpère jamais la TVA définie sur le tarif du produit !
 				}
 				
-				if( strpos($res->type_price,'PERCENT')!==false ){
+				if(strpos($res->type_price,'PERCENT')!==false ){
 					
 					if($res->type_remise == "qte" && $qty >= $res->quantite){
 						return array($res->remise_percent, $res->type_price, $tva_tx);
@@ -196,6 +197,7 @@ class TTarif extends TObjetStd {
 					$parent->fetch_thirdparty();
 					$soc = $parent->thirdparty;
 					$tva_tx = get_default_tva($mysoc, $soc, $idprod);
+					//if(empty($tva_tx)) $tva_tx=$res->tva_tx; TODO, ici en fait on réucpère jamais la TVA définie sur le tarif du produit !
 				}
 				
 				if(strpos($res->type_price,'PRICE') !== false){

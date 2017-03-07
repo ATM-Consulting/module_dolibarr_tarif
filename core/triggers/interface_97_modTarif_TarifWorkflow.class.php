@@ -100,6 +100,7 @@ class InterfaceTarifWorkflow
 		
 		if(!defined('INC_FROM_DOLIBARR'))define('INC_FROM_DOLIBARR',true);
 		dol_include_once('/tarif/config.php');
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/price.lib.php';
 		
 		$product = new Product($this->db);
 		$product->fetch($idProd);
@@ -111,6 +112,14 @@ class InterfaceTarifWorkflow
 		$object->remise_percent = $remise;
 		
 		$object->subprice = $prix ;
+		
+		if(get_class($object) === 'SupplierInvoiceLine') {
+	        $tabprice = calcul_price_total($object->qty, $prix, $object->remise_percent, $tvatx, $object->localtax1_type, $object->localtax2_type, 0, 'HT', $info_bits, $type, $this->thirdparty, $localtaxes_type, 100, $this->multicurrency_tx, $pu_ht_devise);
+			$object->pu_ht = $prix;
+	        $object->tva_tx = $tvatx;
+	        $object->pu_ttc = $tabprice[5];
+		}
+		
 		if(empty($conf->global->TARIF_DONT_USE_TVATX)) $object->tva_tx = $tvatx;
 		
 		$object->price = $object->subprice; // TODO qu'est-ce ? Due à un deprecated incertain, dans certains cas price est utilisé et dans d'autres c'est subprice
