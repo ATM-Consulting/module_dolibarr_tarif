@@ -11,6 +11,18 @@ class ActionsTarif
      
      var $module_number = 104190;
 	
+	function doActions($parameters, &$object, &$action, $hookmanager) {
+		
+		if($parameters['currentcontext'] === 'invoicesuppliercard'
+			|| $parameters['currentcontext'] === 'ordersuppliercard') {
+			if(in_array($action, array('addline'))) {
+				var_dump($_REQUEST);exit;
+			}
+			
+		}
+		
+	}
+	
 	function formObjectOptions ($parameters, &$object, &$action, $hookmanager) {
 		global $db,$conf,$langs;
 		
@@ -293,6 +305,55 @@ class ActionsTarif
         }
 
 		return 0;
+	}
+
+	function formCreateProductSupplierOptions($parameters, &$object, &$action, $hookmanager) {
+		
+		global $db;
+		
+		require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+		
+		$form = new Form($db);
+		
+		if($parameters['currentcontext'] === 'invoicesuppliercard'
+			|| $parameters['currentcontext'] === 'ordersuppliercard') {
+			
+			?>
+				<script language="JavaScript" type="text/JavaScript">
+				
+					$(document).ready(function() {
+						
+						// On supprime le sélecteur de produits actuel pour en mettre un standard, de manière à pourvoir sélectionner tous les produits
+						$('#idprodfournprice').remove();
+						$('#price_ht').remove();
+						
+						$('#price_ttc').replaceWith('<input type="text" size="2" name="qty_selected" id="qty_selected" class="flat" value=""><select name="fk_fourn_product_price" id="fk_fourn_product_price"></select>');
+						
+						// Sur sélection d'un produit, on récupère les tarifs fournisseurs disponibles
+						$("#productid").change(function() {
+							
+							var idprod = $(this).val();
+							
+							$.ajax({
+								type: "GET"
+								,url: '<?php echo dol_buildpath('/tarif/script/ajax.tarifs_fournisseurs_product.php', 1); ?>'
+								,dataType: "json"
+								,data: {
+									idprod: $(this).val()
+								}
+								},"json").then(function(data){
+									$("#fk_fourn_product_price").replaceWith(data);
+								});
+						});
+						
+					});
+				</script>
+			<?php
+			
+			$form->select_produits('', 'productid', '', 0);
+			
+		}
+		
 	}
    
 	
