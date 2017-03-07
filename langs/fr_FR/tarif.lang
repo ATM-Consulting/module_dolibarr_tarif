@@ -23,6 +23,7 @@ PriceBase=Base du prix
 PriceType=Type de prix
 CategoriesCustomer= Catégorie client
 SellingPrice=Prix de vente
+BuyingPrice=Prix d'achat
 ErreurPercent=Votre pourcentage doit être inférieur ou égal à cent
 ConfirmDelete=Êtes-vous sûr de vouloir supprimer ce tarif ?
 DateBeginTarif=Date de début d'application du tarif <br /><small>(toujours disponible si non renseigné)</small>

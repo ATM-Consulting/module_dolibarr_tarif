@@ -13,10 +13,22 @@ class ActionsTarif
 	
 	function doActions($parameters, &$object, &$action, $hookmanager) {
 		
+		global $db;
+		
+		define('INC_FROM_DOLIBARR', true);
+		require __DIR__.'/../config.php';
+		dol_include_once('/tarif/class/tarif.class.php');
+		$PDOdb = new TPDOdb;
+		
 		if($parameters['currentcontext'] === 'invoicesuppliercard'
 			|| $parameters['currentcontext'] === 'ordersuppliercard') {
 			if(in_array($action, array('addline'))) {
-				var_dump($_REQUEST);exit;
+				$tarif = new TTarifFournisseur;
+				$fk_fourn_product_price = GETPOST('fk_fourn_product_price', 'int');
+				$tarif->load($PDOdb, $fk_fourn_product_price);
+				$object->addline($desc, $tarif->prix, $txtva, $txlocaltax1, $txlocaltax2, GETPOST('qty_selected', 'int')*$tarif->quantite, GETPOST('productid'), GETPOST('remise_percent'));
+				header('Location: '.$_SERVER['PHP_SELF'].'?facid='.$object->id);exit;
+				// TODO verif marche commandes fourn
 			}
 			
 		}

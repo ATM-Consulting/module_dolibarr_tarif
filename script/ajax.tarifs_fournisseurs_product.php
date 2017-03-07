@@ -8,12 +8,8 @@ $sql = 'SELECT rowid, prix, quantite
 
 $resql = $db->query($sql);
 $TRes = array();
-while($res = $db->fetch_object($resql)) $TRes[$res->rowid] = 'prix '.$res->prix.', qté '.$res->quantite;
+while($res = $db->fetch_object($resql)) $TRes[$res->rowid] = $res->quantite.'kg : '.$res->prix.'€';
 
 $form = new TFormCore;
-/*print '<select name="fk_fourn_product_price" id="coucou">
-
-<option value="1">la</option>
-</select>';*/
+if(empty($TRes)) $TRes = array(0=>'');
 echo json_encode($form->combo($pLib,'fk_fourn_product_price',$TRes,$pDefault));
-//echo json_encode($TRes);
