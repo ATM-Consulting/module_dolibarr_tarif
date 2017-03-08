@@ -30,7 +30,7 @@ class ActionsTarif
 			$nb_colis = GETPOST('nb_colis', 'int');
 			$fk_fourn_product_price = GETPOST('fk_fourn_product_price', 'int');
 			$fk_product = GETPOST('productid');
-			$remise = GETPOST('remise_percent');
+			$remise = GETPOST('remise_percent') ? GETPOST('remise_percent') : 0;
 			$desc = GETPOST('dp_desc');
 			$tarif = new TTarifFournisseur;
 			$tarif->load($PDOdb, $fk_fourn_product_price);
@@ -48,7 +48,7 @@ class ActionsTarif
 			} elseif($action === 'updateline') {
 				
 				$lineid = GETPOST('lineid');
-				$res = $object->updateline($lineid, $tarif->prix, $nb_colis*$tarif->quantite, $remise_percent, $tarif->tva_tx);
+				$res = $object->updateline($lineid, $desc, $tarif->prix, $tarif->tva_tx, 0, 0, $nb_colis*$tarif->quantite, $fk_product, 'HT', 0, 0, $remise, true);
 				if($res > 0) $res = $lineid;
 				
 			}
