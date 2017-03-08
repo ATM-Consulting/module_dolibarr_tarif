@@ -12,4 +12,4 @@ while($res = $db->fetch_object($resql)) $TRes[$res->rowid] = $res->quantite.'kg 
 
 $form = new TFormCore;
 if(empty($TRes)) $TRes = array(0=>'');
-echo json_encode($form->combo($pLib,'fk_fourn_product_price',$TRes,$pDefault));
+echo json_encode($form->combo($pLib,'fk_fourn_product_price',$TRes,GETPOST('selected')));

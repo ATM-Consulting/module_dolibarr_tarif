@@ -22,13 +22,38 @@ class ActionsTarif
 		
 		if($parameters['currentcontext'] === 'invoicesuppliercard'
 			|| $parameters['currentcontext'] === 'ordersuppliercard') {
+				
+			if(get_class($object) === 'FactureFournisseur') $tabledet = MAIN_DB_PREFIX.'facture_fourn_det';
+			else $tabledet = MAIN_DB_PREFIX.'commande_fournisseur_det';
+			
 			if(in_array($action, array('addline'))) {
-				$tarif = new TTarifFournisseur;
+				
+				$fk_product = GETPOST('productid');
+				$nb_colis = GETPOST('nb_colis', 'int');
 				$fk_fourn_product_price = GETPOST('fk_fourn_product_price', 'int');
-				$tarif->load($PDOdb, $fk_fourn_product_price);
-				$object->addline($desc, $tarif->prix, $txtva, $txlocaltax1, $txlocaltax2, GETPOST('qty_selected', 'int')*$tarif->quantite, GETPOST('productid'), GETPOST('remise_percent'));
-				header('Location: '.$_SERVER['PHP_SELF'].'?facid='.$object->id);exit;
-				// TODO verif marche commandes fourn
+				$remise = GETPOST('remise_percent');
+				$desc = GETPOST('dp_desc');
+				
+				if(!empty($fk_product) && $nb_colis > 0 && $fk_fourn_product_price >0 ) {
+					
+					$tarif = new TTarifFournisseur;
+					$fk_unit='';
+					$tarif->load($PDOdb, $fk_fourn_product_price);
+					$notrigger=1; // Je mets un no trigger car à ce moment on a déjà récupéré le bon tarif, donc pas besoin de ré-exécuter le trigger
+					$res = $object->addline($desc, $tarif->prix, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $nb_colis*$tarif->quantite, $fk_product, $remise, '', '', 0, '', 'HT', 0, -1, $notrigger, 0, $fk_unit);
+					
+					// Enregistrement du nb colis et fk_tarif_fourn utilisés pour préselection lors de la modification de la ligne
+					if($res > 0) {
+						$sql = 'UPDATE '.$tabledet.' SET nb_colis = '.$nb_colis.', fk_tarif_fournisseur = '.$fk_fourn_product_price.' WHERE rowid = '.$res;
+						$db->query($sql);
+					}
+					
+					// Header car sinon blocage comme pas d'id tarif fournisseur std doli
+					header('Location: '.$_SERVER['PHP_SELF'].'?facid='.$object->id);exit;
+					// TODO verif marche commandes fourn
+					
+				} else setEventMessage('Donnée manquante pour ajout de ligne (hook module tarif)', 'warnings');
+				
 			}
 			
 		}
@@ -85,7 +110,6 @@ class ActionsTarif
 	function formEditProductOptions($parameters, &$object, &$action, $hookmanager) 
     {
     	global $db,$conf;
-		
 		
     	if (in_array('propalcard',explode(':',$parameters['context']))
     		|| in_array('ordercard',explode(':',$parameters['context']))
@@ -158,6 +182,9 @@ class ActionsTarif
 
 			$this->resprints='';
 		}
+
+		$this->printInputsSelectNBColis($object, 'edit', false);
+
         return 0;
     }
 
@@ -323,23 +350,45 @@ class ActionsTarif
 		
 		global $db;
 		
+		if($parameters['currentcontext'] === 'invoicesuppliercard'
+			|| $parameters['currentcontext'] === 'ordersuppliercard') {
+			
+			$this->printInputsSelectNBColis($object);
+			
+		}
+		
+	}
+
+	function printInputsSelectNBColis(&$object, $mode='view', $print_select_product=true) {
+		
+		global $db;
 		require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
 		
 		$form = new Form($db);
 		
-		if($parameters['currentcontext'] === 'invoicesuppliercard'
-			|| $parameters['currentcontext'] === 'ordersuppliercard') {
+		?>
+			<script language="JavaScript" type="text/JavaScript">
 			
-			?>
-				<script language="JavaScript" type="text/JavaScript">
-				
-					$(document).ready(function() {
+				$(document).ready(function() {
+					
+					/**
+					 * On supprime le sélecteur de produits actuel pour en mettre un standard, de manière à pourvoir sélectionner tous les produits
+					 * On supprime aussi les input de prix, car les prix sont définis sur l'onglet tarifs fournisseurs du module
+					 */
+					$('#idprodfournprice').remove();
+					$('#price_ht').remove();
+					$('#units').remove();
+					$('#tva_tx').remove();
+					
+					var nb_colis_and_select_fktariffourn = '<input type="text" placeholder="nb colis" size="5" name="nb_colis" id="nb_colis" class="flat" value=""><select name="fk_fourn_product_price" id="fk_fourn_product_price"></select>';
+					
+					<?php if($mode === 'view') { ?>
 						
-						// On supprime le sélecteur de produits actuel pour en mettre un standard, de manière à pourvoir sélectionner tous les produits
-						$('#idprodfournprice').remove();
-						$('#price_ht').remove();
-						
-						$('#price_ttc').replaceWith('<input type="text" size="2" name="qty_selected" id="qty_selected" class="flat" value=""><select name="fk_fourn_product_price" id="fk_fourn_product_price"></select>');
+						//$('#price_ttc').replaceWith();
+						var lastinputtc = $(".linecoluttc").last();
+						lastinputtc.empty();
+						lastinputtc.addClass('nowrap');
+						lastinputtc.append(nb_colis_and_select_fktariffourn);
 						
 						// Sur sélection d'un produit, on récupère les tarifs fournisseurs disponibles
 						$("#productid").change(function() {
@@ -357,16 +406,62 @@ class ActionsTarif
 									$("#fk_fourn_product_price").replaceWith(data);
 								});
 						});
+					
+					<?php } else { ?>
+						var parent_td_ttc = $("#price_ttc").parent('td');
+						parent_td_ttc.empty();
+						parent_td_ttc.addClass('nowrap');
+						parent_td_ttc.append(nb_colis_and_select_fktariffourn);
+					<?php } ?>
+					
+				});
+			</script>
+		<?php
+		
+		if($print_select_product) $form->select_produits('', 'productid', '', 0);
+		
+		if($mode === 'edit') {
+			if(get_class($object) === 'FactureFournisseur') $tabledet = MAIN_DB_PREFIX.'facture_fourn_det';
+			else $tabledet = MAIN_DB_PREFIX.'commande_fournisseur_det';
+			
+			$lineid = GETPOST('lineid');
+			$sql = 'SELECT fk_product, nb_colis, fk_tarif_fournisseur FROM '.$tabledet.' WHERE rowid = '.$lineid;
+			$resql = $db->query($sql);
+			$res = $db->fetch_object($resql);
+			$fk_product = $res->fk_product;
+			
+			if(!empty($fk_product)) {
+				
+				$nb_colis = $res->nb_colis;
+				$fk_tarif_fourn = $res->fk_tarif_fournisseur;
+				
+				?>
+				
+					<script language="JavaScript" type="text/JavaScript">
 						
-					});
-				</script>
-			<?php
-			
-			$form->select_produits('', 'productid', '', 0);
-			
+						$(document).ready(function() {
+							$.ajax({
+								type: "GET"
+								,url: '<?php echo dol_buildpath('/tarif/script/ajax.tarifs_fournisseurs_product.php', 1); ?>'
+								,dataType: "json"
+								,data: {
+									idprod: <?php echo $fk_product; ?>
+									,selected: <?php echo $fk_tarif_fourn; ?>
+								}
+								},"json").then(function(data){
+									$("#nb_colis").replaceWith('<input type="text" placeholder="nb colis" size="5" name="nb_colis" id="nb_colis" class="flat" value="<?php echo $nb_colis; ?>">');
+									$("#fk_fourn_product_price").replaceWith(data);
+								});
+						});
+						
+					</script>
+				
+				<?php
+				
+			}
 		}
 		
 	}
-   
+
 	
 }
