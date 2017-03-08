@@ -13,7 +13,7 @@ class ActionsTarif
 	
 	function doActions($parameters, &$object, &$action, $hookmanager) {
 		
-		global $db;
+		global $db, $conf;
 		
 		define('INC_FROM_DOLIBARR', true);
 		require __DIR__.'/../config.php';
@@ -24,8 +24,14 @@ class ActionsTarif
 			|| $parameters['currentcontext'] === 'ordersuppliercard')
 			&& ($action === 'addline' || $action === 'updateline')) {
 				
-			if(get_class($object) === 'FactureFournisseur') $tabledet = MAIN_DB_PREFIX.'facture_fourn_det';
-			else $tabledet = MAIN_DB_PREFIX.'commande_fournisseur_det';
+			if(get_class($object) === 'FactureFournisseur') {
+				$field_url = 'facid';
+				$tabledet = MAIN_DB_PREFIX.'facture_fourn_det';
+			}
+			else {
+				$field_url = 'id';
+				$tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';
+			}
 			
 			$nb_colis = GETPOST('nb_colis', 'int');
 			$fk_fourn_product_price = GETPOST('fk_fourn_product_price', 'int');
@@ -34,23 +40,35 @@ class ActionsTarif
 			$desc = GETPOST('dp_desc');
 			$tarif = new TTarifFournisseur;
 			$tarif->load($PDOdb, $fk_fourn_product_price);
+			$fk_unit='';
+			
+			$notrigger=1; // Je mets un no trigger car à ce moment on a déjà récupéré le bon tarif, donc pas besoin de ré-exécuter le trigger
 			
 			if($action === 'addline') {
 								
 				if(!empty($fk_product) && $nb_colis > 0 && $fk_fourn_product_price >0 ) {
+					//var_dump($desc, $tarif->prix, $nb_colis);exit;
 					
-					$fk_unit='';
-					$notrigger=1; // Je mets un no trigger car à ce moment on a déjà récupéré le bon tarif, donc pas besoin de ré-exécuter le trigger
-					$res = $object->addline($desc, $tarif->prix, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $nb_colis*$tarif->quantite, $fk_product, $remise, '', '', 0, '', 'HT', 0, -1, $notrigger, 0, $fk_unit);
+					if(get_class($object) === 'FactureFournisseur')
+						$res = $object->addline($desc, $tarif->prix, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $nb_colis*$tarif->quantite, $fk_product, $remise, '', '', 0, '', 'HT', 0, -1, $notrigger, 0, $fk_unit);
+					else {
+						// Spécificité côté commandes fournisseur pour ne pas recalculer le tarif fourn
+						$conf->global->SUPPLIERORDER_WITH_NOPRICEDEFINED=1;
+						$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $fk_product, 0, '', $remise, 'HT', 0, 0, 0, $notrigger, null, null, 0, $fk_unit);
+					}
 					
 				} else setEventMessage('Donnée manquante pour ajout de ligne (hook module tarif)', 'warnings');
 				
 			} elseif($action === 'updateline') {
 				
 				$lineid = GETPOST('lineid');
-				$res = $object->updateline($lineid, $desc, $tarif->prix, $tarif->tva_tx, 0, 0, $nb_colis*$tarif->quantite, $fk_product, 'HT', 0, 0, $remise, true);
-				if($res > 0) $res = $lineid;
+				if(get_class($object) === 'FactureFournisseur')
+					$res = $object->updateline($lineid, $desc, $tarif->prix, $tarif->tva_tx, 0, 0, $nb_colis*$tarif->quantite, $fk_product, 'HT', 0, 0, $remise, true);
+				else
+					$res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, 0, $notrigger, '', '', 0, $fk_unit);
 				
+				if($lineid > 0) $res = $lineid;
+
 			}
 
 			// Enregistrement du nb colis et fk_tarif_fourn utilisés pour préselection lors de la modification de la ligne
@@ -60,8 +78,7 @@ class ActionsTarif
 			}
 			
 			// Header car sinon blocage comme pas d'id tarif fournisseur std doli
-			header('Location: '.$_SERVER['PHP_SELF'].'?facid='.$object->id);exit;
-			// TODO verif marche commandes fourn
+			header('Location: '.$_SERVER['PHP_SELF'].'?'.$field_url.'='.$object->id);exit;
 			
 		}
 		
@@ -278,7 +295,8 @@ class ActionsTarif
 			         		if($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) {
 			         			?><input class="poidsAff" type="text" value="0" name="poidsAff_product" id="poidsAffProduct" size="6" /><?php
 							}
-							print ($type_unite=='unite') ? 'U' :  $formproduct->select_measuring_units("weight_unitsAff_product", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT,0); 
+							// Pour solebio, on n'affiche pas ce sélecteur, car le sélecteur est spécifique
+							//print ($type_unite=='unite') ? 'U' :  $formproduct->select_measuring_units("weight_unitsAff_product", ($res->unite_vente) ? $res->unite_vente : DOL_DEFAULT_UNIT,0); 
 		         			
 							if($conf->global->TARIF_USE_METRE) {
 								print '<a href="javascript:showMetre(0)">M</a><input type="hidden" name="metre" value="" />';
@@ -377,13 +395,13 @@ class ActionsTarif
 			<script language="JavaScript" type="text/JavaScript">
 			
 				$(document).ready(function() {
-					
+					console.log("INFO : Formulaire d'ajout et d'update de ligne écrasé par le module tarif branche solebio")
 					/**
 					 * On supprime le sélecteur de produits actuel pour en mettre un standard, de manière à pourvoir sélectionner tous les produits
 					 * On supprime aussi les input de prix, car les prix sont définis sur l'onglet tarifs fournisseurs du module
 					 */
 					$('#idprodfournprice').remove();
-					$('#price_ht').remove();
+					$('#price_ttc').remove();
 					$('#units').remove();
 					$('#tva_tx').remove();
 					$('#qty').remove();
@@ -393,7 +411,7 @@ class ActionsTarif
 					<?php if($mode === 'view') { ?>
 						
 						//$('#price_ttc').replaceWith();
-						var lastinputtc = $(".linecoluttc").last();
+						var lastinputtc = $(".linecoluht").last();
 						lastinputtc.empty();
 						lastinputtc.addClass('nowrap');
 						lastinputtc.append(nb_colis_and_select_fktariffourn);
@@ -416,7 +434,7 @@ class ActionsTarif
 						});
 					
 					<?php } else { ?>
-						var parent_td_ttc = $("#price_ttc").parent('td');
+						var parent_td_ttc = $("#price_ht").parent('td');
 						parent_td_ttc.empty();
 						parent_td_ttc.addClass('nowrap');
 						parent_td_ttc.append(nb_colis_and_select_fktariffourn);
@@ -430,7 +448,7 @@ class ActionsTarif
 		
 		if($mode === 'edit') {
 			if(get_class($object) === 'FactureFournisseur') $tabledet = MAIN_DB_PREFIX.'facture_fourn_det';
-			else $tabledet = MAIN_DB_PREFIX.'commande_fournisseur_det';
+			else $tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';
 			
 			$lineid = GETPOST('lineid');
 			$sql = 'SELECT fk_product, nb_colis, fk_tarif_fournisseur FROM '.$tabledet.' WHERE rowid = '.$lineid;
@@ -447,6 +465,7 @@ class ActionsTarif
 				
 					<script language="JavaScript" type="text/JavaScript">
 						
+						// Ici on récupère les données de la ligne déjà enregistrées
 						$(document).ready(function() {
 							$.ajax({
 								type: "GET"
