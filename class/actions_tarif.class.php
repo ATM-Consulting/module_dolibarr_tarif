@@ -20,41 +20,48 @@ class ActionsTarif
 		dol_include_once('/tarif/class/tarif.class.php');
 		$PDOdb = new TPDOdb;
 		
-		if($parameters['currentcontext'] === 'invoicesuppliercard'
-			|| $parameters['currentcontext'] === 'ordersuppliercard') {
+		if(($parameters['currentcontext'] === 'invoicesuppliercard'
+			|| $parameters['currentcontext'] === 'ordersuppliercard')
+			&& ($action === 'addline' || $action === 'updateline')) {
 				
 			if(get_class($object) === 'FactureFournisseur') $tabledet = MAIN_DB_PREFIX.'facture_fourn_det';
 			else $tabledet = MAIN_DB_PREFIX.'commande_fournisseur_det';
 			
-			if(in_array($action, array('addline'))) {
-				
-				$fk_product = GETPOST('productid');
-				$nb_colis = GETPOST('nb_colis', 'int');
-				$fk_fourn_product_price = GETPOST('fk_fourn_product_price', 'int');
-				$remise = GETPOST('remise_percent');
-				$desc = GETPOST('dp_desc');
-				
+			$nb_colis = GETPOST('nb_colis', 'int');
+			$fk_fourn_product_price = GETPOST('fk_fourn_product_price', 'int');
+			$fk_product = GETPOST('productid');
+			$remise = GETPOST('remise_percent');
+			$desc = GETPOST('dp_desc');
+			$tarif = new TTarifFournisseur;
+			$tarif->load($PDOdb, $fk_fourn_product_price);
+			
+			if($action === 'addline') {
+								
 				if(!empty($fk_product) && $nb_colis > 0 && $fk_fourn_product_price >0 ) {
 					
-					$tarif = new TTarifFournisseur;
 					$fk_unit='';
-					$tarif->load($PDOdb, $fk_fourn_product_price);
 					$notrigger=1; // Je mets un no trigger car à ce moment on a déjà récupéré le bon tarif, donc pas besoin de ré-exécuter le trigger
 					$res = $object->addline($desc, $tarif->prix, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $nb_colis*$tarif->quantite, $fk_product, $remise, '', '', 0, '', 'HT', 0, -1, $notrigger, 0, $fk_unit);
 					
-					// Enregistrement du nb colis et fk_tarif_fourn utilisés pour préselection lors de la modification de la ligne
-					if($res > 0) {
-						$sql = 'UPDATE '.$tabledet.' SET nb_colis = '.$nb_colis.', fk_tarif_fournisseur = '.$fk_fourn_product_price.' WHERE rowid = '.$res;
-						$db->query($sql);
-					}
-					
-					// Header car sinon blocage comme pas d'id tarif fournisseur std doli
-					header('Location: '.$_SERVER['PHP_SELF'].'?facid='.$object->id);exit;
-					// TODO verif marche commandes fourn
-					
 				} else setEventMessage('Donnée manquante pour ajout de ligne (hook module tarif)', 'warnings');
 				
+			} elseif($action === 'updateline') {
+				
+				$lineid = GETPOST('lineid');
+				$res = $object->updateline($lineid, $tarif->prix, $nb_colis*$tarif->quantite, $remise_percent, $tarif->tva_tx);
+				if($res > 0) $res = $lineid;
+				
 			}
+
+			// Enregistrement du nb colis et fk_tarif_fourn utilisés pour préselection lors de la modification de la ligne
+			if($res > 0) {
+				$sql = 'UPDATE '.$tabledet.' SET nb_colis = '.$nb_colis.', fk_tarif_fournisseur = '.$fk_fourn_product_price.' WHERE rowid = '.$res;
+				$db->query($sql);
+			}
+			
+			// Header car sinon blocage comme pas d'id tarif fournisseur std doli
+			header('Location: '.$_SERVER['PHP_SELF'].'?facid='.$object->id);exit;
+			// TODO verif marche commandes fourn
 			
 		}
 		
@@ -379,6 +386,7 @@ class ActionsTarif
 					$('#price_ht').remove();
 					$('#units').remove();
 					$('#tva_tx').remove();
+					$('#qty').remove();
 					
 					var nb_colis_and_select_fktariffourn = '<input type="text" placeholder="nb colis" size="5" name="nb_colis" id="nb_colis" class="flat" value=""><select name="fk_fourn_product_price" id="fk_fourn_product_price"></select>';
 					
