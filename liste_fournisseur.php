@@ -251,7 +251,7 @@
 		print $langs->trans('Unit');
 		print '</td><td>';
 		if($type_unite=='unite') print 'U';
-		else print $formproduct->select_measuring_units("weight_units", $type_unite, ($action=='edit') ? $tarif->unite_value : $object->{$type_unite.'_units'});
+		else print $form->selectUnits($tarif->unite);
 		print '</td></tr>';
 		
 		
@@ -270,14 +270,15 @@
 		//pre($_REQUEST,true);
 		
 		//logueur, poids, etc
-		if(!is_null($_REQUEST['weight_units'])){
+		/*if(!is_null($_REQUEST['weight_units'])){
 			$unite = measuring_units_string($_REQUEST['weight_units'],$type_unite);
 			$unite = $langs->trans($unite);
 		}
 		else{ //unitaire
 			$unite = 'U';
-		}
-		
+		}*/
+		$unite = GETPOST('units');
+		//var_dump($_REQUEST);exit;
 		$TTarifFournisseur = new TTarifFournisseur;
 		
 		if($id_tarif>0) $TTarifFournisseur->load($ATMdb, $id_tarif);

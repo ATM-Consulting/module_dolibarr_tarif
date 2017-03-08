@@ -40,7 +40,7 @@ class ActionsTarif
 			$desc = GETPOST('dp_desc');
 			$tarif = new TTarifFournisseur;
 			$tarif->load($PDOdb, $fk_fourn_product_price);
-			$fk_unit='';
+			$fk_unit=$tarif->unite;
 			
 			$notrigger=1; // Je mets un no trigger car à ce moment on a déjà récupéré le bon tarif, donc pas besoin de ré-exécuter le trigger
 			
@@ -63,7 +63,7 @@ class ActionsTarif
 				
 				$lineid = GETPOST('lineid');
 				if(get_class($object) === 'FactureFournisseur')
-					$res = $object->updateline($lineid, $desc, $tarif->prix, $tarif->tva_tx, 0, 0, $nb_colis*$tarif->quantite, $fk_product, 'HT', 0, 0, $remise, true);
+					$res = $object->updateline($lineid, $desc, $tarif->prix, $tarif->tva_tx, 0, 0, $nb_colis*$tarif->quantite, $fk_product, 'HT', 0, 0, $remise, $notrigger, '', '', 0, $fk_unit);
 				else
 					$res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, 0, $notrigger, '', '', 0, $fk_unit);
 				
