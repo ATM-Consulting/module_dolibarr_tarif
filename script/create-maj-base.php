@@ -35,3 +35,9 @@
 	
 	$o=new TTarifFactureFourndet;
 	$o->init_db_by_vars($PDOdb);
+	
+	$o=new TTarifLog;
+	$o->init_db_by_vars($PDOdb);
+	
+	$o=new TTarifFournisseurLog;
+	$o->init_db_by_vars($PDOdb);

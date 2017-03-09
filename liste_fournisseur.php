@@ -280,8 +280,23 @@
 		
 		$TTarifFournisseur = new TTarifFournisseur;
 		
-		if($id_tarif>0) $TTarifFournisseur->load($ATMdb, $id_tarif);
-		//pre($TTarifFournisseur,true);exit;
+		if($id_tarif>0) {
+			$TTarifFournisseur->load($ATMdb, $id_tarif);
+			
+			// Si changemlent de prix et conf activée, on log l'ancien tarif
+			if((float)$TTarifFournisseur->prix != (float)price2num(GETPOST('prix_visu'))
+				&& !empty($conf->global->TARIF_LOG_TARIF_UPDATE)) {
+					
+				$tarif_fournisseur_log = new TTarifFournisseurLog;
+				foreach($TTarifFournisseur as $k=>$v) {
+					if($k != 'table') $tarif_fournisseur_log->{$k} = $v;
+				}
+				$tarif_fournisseur_log->rowid = 0;
+				$tarif_fournisseur_log->date_fin = strtotime(date('Y-m-d'));
+				$tarif_fournisseur_log->save($ATMdb);
+				
+			}
+		}
 		
 		$TTarifFournisseur->tva_tx = GETPOST('tva_tx','int');
 		$TTarifFournisseur->price_base_type = 'HT';
@@ -327,6 +342,12 @@
 		$TTarifFournisseur = new TTarifFournisseur;
 		$TTarifFournisseur->load($ATMdb,$id_tarif);
 		$TTarifFournisseur->delete($ATMdb);
+	}
+	elseif(!empty($action) && $action == 'deletelog' && !empty($id_tarif))
+	{
+		$TtarifFournLog = new TTarifFournisseurLog;
+		$TtarifFournLog->load($ATMdb,$id_tarif);
+		$TtarifFournLog->delete($ATMdb);
 	}
 	
 	
@@ -454,6 +475,49 @@
 			,'fk_soc'=>'_getNomURLSoc(@val@)'
 		)
 	));
+	
+	if(!empty($conf->global->TARIF_LOG_TARIF_UPDATE)) {
+	
+		print '<br />';
+		
+		$sql = strtr($sql, array('tarif_conditionnement_fournisseur'=>'tarif_conditionnement_fournisseur_log')); // Même requête mais dans la table log
+		
+		print $r->liste($ATMdb, $sql, array(
+			'limit'=>array('nbLine'=>1000)
+			,'title'=>array(
+				'base' =>$langs->trans('PriceBase')
+				, 'fk_soc'=>$langs->trans('Company')
+				,'date_debut'=>$form->textwithpicto($langs->trans('StartDate'), $langs->trans('StartDateInfo'), 1, 'help', '', 0, 3)
+				,'date_fin'=>$form->textwithpicto($langs->trans('EndDate'), $langs->trans('EndDateInfo'), 1, 'help', '', 0, 3)
+				,'quantite'=>$langs->trans('Quantity')
+				,'currency'=>$langs->trans('Devise')
+				,'type_price' =>$langs->trans('PriceType')
+				,'unite'=>$langs->trans('Unit')
+				,'prix'=>$langs->trans('Tarif')
+				,'remise' =>$langs->trans('Remise(%)')
+				,'tva'=>$langs->trans('TVA')
+				,'Total' =>$langs->trans('Total')
+				,'Supprimer' =>$langs->trans('Delete')
+				,'Pays' =>$langs->trans('Country')
+			)
+			,'type'=>array(/*'date_debut'=>'date','date_fin'=>'date',*/'tva' => 'number', 'prix'=>'number', 'Total' => 'number' , 'quantite' => 'number')
+			,'hide'=> $THide
+			,'link'=>array(
+				'Actions'=>'
+						<a href="?id=@id@&action=deletelog&fk_product='.$object->id.'" onclick="return confirm(\''.$langs->trans('ConfirmDelete').'\');">'.img_delete().'</a>
+						<a href="?id=@id@&action=edit&fk_product='.$object->id.'">'.img_edit().'</a>
+				'
+			)
+			,'eval'=>array(
+				'type_price'=>'_getTypePrice("@val@")'
+				,'fk_soc'=>'_getNomURLSoc(@val@)'
+			)
+			,'liste'=>array(
+				'titre'=>$langs->trans('PriceLog')
+			)
+		));
+	
+	}
 	
 	print '
 		<style type="text/css">

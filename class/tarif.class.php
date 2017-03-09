@@ -303,6 +303,46 @@ class TTarifFournisseur extends TTarif{
 	
 }
 
+class TTarifLog extends TTarif{
+	
+	function __construct() { /* declaration */
+		global $langs;
+		
+		parent::set_table(MAIN_DB_PREFIX.'tarif_conditionnement_log');
+		parent::add_champs('unite','type=chaine;');
+		parent::add_champs('unite_value','type=entier;');
+		parent::add_champs('price_base_type,type_price,currency_code','type=chaine;');
+		parent::add_champs('prix,tva_tx,quantite,remise_percent','type=float;');
+		parent::add_champs('fk_user_author,fk_product,fk_country,fk_categorie_client,fk_soc,fk_project','type=entier;index;');
+		parent::add_champs('date_debut,date_fin','type=date;');
+		
+		parent::_init_vars();
+		parent::start();
+
+	}
+	
+}
+
+class TTarifFournisseurLog extends TTarif{
+	
+	function __construct() { /* declaration */
+		global $langs;
+		
+		parent::set_table(MAIN_DB_PREFIX.'tarif_conditionnement_fournisseur_log');
+		parent::add_champs('unite','type=chaine;');
+		parent::add_champs('unite_value','type=entier;');
+		parent::add_champs('price_base_type,type_price,currency_code','type=chaine;');
+		parent::add_champs('prix,tva_tx,quantite,remise_percent','type=float;');
+		parent::add_champs('fk_user_author,fk_product,fk_country,fk_categorie_client,fk_soc,fk_project','type=entier;index;');
+		parent::add_champs('date_debut,date_fin','type=date;');
+		
+		parent::_init_vars();
+		parent::start();
+
+	}
+	
+}
+
 class TTarifCommandedet extends TObjetStd {
 	function __construct() { /* declaration */
 		global $langs;

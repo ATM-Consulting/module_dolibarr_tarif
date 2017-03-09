@@ -173,6 +173,14 @@ function showParameters() {
 	print ajax_constantonoff('TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE');
 	print '</td></tr>';
 	
+	$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("TARIF_LOG_TARIF_UPDATE").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('TARIF_LOG_TARIF_UPDATE');
+	print '</td></tr>';
+	
 	 
 	print '</table><br />';
 }
