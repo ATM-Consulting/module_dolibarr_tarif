@@ -40,7 +40,6 @@ class ActionsTarif
 			$remise = GETPOST('remise_percent') ? GETPOST('remise_percent') : 0;
 			$desc = GETPOST('dp_desc');
 			$tarif->load($PDOdb, $fk_tarif);
-			//var_dump($fk_tarif);exit;
 			$fk_unit=$tarif->unite;
 			$notrigger=1; // Je mets un no trigger car à ce moment on a déjà récupéré le bon tarif, donc pas besoin de ré-exécuter le trigger
 			
@@ -97,6 +96,7 @@ class ActionsTarif
 		elseif(get_class($object) === 'CommandeFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, 0, $notrigger, '', '', 0, $fk_unit);
 		elseif(get_class($object) === 'Facture') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, '', '', $tarif->tva_tx, 0, 0, 'HT', 0, 0, 0, 0, null, 0, '', 0, 0, 0, $fk_unit);
 		elseif(get_class($object) === 'Commande') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, '', '', 0, 0, 0, null, 0, '', 0, 0, $fk_unit);
+		elseif(get_class($object) === 'Propal') $res = $object->updateline($lineid, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, $desc, 'HT', 0, 0, 0, 0, 0, 0, '', 0, '', '', 0, $fk_unit);
 		
 		if($lineid > 0) $res = $lineid;
 		
@@ -227,10 +227,21 @@ class ActionsTarif
 			$this->resprints='';
 		}
 
-		if(get_class($object) === 'FactureFournisseur' || get_class($object) === 'CommandeFournisseur') $type = 'fournisseur';
-		elseif(get_class($object) === 'Facture' || get_class($object) === 'Commande' || get_class($object) === 'Propal') $type = 'client';
-		
-		$this->printInputsSelectNBColis($object, 'edit', false, $type);
+    	if (in_array('propalcard',explode(':',$parameters['context']))
+    		|| in_array('ordercard',explode(':',$parameters['context']))
+			|| in_array('ordersuppliercard',explode(':',$parameters['context']))
+    		|| in_array('invoicecard',explode(':',$parameters['context']))
+    		|| in_array('ordercard',explode(':',$parameters['context']))
+    		|| in_array('propalcard',explode(':',$parameters['context']))
+			)
+        {
+
+			if(get_class($object) === 'FactureFournisseur' || get_class($object) === 'CommandeFournisseur') $type = 'fournisseur';
+			elseif(get_class($object) === 'Facture' || get_class($object) === 'Commande' || get_class($object) === 'Propal') $type = 'client';
+			
+			$this->printInputsSelectNBColis($object, 'edit', false, $type);
+
+		}
 
         return 0;
     }
