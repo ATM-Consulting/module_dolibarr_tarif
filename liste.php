@@ -490,7 +490,7 @@
 				, 'fk_soc'=>$langs->trans('Company')
 				,'date_debut'=>$form->textwithpicto($langs->trans('StartDate'), $langs->trans('StartDateInfo'), 1, 'help', '', 0, 3)
 				,'date_fin'=>$form->textwithpicto($langs->trans('EndDate'), $langs->trans('EndDateInfo'), 1, 'help', '', 0, 3)
-				,'quantite'=>$langs->trans('Quantity')
+				,'quantite'=>$langs->trans('Conditionnement')
 				,'currency'=>$langs->trans('Devise')
 				,'type_price' =>$langs->trans('PriceType')
 				,'unite'=>$langs->trans('Unit')
