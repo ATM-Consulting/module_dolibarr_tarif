@@ -22,24 +22,16 @@ class ActionsTarif
 		
 		if(($parameters['currentcontext'] === 'invoicesuppliercard'
 			|| $parameters['currentcontext'] === 'ordersuppliercard'
-			|| $parameters['currentcontext'] === 'invoicecard')
+			|| $parameters['currentcontext'] === 'invoicecard'
+			|| $parameters['currentcontext'] === 'ordercard'
+			|| $parameters['currentcontext'] === 'propalcard')
 			&& ($action === 'addline' || $action === 'updateline' || $action === 'updateligne')) {
 				
-			if(get_class($object) === 'FactureFournisseur') {
-				$tarif = new TTarifFournisseur;
-				$field_url = 'facid';
-				$tabledet = MAIN_DB_PREFIX.'facture_fourn_det';
-			}
-			elseif(get_class($object) === 'CommandeFournisseur') {
-				$tarif = new TTarifFournisseur;
-				$field_url = 'id';
-				$tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';
-			}
-			elseif(get_class($object) === 'Facture') {
-				$tarif = new TTarif;
-				$field_url = 'facid';
-				$tabledet = MAIN_DB_PREFIX.'facturedet';
-			}
+			if(get_class($object) === 'FactureFournisseur') {$tarif = new TTarifFournisseur; $field_url = 'facid'; $tabledet = MAIN_DB_PREFIX.'facture_fourn_det';}
+			elseif(get_class($object) === 'CommandeFournisseur') {$tarif = new TTarifFournisseur; $field_url = 'id'; $tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';}
+			elseif(get_class($object) === 'Facture') {$tarif = new TTarif; $field_url = 'facid'; $tabledet = MAIN_DB_PREFIX.'facturedet';}
+			elseif(get_class($object) === 'Commande') {$tarif = new TTarif; $field_url = 'id'; $tabledet = MAIN_DB_PREFIX.'commandedet';}
+			elseif(get_class($object) === 'Propal') {$tarif = new TTarif; $field_url = 'id'; $tabledet = MAIN_DB_PREFIX.'propaldet';}
 			
 			$nb_colis = GETPOST('nb_colis', 'int');
 			$fk_tarif = GETPOST('fk_tarif', 'int');
@@ -61,7 +53,7 @@ class ActionsTarif
 				$db->query($sql);
 			}
 			
-			// Header car sinon blocage comme pas d'id tarif fournisseur std doli
+			// Header car sinon blocage comme pas d'id tarif fournisseur ou de qté std doli
 			header('Location: '.$_SERVER['PHP_SELF'].'?'.$field_url.'='.$object->id);exit;
 			
 		}
@@ -73,15 +65,20 @@ class ActionsTarif
 		global $conf;
 		
 		if(!empty($fk_product) && $nb_colis > 0 && $fk_tarif >0 ) {
-			//var_dump($fk_tarif,$tarif->prix);exit;
+			
+			$conf->modules_parts['triggers'] = array(); // Nécessité de vider les triggers car on ne peut pas indiquer de no trigger dans le addline et updateline facture client
+			
 			if(get_class($object) === 'FactureFournisseur') $res = $object->addline($desc, $tarif->prix, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $nb_colis*$tarif->quantite, $fk_product, $remise, '', '', 0, '', 'HT', 0, -1, $notrigger, 0, $fk_unit);
 			elseif(get_class($object) === 'CommandeFournisseur') {
 				// Spécificité côté commandes fournisseur pour ne pas recalculer le tarif fourn
 				$conf->global->SUPPLIERORDER_WITH_NOPRICEDEFINED=1;
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $fk_product, 0, '', $remise, 'HT', 0, 0, 0, $notrigger, null, null, 0, $fk_unit);
 			} elseif(get_class($object) === 'Facture') {
-				$conf->modules_parts['triggers'] = array(); // Nécessité de vider les triggers car on ne peut pas indiquer de no trigger dans le addline facture client
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, 0, 0, $fk_product, $remise, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, 0, '', 0, 100, '', $fk_unit);
+			} elseif(get_class($object) === 'Propal') {
+				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, 0, 0, $fk_product, $remise, 'HT', 0, 0, 0, -1, 0, 0, 0, 0, '', '', '', 0, $fk_unit);
+			} elseif(get_class($object) === 'Commande') {
+				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, 0, 0, $fk_product, $remise, 0, 0, 'HT', 0, '', '', 0, -1, 0, 0, null, 0, '', 0, $fk_unit);
 			}
 			
 			return $res;
@@ -94,14 +91,12 @@ class ActionsTarif
 		
 		global $conf;
 		
+		$conf->modules_parts['triggers'] = array(); // Nécessité de vider les triggers car on ne peut pas indiquer de no trigger dans le addline et updateline facture client
+		
 		if(get_class($object) === 'FactureFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $tarif->tva_tx, 0, 0, $nb_colis*$tarif->quantite, $fk_product, 'HT', 0, 0, $remise, $notrigger, '', '', 0, $fk_unit);
 		elseif(get_class($object) === 'CommandeFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, 0, $notrigger, '', '', 0, $fk_unit);
-		elseif(get_class($object) === 'Facture') {
-			$conf->modules_parts['triggers'] = array(); // Nécessité de vider les triggers car on ne peut pas indiquer de no trigger dans le addline facture client
-			$res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, '', '', $tarif->tva_tx, 0, 0, 'HT', 0, 0, 0, 0, null, 0, '', 0, 0, 0, $fk_unit);
-			/*var_dump($desc, $tarif->prix, $tarif->quantite, $fk_product, $fk_unit);
-			echo $res;exit;*/
-		}
+		elseif(get_class($object) === 'Facture') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, '', '', $tarif->tva_tx, 0, 0, 'HT', 0, 0, 0, 0, null, 0, '', 0, 0, 0, $fk_unit);
+		elseif(get_class($object) === 'Commande') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, '', '', 0, 0, 0, null, 0, '', 0, 0, $fk_unit);
 		
 		if($lineid > 0) $res = $lineid;
 		
@@ -232,9 +227,8 @@ class ActionsTarif
 			$this->resprints='';
 		}
 
-		if(get_class($object) === 'FactureFournisseur') $type = 'fournisseur';
-		elseif(get_class($object) === 'CommandeFournisseur') $type = 'fournisseur';
-		elseif(get_class($object) === 'Facture') $type = 'client';
+		if(get_class($object) === 'FactureFournisseur' || get_class($object) === 'CommandeFournisseur') $type = 'fournisseur';
+		elseif(get_class($object) === 'Facture' || get_class($object) === 'Commande' || get_class($object) === 'Propal') $type = 'client';
 		
 		$this->printInputsSelectNBColis($object, 'edit', false, $type);
 
@@ -492,6 +486,8 @@ class ActionsTarif
 			if(get_class($object) === 'FactureFournisseur') $tabledet = MAIN_DB_PREFIX.'facture_fourn_det';
 			elseif(get_class($object) === 'CommandeFournisseur') $tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';
 			elseif(get_class($object) === 'Facture') $tabledet = MAIN_DB_PREFIX.'facturedet';
+			elseif(get_class($object) === 'Commande') $tabledet = MAIN_DB_PREFIX.'commandedet';
+			elseif(get_class($object) === 'Propal') $tabledet = MAIN_DB_PREFIX.'propaldet';
 			
 			$lineid = GETPOST('lineid');
 			$sql = 'SELECT fk_product, nb_colis, fk_tarif FROM '.$tabledet.' WHERE rowid = '.$lineid;

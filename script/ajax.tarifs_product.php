@@ -14,7 +14,7 @@ $sql = 'SELECT u.short_label, t.rowid, t.prix, t.quantite
 
 $resql = $db->query($sql);
 $TRes = array();
-while($res = $db->fetch_object($resql)) $TRes[$res->rowid] = $res->quantite.$res->short_label.' : '.$res->prix.'€';
+while($res = $db->fetch_object($resql)) $TRes[$res->rowid] = $res->quantite.' '.$res->short_label.' : '.$res->prix.' €';
 
 $form = new TFormCore;
 if(empty($TRes)) $TRes = array(0=>'');
