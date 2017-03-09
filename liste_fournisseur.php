@@ -245,7 +245,7 @@
 		
 		//Quantité
 		print '<tr><td width="30%">';
-		print $langs->trans('Quantity');
+		print $langs->trans('Conditionnement'); // Pour solebio, le champ quantite eest toujours un conditionnement
 		print '</td><td><input size="10" name="quantite" value="'.__val($tarif->quantite,1,'double',true).'"></td></tr>';
 		print '<tr><td width="30%">';
 		print $langs->trans('Unit');
@@ -385,11 +385,11 @@
 	else {*/
 		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price,".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays', tc.fk_soc, cat.label as 'Catégorie', tc.price_base_type AS base, tc.quantite as quantite,";
 		if($type_unite == "unite") {
-			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, tc.unite_value AS unite_value,";
+			$sql.=			   "unit.label AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, tc.unite_value AS unite_value,";
 			$sql.=			  "tc.quantite * tc.prix * (100-tc.remise_percent)/100 AS 'Total',";
 		} 
 		else {
-			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, p.".$type_unite."_units AS base_poids, tc.unite_value AS unite_value,";
+			$sql.=			   "unit.label AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, p.".$type_unite."_units AS base_poids, tc.unite_value AS unite_value,";
 			$sql.=			  "((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix)";
 			if($TTarifFournisseur->remise_percent){
 				$sql .=  	  "* (tc.remise_percent/100)";
@@ -408,7 +408,7 @@
 					LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)
 					LEFT JOIN ".MAIN_DB_PREFIX.((DOL_VERSION >= 3.7) ? "c_country" : "c_pays")." AS pays ON (pays.rowid = tc.fk_country)
 					LEFT JOIN ".MAIN_DB_PREFIX."categorie AS cat ON (cat.rowid = tc.fk_categorie_client)
-					
+					LEFT JOIN ".MAIN_DB_PREFIX."c_units unit ON(unit.rowid = tc.unite)
 				WHERE fk_product = ".$product->id."
 				ORDER BY unite_value, quantite ASC";
 	//}
@@ -431,7 +431,7 @@
 			, 'fk_soc'=>$langs->trans('Company')
 			,'date_debut'=>$form->textwithpicto($langs->trans('StartDate'), $langs->trans('StartDateInfo'), 1, 'help', '', 0, 3)
 			,'date_fin'=>$form->textwithpicto($langs->trans('EndDate'), $langs->trans('EndDateInfo'), 1, 'help', '', 0, 3)
-			,'quantite'=>$langs->trans('Quantity')
+			,'quantite'=>$langs->trans('Conditionnement') // Pour solebio, le champ quantite eest toujours un conditionnement
 			,'currency'=>$langs->trans('Devise')
 			,'type_price' =>$langs->trans('PriceType')
 			,'unite'=>$langs->trans('Unit')

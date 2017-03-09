@@ -423,7 +423,7 @@ class ActionsTarif
 							
 							$.ajax({
 								type: "GET"
-								,url: '<?php echo dol_buildpath('/tarif/script/ajax.tarifs_fournisseurs_product.php', 1); ?>'
+								,url: '<?php echo dol_buildpath('/tarif/script/ajax.tarifs_product.php', 1); ?>'
 								,dataType: "json"
 								,data: {
 									idprod: $(this).val()
@@ -469,7 +469,7 @@ class ActionsTarif
 						$(document).ready(function() {
 							$.ajax({
 								type: "GET"
-								,url: '<?php echo dol_buildpath('/tarif/script/ajax.tarifs_fournisseurs_product.php', 1); ?>'
+								,url: '<?php echo dol_buildpath('/tarif/script/ajax.tarifs_product.php', 1); ?>'
 								,dataType: "json"
 								,data: {
 									idprod: <?php echo $fk_product; ?>
