@@ -281,8 +281,23 @@
 		$unite = GETPOST('units');
 		$Ttarif = new TTarif;
 		
-		if($id_tarif>0) $Ttarif->load($ATMdb, $id_tarif);
-		//pre($Ttarif,true);exit;
+		if($id_tarif>0) {
+			$Ttarif->load($ATMdb, $id_tarif);
+			
+			// Si changemlent de prix et conf activée, on log l'ancien tarif
+			if((float)$Ttarif->prix != (float)price2num(GETPOST('prix_visu'))
+				&& !empty($conf->global->TARIF_LOG_TARIF_UPDATE)) {
+					
+				$tarif_log = new TTarifLog;
+				foreach($Ttarif as $k=>$v) {
+					if($k != 'table') $tarif_log->{$k} = $v;
+				}
+				$tarif_log->rowid = 0;
+				$tarif_log->date_fin = strtotime(date('Y-m-d'));
+				$tarif_log->save($ATMdb);
+				
+			}
+		}
 		
 		$Ttarif->tva_tx = GETPOST('tva_tx','int');
 		$Ttarif->price_base_type = 'HT';
@@ -328,6 +343,12 @@
 		$Ttarif = new TTarif;
 		$Ttarif->load($ATMdb,$id_tarif);
 		$Ttarif->delete($ATMdb);
+	}
+	elseif(!empty($action) && $action == 'deletelog' && !empty($id_tarif))
+	{
+		$TtarifLog = new TTarifLog;
+		$TtarifLog->load($ATMdb,$id_tarif);
+		$TtarifLog->delete($ATMdb);
 	}
 	
 	
@@ -456,6 +477,49 @@
 		)
 	));
 	
+	if(!empty($conf->global->TARIF_LOG_TARIF_UPDATE)) {
+	
+		print '<br />';
+		
+		$sql = strtr($sql, array('tarif_conditionnement'=>'tarif_conditionnement_log')); // Même requête mais dans la table log
+		
+		print $r->liste($ATMdb, $sql, array(
+			'limit'=>array('nbLine'=>1000)
+			,'title'=>array(
+				'base' =>$langs->trans('PriceBase')
+				, 'fk_soc'=>$langs->trans('Company')
+				,'date_debut'=>$form->textwithpicto($langs->trans('StartDate'), $langs->trans('StartDateInfo'), 1, 'help', '', 0, 3)
+				,'date_fin'=>$form->textwithpicto($langs->trans('EndDate'), $langs->trans('EndDateInfo'), 1, 'help', '', 0, 3)
+				,'quantite'=>$langs->trans('Quantity')
+				,'currency'=>$langs->trans('Devise')
+				,'type_price' =>$langs->trans('PriceType')
+				,'unite'=>$langs->trans('Unit')
+				,'prix'=>$langs->trans('Tarif')
+				,'remise' =>$langs->trans('Remise(%)')
+				,'tva'=>$langs->trans('TVA')
+				,'Total' =>$langs->trans('Total')
+				,'Supprimer' =>$langs->trans('Delete')
+				,'Pays' =>$langs->trans('Country')
+			)
+			,'type'=>array(/*'date_debut'=>'date','date_fin'=>'date',*/'tva' => 'number', 'prix'=>'number', 'Total' => 'number' , 'quantite' => 'number')
+			,'hide'=> $THide
+			,'link'=>array(
+				'Actions'=>'
+						<a href="?id=@id@&action=deletelog&fk_product='.$object->id.'" onclick="return confirm(\''.$langs->trans('ConfirmDelete').'\');">'.img_delete().'</a>
+						<a href="?id=@id@&action=edit&fk_product='.$object->id.'">'.img_edit().'</a>
+				'
+			)
+			,'eval'=>array(
+				'type_price'=>'_getTypePrice("@val@")'
+				,'fk_soc'=>'_getNomURLSoc(@val@)'
+			)
+			,'liste'=>array(
+				'titre'=>$langs->trans('PriceLog')
+			)
+		));
+	
+	}
+
 	print '
 		<style type="text/css">
 			#list_llx_tarif_conditionnement td div {
