@@ -21,7 +21,8 @@ class ActionsTarif
 		$PDOdb = new TPDOdb;
 		
 		if(($parameters['currentcontext'] === 'invoicesuppliercard'
-			|| $parameters['currentcontext'] === 'ordersuppliercard')
+			|| $parameters['currentcontext'] === 'ordersuppliercard'
+			|| $parameters['currentcontext'] === 'invoicecard')
 			&& ($action === 'addline' || $action === 'updateline')) {
 				
 			if(get_class($object) === 'FactureFournisseur') {
@@ -32,24 +33,28 @@ class ActionsTarif
 				$field_url = 'id';
 				$tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';
 			}
+			elseif(get_class($object) === 'Facture') {
+				$field_url = 'facid';
+				$tabledet = MAIN_DB_PREFIX.'facture_det';
+			}
 			
 			$nb_colis = GETPOST('nb_colis', 'int');
-			$fk_fourn_product_price = GETPOST('fk_fourn_product_price', 'int');
+			$fk_tarif = GETPOST('fk_tarif', 'int');
 			$fk_product = GETPOST('idprod') ? GETPOST('idprod') : GETPOST('productid');
 			$lineid = GETPOST('lineid');
 			$remise = GETPOST('remise_percent') ? GETPOST('remise_percent') : 0;
 			$desc = GETPOST('dp_desc');
 			$tarif = new TTarifFournisseur;
-			$tarif->load($PDOdb, $fk_fourn_product_price);
+			$tarif->load($PDOdb, $fk_tarif);
 			$fk_unit=$tarif->unite;
 			$notrigger=1; // Je mets un no trigger car à ce moment on a déjà récupéré le bon tarif, donc pas besoin de ré-exécuter le trigger
 			
-			if($action === 'addline') $res = $this->addline($object, $tarif, $remise, $fk_product, $fk_fourn_product_price, $nb_colis, $desc, $fk_unit, $notrigger);
-			elseif($action === 'updateline') $res = $this->updateline($object, $tarif, $remise, $fk_product, $fk_fourn_product_price, $nb_colis, $desc, $fk_unit, $notrigger, $lineid);
+			if($action === 'addline') $res = $this->addline($object, $tarif, $remise, $fk_product, $fk_tarif, $nb_colis, $desc, $fk_unit, $notrigger);
+			elseif($action === 'updateline') $res = $this->updateline($object, $tarif, $remise, $fk_product, $fk_tarif, $nb_colis, $desc, $fk_unit, $notrigger, $lineid);
 
 			// Enregistrement du nb colis et fk_tarif_fourn utilisés pour préselection lors de la modification de la ligne
 			if($res > 0) {
-				$sql = 'UPDATE '.$tabledet.' SET nb_colis = '.$nb_colis.', fk_tarif_fournisseur = '.$fk_fourn_product_price.' WHERE rowid = '.$res;
+				$sql = 'UPDATE '.$tabledet.' SET nb_colis = '.$nb_colis.', fk_tarif = '.$fk_tarif.' WHERE rowid = '.$res;
 				$db->query($sql);
 			}
 			
@@ -60,17 +65,19 @@ class ActionsTarif
 		
 	}
 
-	function addline(&$object, &$tarif, $remise, $fk_product, $fk_fourn_product_price, $nb_colis, $desc, $fk_unit, $notrigger) {
+	function addline(&$object, &$tarif, $remise, $fk_product, $fk_tarif, $nb_colis, $desc, $fk_unit, $notrigger) {
 		
 		global $conf;
 		
-		if(!empty($fk_product) && $nb_colis > 0 && $fk_fourn_product_price >0 ) {
+		if(!empty($fk_product) && $nb_colis > 0 && $fk_tarif >0 ) {
 			
 			if(get_class($object) === 'FactureFournisseur') $res = $object->addline($desc, $tarif->prix, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $nb_colis*$tarif->quantite, $fk_product, $remise, '', '', 0, '', 'HT', 0, -1, $notrigger, 0, $fk_unit);
 			elseif(get_class($object) === 'CommandeFournisseur') {
 				// Spécificité côté commandes fournisseur pour ne pas recalculer le tarif fourn
 				$conf->global->SUPPLIERORDER_WITH_NOPRICEDEFINED=1;
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $fk_product, 0, '', $remise, 'HT', 0, 0, 0, $notrigger, null, null, 0, $fk_unit);
+			} elseif(get_class($object) === 'Facture') {
+				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, 0, 0, $fk_product, $remise, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, 0, '', 0, 100, '', $fk_unit);
 			}
 			
 			return $res;
@@ -79,7 +86,7 @@ class ActionsTarif
 		
 	}
 	
-	function updateline(&$object, &$tarif, $remise, $fk_product, $fk_fourn_product_price, $nb_colis, $desc, $fk_unit, $notrigger, $lineid) {
+	function updateline(&$object, &$tarif, $remise, $fk_product, $fk_tarif, $nb_colis, $desc, $fk_unit, $notrigger, $lineid) {
 		
 		if(get_class($object) === 'FactureFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $tarif->tva_tx, 0, 0, $nb_colis*$tarif->quantite, $fk_product, 'HT', 0, 0, $remise, $notrigger, '', '', 0, $fk_unit);
 		elseif(get_class($object) === 'CommandeFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, 0, $notrigger, '', '', 0, $fk_unit);
@@ -396,13 +403,13 @@ class ActionsTarif
 			|| $parameters['currentcontext'] === 'propalcard'
 			|| $parameters['currentcontext'] === 'ordercard') {
 			
-			$this->printInputsSelectNBColis($object, 'view', false);
+			$this->printInputsSelectNBColis($object, 'view', false, 'client');
 			
 		}
 		
 	}
 
-	function printInputsSelectNBColis(&$object, $mode='view', $print_select_product=true) {
+	function printInputsSelectNBColis(&$object, $mode='view', $print_select_product=true, $type='fournisseur') {
 		
 		global $db;
 		require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
@@ -424,7 +431,7 @@ class ActionsTarif
 					$('#tva_tx').remove();
 					$('#qty').remove();
 					
-					var nb_colis_and_select_fktariffourn = '<input type="text" placeholder="nb colis" size="5" name="nb_colis" id="nb_colis" class="flat" value=""><select name="fk_fourn_product_price" id="fk_fourn_product_price"></select>';
+					var nb_colis_and_select_fktarif = '<input type="text" placeholder="nb colis" size="5" name="nb_colis" id="nb_colis" class="flat" value=""><select name="fk_tarif" id="fk_tarif"></select>';
 					
 					<?php if($mode === 'view') { ?>
 						
@@ -432,7 +439,7 @@ class ActionsTarif
 						var lastinputtc = $(".linecoluht").last();
 						lastinputtc.empty();
 						lastinputtc.addClass('nowrap');
-						lastinputtc.append(nb_colis_and_select_fktariffourn);
+						lastinputtc.append(nb_colis_and_select_fktarif);
 						
 						// Sur sélection d'un produit, on récupère les tarifs fournisseurs disponibles
 						$("#idprod").change(function() {
@@ -445,9 +452,10 @@ class ActionsTarif
 								,dataType: "json"
 								,data: {
 									idprod: $(this).val()
+									,type: '<?php echo $type; ?>'
 								}
 								},"json").then(function(data){
-									$("#fk_fourn_product_price").replaceWith(data);
+									$("#fk_tarif").replaceWith(data);
 								});
 						});
 					
@@ -455,7 +463,7 @@ class ActionsTarif
 						var parent_td_ttc = $("#price_ht").parent('td');
 						parent_td_ttc.empty();
 						parent_td_ttc.addClass('nowrap');
-						parent_td_ttc.append(nb_colis_and_select_fktariffourn);
+						parent_td_ttc.append(nb_colis_and_select_fktarif);
 					<?php } ?>
 					
 				});
@@ -466,19 +474,19 @@ class ActionsTarif
 		
 		if($mode === 'edit') {
 			if(get_class($object) === 'FactureFournisseur') $tabledet = MAIN_DB_PREFIX.'facture_fourn_det';
-			else $tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';
+			elseif(get_class($object) === 'CommandeFournisseur') $tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';
 			
 			$lineid = GETPOST('lineid');
-			$sql = 'SELECT fk_product, nb_colis, fk_tarif_fournisseur FROM '.$tabledet.' WHERE rowid = '.$lineid;
-			$resql = $db->query($sql);
+			$sql = 'SELECT fk_product, nb_colis, fk_tarif FROM '.$tabledet.' WHERE rowid = '.$lineid;
+			$resql = $db->query($sql); 
 			$res = $db->fetch_object($resql);
 			$fk_product = $res->fk_product;
 			
 			if(!empty($fk_product)) {
 				
 				$nb_colis = $res->nb_colis;
-				$fk_tarif_fourn = $res->fk_tarif_fournisseur;
-				
+				$fk_tarif = $res->fk_tarif;
+
 				?>
 				
 					<script language="JavaScript" type="text/JavaScript">
@@ -491,11 +499,12 @@ class ActionsTarif
 								,dataType: "json"
 								,data: {
 									idprod: <?php echo $fk_product; ?>
-									,selected: <?php echo $fk_tarif_fourn; ?>
+									,selected: <?php echo $fk_tarif; ?>
+									,type: '<?php echo $type; ?>'
 								}
 								},"json").then(function(data){
 									$("#nb_colis").replaceWith('<input type="text" placeholder="nb colis" size="5" name="nb_colis" id="nb_colis" class="flat" value="<?php echo $nb_colis; ?>">');
-									$("#fk_fourn_product_price").replaceWith(data);
+									$("#fk_tarif").replaceWith(data);
 								});
 						});
 						

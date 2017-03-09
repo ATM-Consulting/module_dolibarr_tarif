@@ -308,7 +308,7 @@ class TTarifCommandedet extends TObjetStd {
 		global $langs;
 		
 		parent::set_table(MAIN_DB_PREFIX.'commandedet');
-		parent::add_champs('poids','type=entier;');
+		parent::add_champs('poids,fk_tarif,nb_colis','type=entier;');
 		parent::add_champs('tarif_poids','type=float;');
 		parent::add_champs('metre');
 		
@@ -322,7 +322,7 @@ class TTarifPropaldet extends TObjetStd {
 		global $langs;
 		
 		parent::set_table(MAIN_DB_PREFIX.'propaldet');
-		parent::add_champs('poids','type=entier;');
+		parent::add_champs('poids,fk_tarif,nb_colis','type=entier;');
 		parent::add_champs('tarif_poids','type=float;');
 		parent::add_champs('metre');
 		
@@ -336,7 +336,7 @@ class TTarifFacturedet extends TObjetStd {
 		global $langs;
 		
 		parent::set_table(MAIN_DB_PREFIX.'facturedet');
-		parent::add_champs('poids','type=entier;');
+		parent::add_champs('poids,fk_tarif,nb_colis','type=entier;');
 		parent::add_champs('tarif_poids','type=float;');
 		parent::add_champs('metre');
 		
@@ -350,7 +350,7 @@ class TTarifCommandeFourndet extends TObjetStd {
 		global $langs;
 		
 		parent::set_table(MAIN_DB_PREFIX.'commande_fournisseurdet');
-		parent::add_champs('poids,fk_tarif_fournisseur,nb_colis','type=entier;');
+		parent::add_champs('poids,fk_tarif,nb_colis','type=entier;');
 		parent::add_champs('tarif_poids','type=float;');
 		parent::add_champs('metre');
 		
@@ -364,7 +364,7 @@ class TTarifFactureFourndet extends TObjetStd {
 		global $langs;
 		
 		parent::set_table(MAIN_DB_PREFIX.'facture_fourn_det');
-		parent::add_champs('poids,fk_tarif_fournisseur,nb_colis','type=entier;');
+		parent::add_champs('poids,fk_tarif,nb_colis','type=entier;');
 		parent::add_champs('tarif_poids','type=float;');
 		parent::add_champs('metre');
 		
