@@ -73,13 +73,14 @@ class ActionsTarif
 		global $conf;
 		
 		if(!empty($fk_product) && $nb_colis > 0 && $fk_tarif >0 ) {
-			
+			//var_dump($fk_tarif,$tarif->prix);exit;
 			if(get_class($object) === 'FactureFournisseur') $res = $object->addline($desc, $tarif->prix, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $nb_colis*$tarif->quantite, $fk_product, $remise, '', '', 0, '', 'HT', 0, -1, $notrigger, 0, $fk_unit);
 			elseif(get_class($object) === 'CommandeFournisseur') {
 				// Spécificité côté commandes fournisseur pour ne pas recalculer le tarif fourn
 				$conf->global->SUPPLIERORDER_WITH_NOPRICEDEFINED=1;
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $fk_product, 0, '', $remise, 'HT', 0, 0, 0, $notrigger, null, null, 0, $fk_unit);
 			} elseif(get_class($object) === 'Facture') {
+				$conf->modules_parts['triggers'] = array(); // Nécessité de vider les triggers car on ne peut pas indiquer de no trigger dans le addline facture client
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, 0, 0, $fk_product, $remise, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, 0, '', 0, 100, '', $fk_unit);
 			}
 			
