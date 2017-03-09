@@ -23,19 +23,22 @@ class ActionsTarif
 		if(($parameters['currentcontext'] === 'invoicesuppliercard'
 			|| $parameters['currentcontext'] === 'ordersuppliercard'
 			|| $parameters['currentcontext'] === 'invoicecard')
-			&& ($action === 'addline' || $action === 'updateline')) {
+			&& ($action === 'addline' || $action === 'updateline' || $action === 'updateligne')) {
 				
 			if(get_class($object) === 'FactureFournisseur') {
+				$tarif = new TTarifFournisseur;
 				$field_url = 'facid';
 				$tabledet = MAIN_DB_PREFIX.'facture_fourn_det';
 			}
 			elseif(get_class($object) === 'CommandeFournisseur') {
+				$tarif = new TTarifFournisseur;
 				$field_url = 'id';
 				$tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';
 			}
 			elseif(get_class($object) === 'Facture') {
+				$tarif = new TTarif;
 				$field_url = 'facid';
-				$tabledet = MAIN_DB_PREFIX.'facture_det';
+				$tabledet = MAIN_DB_PREFIX.'facturedet';
 			}
 			
 			$nb_colis = GETPOST('nb_colis', 'int');
@@ -44,13 +47,13 @@ class ActionsTarif
 			$lineid = GETPOST('lineid');
 			$remise = GETPOST('remise_percent') ? GETPOST('remise_percent') : 0;
 			$desc = GETPOST('dp_desc');
-			$tarif = new TTarifFournisseur;
 			$tarif->load($PDOdb, $fk_tarif);
+			//var_dump($fk_tarif);exit;
 			$fk_unit=$tarif->unite;
 			$notrigger=1; // Je mets un no trigger car à ce moment on a déjà récupéré le bon tarif, donc pas besoin de ré-exécuter le trigger
 			
 			if($action === 'addline') $res = $this->addline($object, $tarif, $remise, $fk_product, $fk_tarif, $nb_colis, $desc, $fk_unit, $notrigger);
-			elseif($action === 'updateline') $res = $this->updateline($object, $tarif, $remise, $fk_product, $fk_tarif, $nb_colis, $desc, $fk_unit, $notrigger, $lineid);
+			elseif($action === 'updateline' || $action === 'updateligne') $res = $this->updateline($object, $tarif, $remise, $fk_product, $fk_tarif, $nb_colis, $desc, $fk_unit, $notrigger, $lineid);
 
 			// Enregistrement du nb colis et fk_tarif_fourn utilisés pour préselection lors de la modification de la ligne
 			if($res > 0) {
@@ -90,6 +93,11 @@ class ActionsTarif
 		
 		if(get_class($object) === 'FactureFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $tarif->tva_tx, 0, 0, $nb_colis*$tarif->quantite, $fk_product, 'HT', 0, 0, $remise, $notrigger, '', '', 0, $fk_unit);
 		elseif(get_class($object) === 'CommandeFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, 0, $notrigger, '', '', 0, $fk_unit);
+		elseif(get_class($object) === 'Facture') {
+			$res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, '', '', $tarif->tva_tx, 0, 0, 'HT', 0, 0, 0, 0, null, 0, '', 0, 0, 0, $fk_unit);
+			/*var_dump($desc, $tarif->prix, $tarif->quantite, $fk_product, $fk_unit);
+			echo $res;exit;*/
+		}
 		
 		if($lineid > 0) $res = $lineid;
 		
@@ -220,7 +228,11 @@ class ActionsTarif
 			$this->resprints='';
 		}
 
-		$this->printInputsSelectNBColis($object, 'edit', false);
+		if(get_class($object) === 'FactureFournisseur') $type = 'fournisseur';
+		elseif(get_class($object) === 'CommandeFournisseur') $type = 'fournisseur';
+		elseif(get_class($object) === 'Facture') $type = 'client';
+		
+		$this->printInputsSelectNBColis($object, 'edit', false, $type);
 
         return 0;
     }
@@ -475,6 +487,7 @@ class ActionsTarif
 		if($mode === 'edit') {
 			if(get_class($object) === 'FactureFournisseur') $tabledet = MAIN_DB_PREFIX.'facture_fourn_det';
 			elseif(get_class($object) === 'CommandeFournisseur') $tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';
+			elseif(get_class($object) === 'Facture') $tabledet = MAIN_DB_PREFIX.'facturedet';
 			
 			$lineid = GETPOST('lineid');
 			$sql = 'SELECT fk_product, nb_colis, fk_tarif FROM '.$tabledet.' WHERE rowid = '.$lineid;
