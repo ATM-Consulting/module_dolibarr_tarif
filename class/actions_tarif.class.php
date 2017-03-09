@@ -28,48 +28,24 @@ class ActionsTarif
 				$field_url = 'facid';
 				$tabledet = MAIN_DB_PREFIX.'facture_fourn_det';
 			}
-			else {
+			elseif(get_class($object) === 'CommandeFournisseur') {
 				$field_url = 'id';
 				$tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';
 			}
 			
 			$nb_colis = GETPOST('nb_colis', 'int');
 			$fk_fourn_product_price = GETPOST('fk_fourn_product_price', 'int');
-			$fk_product = GETPOST('productid');
+			$fk_product = GETPOST('idprod') ? GETPOST('idprod') : GETPOST('productid');
+			$lineid = GETPOST('lineid');
 			$remise = GETPOST('remise_percent') ? GETPOST('remise_percent') : 0;
 			$desc = GETPOST('dp_desc');
 			$tarif = new TTarifFournisseur;
 			$tarif->load($PDOdb, $fk_fourn_product_price);
 			$fk_unit=$tarif->unite;
-			
 			$notrigger=1; // Je mets un no trigger car à ce moment on a déjà récupéré le bon tarif, donc pas besoin de ré-exécuter le trigger
 			
-			if($action === 'addline') {
-								
-				if(!empty($fk_product) && $nb_colis > 0 && $fk_fourn_product_price >0 ) {
-					//var_dump($desc, $tarif->prix, $nb_colis);exit;
-					
-					if(get_class($object) === 'FactureFournisseur')
-						$res = $object->addline($desc, $tarif->prix, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $nb_colis*$tarif->quantite, $fk_product, $remise, '', '', 0, '', 'HT', 0, -1, $notrigger, 0, $fk_unit);
-					else {
-						// Spécificité côté commandes fournisseur pour ne pas recalculer le tarif fourn
-						$conf->global->SUPPLIERORDER_WITH_NOPRICEDEFINED=1;
-						$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $fk_product, 0, '', $remise, 'HT', 0, 0, 0, $notrigger, null, null, 0, $fk_unit);
-					}
-					
-				} else setEventMessage('Donnée manquante pour ajout de ligne (hook module tarif)', 'warnings');
-				
-			} elseif($action === 'updateline') {
-				
-				$lineid = GETPOST('lineid');
-				if(get_class($object) === 'FactureFournisseur')
-					$res = $object->updateline($lineid, $desc, $tarif->prix, $tarif->tva_tx, 0, 0, $nb_colis*$tarif->quantite, $fk_product, 'HT', 0, 0, $remise, $notrigger, '', '', 0, $fk_unit);
-				else
-					$res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, 0, $notrigger, '', '', 0, $fk_unit);
-				
-				if($lineid > 0) $res = $lineid;
-
-			}
+			if($action === 'addline') $res = $this->addline($object, $tarif, $remise, $fk_product, $fk_fourn_product_price, $nb_colis, $desc, $fk_unit, $notrigger);
+			elseif($action === 'updateline') $res = $this->updateline($object, $tarif, $remise, $fk_product, $fk_fourn_product_price, $nb_colis, $desc, $fk_unit, $notrigger, $lineid);
 
 			// Enregistrement du nb colis et fk_tarif_fourn utilisés pour préselection lors de la modification de la ligne
 			if($res > 0) {
@@ -81,6 +57,36 @@ class ActionsTarif
 			header('Location: '.$_SERVER['PHP_SELF'].'?'.$field_url.'='.$object->id);exit;
 			
 		}
+		
+	}
+
+	function addline(&$object, &$tarif, $remise, $fk_product, $fk_fourn_product_price, $nb_colis, $desc, $fk_unit, $notrigger) {
+		
+		global $conf;
+		
+		if(!empty($fk_product) && $nb_colis > 0 && $fk_fourn_product_price >0 ) {
+			
+			if(get_class($object) === 'FactureFournisseur') $res = $object->addline($desc, $tarif->prix, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $nb_colis*$tarif->quantite, $fk_product, $remise, '', '', 0, '', 'HT', 0, -1, $notrigger, 0, $fk_unit);
+			elseif(get_class($object) === 'CommandeFournisseur') {
+				// Spécificité côté commandes fournisseur pour ne pas recalculer le tarif fourn
+				$conf->global->SUPPLIERORDER_WITH_NOPRICEDEFINED=1;
+				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $fk_product, 0, '', $remise, 'HT', 0, 0, 0, $notrigger, null, null, 0, $fk_unit);
+			}
+			
+			return $res;
+			
+		} else setEventMessage('Donnée manquante pour ajout de ligne (hook module tarif)', 'warnings');
+		
+	}
+	
+	function updateline(&$object, &$tarif, $remise, $fk_product, $fk_fourn_product_price, $nb_colis, $desc, $fk_unit, $notrigger, $lineid) {
+		
+		if(get_class($object) === 'FactureFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $tarif->tva_tx, 0, 0, $nb_colis*$tarif->quantite, $fk_product, 'HT', 0, 0, $remise, $notrigger, '', '', 0, $fk_unit);
+		elseif(get_class($object) === 'CommandeFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, 0, $notrigger, '', '', 0, $fk_unit);
+		
+		if($lineid > 0) $res = $lineid;
+		
+		return $res;
 		
 	}
 	
@@ -383,6 +389,18 @@ class ActionsTarif
 		}
 		
 	}
+	
+	function formCreateProductOptions($parameters, &$object, &$action, $hookmanager) {
+		
+		if($parameters['currentcontext'] === 'invoicecard'
+			|| $parameters['currentcontext'] === 'propalcard'
+			|| $parameters['currentcontext'] === 'ordercard') {
+			
+			$this->printInputsSelectNBColis($object, 'view', false);
+			
+		}
+		
+	}
 
 	function printInputsSelectNBColis(&$object, $mode='view', $print_select_product=true) {
 		
@@ -417,7 +435,7 @@ class ActionsTarif
 						lastinputtc.append(nb_colis_and_select_fktariffourn);
 						
 						// Sur sélection d'un produit, on récupère les tarifs fournisseurs disponibles
-						$("#productid").change(function() {
+						$("#idprod").change(function() {
 							
 							var idprod = $(this).val();
 							
@@ -444,7 +462,7 @@ class ActionsTarif
 			</script>
 		<?php
 		
-		if($print_select_product) $form->select_produits('', 'productid', '', 0);
+		if($print_select_product) $form->select_produits('', 'idprod', '', 0);
 		
 		if($mode === 'edit') {
 			if(get_class($object) === 'FactureFournisseur') $tabledet = MAIN_DB_PREFIX.'facture_fourn_det';
