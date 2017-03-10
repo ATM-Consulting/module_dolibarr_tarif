@@ -442,8 +442,8 @@ class ActionsTarif
 				
 					$(document).ready(function() {
 						
-						var tr_title = $("tr .liste_titre").first().find('.linecolqty');
-						tr_title.before('<td align="right">Conditionnement</td>');
+						var tr_title = $("#tablelines").find("tr.liste_titre").first();
+						tr_title.find('.linecolqty').before('<td align="right">Conditionnement</td>');
 						
 						<?php
 							foreach($object->lines as &$line) { 
