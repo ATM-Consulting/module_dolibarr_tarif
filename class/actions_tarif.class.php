@@ -420,11 +420,65 @@ class ActionsTarif
 	
 	function formCreateProductOptions($parameters, &$object, &$action, $hookmanager) {
 		
+		global $db;
+		
 		if($parameters['currentcontext'] === 'invoicecard'
 			|| $parameters['currentcontext'] === 'propalcard'
 			|| $parameters['currentcontext'] === 'ordercard') {
 			
 			$this->printInputsSelectNBColis($object, 'view', false, 'client');
+			
+		}
+		
+		if($parameters['currentcontext'] === 'invoicesuppliercard'
+			|| $parameters['currentcontext'] === 'ordersuppliercard'
+			|| $parameters['currentcontext'] === 'invoicecard'
+			|| $parameters['currentcontext'] === 'ordercard'
+			|| $parameters['currentcontext'] === 'propalcard') {
+			
+			?>
+				
+				<script language="JavaScript" type="text/JavaScript">
+				
+					$(document).ready(function() {
+						
+						var tr_title = $("tr .liste_titre").first().find('.linecolqty');
+						tr_title.before('<td align="right">Conditionnement</td>');
+						
+						<?php
+							foreach($object->lines as &$line) { 
+								// On récupère le nombre de colis et le conditionnement
+								if(get_class($object) === 'FactureFournisseur') {$tabledet = MAIN_DB_PREFIX.'facture_fourn_det'; $plus='_fournisseur';}
+								elseif(get_class($object) === 'CommandeFournisseur') {$tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet'; $plus='_fournisseur';}
+								elseif(get_class($object) === 'Facture') $tabledet = MAIN_DB_PREFIX.'facturedet';
+								elseif(get_class($object) === 'Commande') $tabledet = MAIN_DB_PREFIX.'commandedet';
+								elseif(get_class($object) === 'Propal') $tabledet = MAIN_DB_PREFIX.'propaldet';
+								
+								$sql = 'SELECT d.nb_colis, tar.quantite, u.short_label
+										FROM '.$tabledet.' d
+										LEFT JOIN '.MAIN_DB_PREFIX.'tarif_conditionnement'.$plus.' tar ON(d.fk_tarif = tar.rowid)
+										LEFT JOIN '.MAIN_DB_PREFIX.'c_units u ON(u.rowid = tar.unite)
+										WHERE d.rowid = '.(!empty($line->rowid) ? $line->rowid : $line->id);
+								//echo '**** '.$sql.'<br/>';
+								$resql = $db->query($sql);
+								if($resql) {
+									$res = $db->fetch_object($resql);
+									$conditionnement = $res->quantite;
+									$nb_colis = $res->nb_colis;
+									$unit = $res->short_label;
+								}
+						?>
+							
+							var row = $("#row-<?php echo !empty($line->rowid) ? $line->rowid : $line->id; ?>");
+							row.find(".linecolqty").before('<?php echo '<td align="right">'.$nb_colis.' colis de '.$conditionnement.$unit.'</td>'; ?>');
+							console.log(row.find(".linecolqty"));
+							
+						<?php } ?>
+					});
+				
+				</script>
+				
+			<?php
 			
 		}
 		
