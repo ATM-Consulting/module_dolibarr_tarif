@@ -231,7 +231,7 @@ class ActionsTarif
     		|| in_array('ordercard',explode(':',$parameters['context']))
 			|| in_array('ordersuppliercard',explode(':',$parameters['context']))
     		|| in_array('invoicecard',explode(':',$parameters['context']))
-    		|| in_array('ordercard',explode(':',$parameters['context']))
+    		|| in_array('invoicesuppliercard',explode(':',$parameters['context']))
     		|| in_array('propalcard',explode(':',$parameters['context']))
 			)
         {
@@ -413,6 +413,7 @@ class ActionsTarif
 			|| $parameters['currentcontext'] === 'ordersuppliercard') {
 			
 			$this->printInputsSelectNBColis($object);
+			$this->printColonneConditionnement($object);
 			
 		}
 		
@@ -427,58 +428,7 @@ class ActionsTarif
 			|| $parameters['currentcontext'] === 'ordercard') {
 			
 			$this->printInputsSelectNBColis($object, 'view', false, 'client');
-			
-		}
-		
-		if($parameters['currentcontext'] === 'invoicesuppliercard'
-			|| $parameters['currentcontext'] === 'ordersuppliercard'
-			|| $parameters['currentcontext'] === 'invoicecard'
-			|| $parameters['currentcontext'] === 'ordercard'
-			|| $parameters['currentcontext'] === 'propalcard') {
-			
-			?>
-				
-				<script language="JavaScript" type="text/JavaScript">
-				
-					$(document).ready(function() {
-						
-						var tr_title = $("#tablelines").find("tr.liste_titre").first();
-						tr_title.find('.linecolqty').before('<td align="right">Conditionnement</td>');
-						
-						<?php
-							foreach($object->lines as &$line) { 
-								// On récupère le nombre de colis et le conditionnement
-								if(get_class($object) === 'FactureFournisseur') {$tabledet = MAIN_DB_PREFIX.'facture_fourn_det'; $plus='_fournisseur';}
-								elseif(get_class($object) === 'CommandeFournisseur') {$tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet'; $plus='_fournisseur';}
-								elseif(get_class($object) === 'Facture') $tabledet = MAIN_DB_PREFIX.'facturedet';
-								elseif(get_class($object) === 'Commande') $tabledet = MAIN_DB_PREFIX.'commandedet';
-								elseif(get_class($object) === 'Propal') $tabledet = MAIN_DB_PREFIX.'propaldet';
-								
-								$sql = 'SELECT d.nb_colis, tar.quantite, u.short_label
-										FROM '.$tabledet.' d
-										LEFT JOIN '.MAIN_DB_PREFIX.'tarif_conditionnement'.$plus.' tar ON(d.fk_tarif = tar.rowid)
-										LEFT JOIN '.MAIN_DB_PREFIX.'c_units u ON(u.rowid = tar.unite)
-										WHERE d.rowid = '.(!empty($line->rowid) ? $line->rowid : $line->id);
-								//echo '**** '.$sql.'<br/>';
-								$resql = $db->query($sql);
-								if($resql) {
-									$res = $db->fetch_object($resql);
-									$conditionnement = $res->quantite;
-									$nb_colis = $res->nb_colis;
-									$unit = $res->short_label;
-								}
-						?>
-							
-							var row = $("#row-<?php echo !empty($line->rowid) ? $line->rowid : $line->id; ?>");
-							row.find(".linecolqty").before('<?php echo '<td align="right">'.$nb_colis.' colis de '.$conditionnement.$unit.'</td>'; ?>');
-							console.log(row.find(".linecolqty"));
-							
-						<?php } ?>
-					});
-				
-				</script>
-				
-			<?php
+			$this->printColonneConditionnement($object);
 			
 		}
 		
@@ -592,6 +542,56 @@ class ActionsTarif
 				
 			}
 		}
+		
+	}
+
+	function printColonneConditionnement(&$object) {
+		
+		global $db;
+		
+		?>
+			
+			<script language="JavaScript" type="text/JavaScript">
+			
+				$(document).ready(function() {
+					
+					var tr_title = $("#tablelines").find("tr.liste_titre").first();
+					tr_title.find('.linecolqty').before('<td align="right">Conditionnement</td>');
+					
+					<?php
+						foreach($object->lines as &$line) { 
+							// On récupère le nombre de colis et le conditionnement
+							if(get_class($object) === 'FactureFournisseur') {$tabledet = MAIN_DB_PREFIX.'facture_fourn_det'; $plus='_fournisseur';}
+							elseif(get_class($object) === 'CommandeFournisseur') {$tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet'; $plus='_fournisseur';}
+							elseif(get_class($object) === 'Facture') $tabledet = MAIN_DB_PREFIX.'facturedet';
+							elseif(get_class($object) === 'Commande') $tabledet = MAIN_DB_PREFIX.'commandedet';
+							elseif(get_class($object) === 'Propal') $tabledet = MAIN_DB_PREFIX.'propaldet';
+							
+							$sql = 'SELECT d.nb_colis, tar.quantite, u.short_label
+									FROM '.$tabledet.' d
+									LEFT JOIN '.MAIN_DB_PREFIX.'tarif_conditionnement'.$plus.' tar ON(d.fk_tarif = tar.rowid)
+									LEFT JOIN '.MAIN_DB_PREFIX.'c_units u ON(u.rowid = tar.unite)
+									WHERE d.rowid = '.(!empty($line->rowid) ? $line->rowid : $line->id);
+							//echo '**** '.$sql.'<br/>';
+							$resql = $db->query($sql);
+							if($resql) {
+								$res = $db->fetch_object($resql);
+								$conditionnement = $res->quantite;
+								$nb_colis = $res->nb_colis;
+								$unit = $res->short_label;
+							}
+					?>
+						
+						var row = $("#row-<?php echo !empty($line->rowid) ? $line->rowid : $line->id; ?>");
+						row.find(".linecolqty").before('<?php echo '<td align="right">'.$nb_colis.' colis de '.$conditionnement.$unit.'</td>'; ?>');
+						console.log(row.find(".linecolqty"));
+						
+					<?php } ?>
+				});
+			
+			</script>
+			
+		<?php
 		
 	}
 
