@@ -333,9 +333,23 @@
 		$Ttarif->date_fin = $Ttarif->set_date('date_fin',$_REQUEST['date_fin']);
 		$Ttarif->date_debut = $Ttarif->set_date('date_debut',$_REQUEST['date_debut']);
 		//$ATMdb->db->debug=true;
-			
+
 		//pre($Ttarif,true);exit;
+		
 		$Ttarif->save($ATMdb);
+		
+		if(!empty($conf->global->TARIF_PERCENT_AUTO_CREATE) && $id_tarif<=0){
+			//logueur, poids, etc
+			$TTarifFournisseur = new TTarifFournisseur;
+			foreach($Ttarif as $k=>$v) {
+				
+				if($k=='prix') $TTarifFournisseur->{$k}=$v*(1+($conf->global->TARIF_PERCENT_AUTO_CREATE/100));	
+				else if($k == 'table' || $k == 'rowid') continue;
+				else $TTarifFournisseur->{$k}=$v;
+				
+			}
+			$TTarifFournisseur->save($ATMdb);
+		}
 	}
 	elseif(!empty($action) && $action == 'delete' && !empty($id_tarif))
 	{
