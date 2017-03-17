@@ -451,6 +451,7 @@ class ActionsTarif
 					 * On supprime aussi les input de prix, car les prix sont définis sur l'onglet tarifs fournisseurs du module
 					 */
 					$('#idprodfournprice').remove();
+					$('#search_idprodfournprice').remove();
 					$('#price_ttc').remove();
 					$('#units').remove();
 					$('#tva_tx').remove();
@@ -494,8 +495,8 @@ class ActionsTarif
 				});
 			</script>
 		<?php
-		
-		if($print_select_product) $form->select_produits('', 'idprod', '', 0);
+
+		if($print_select_product) $form->select_produits('', 'idprod', '', 0, 0, 1, 2, '', 1);
 		
 		if($mode === 'edit') {
 			if(get_class($object) === 'FactureFournisseur') $tabledet = MAIN_DB_PREFIX.'facture_fourn_det';
