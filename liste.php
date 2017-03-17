@@ -519,7 +519,6 @@
 			,'link'=>array(
 				'Actions'=>'
 						<a href="?id=@id@&action=deletelog&fk_product='.$object->id.'" onclick="return confirm(\''.$langs->trans('ConfirmDelete').'\');">'.img_delete().'</a>
-						<a href="?id=@id@&action=edit&fk_product='.$object->id.'">'.img_edit().'</a>
 				'
 			)
 			,'eval'=>array(

@@ -187,7 +187,7 @@
 		$prix = ( ($action=='edit') ? $tarif->prix :$object->price);
 		// Price
 		print '<tr><td width="30%">';
-		print $langs->trans('SellingPrice');
+		print $langs->trans('BuyingPrice');
 		print '</td><td>
 		<input type="hidden" name="prix" id="prix" value="'.$prix.'">
 		<input size="10" name="prix_visu" value="'.price($prix).'"></td></tr>';
@@ -518,7 +518,6 @@
 			,'link'=>array(
 				'Actions'=>'
 						<a href="?id=@id@&action=deletelog&fk_product='.$object->id.'" onclick="return confirm(\''.$langs->trans('ConfirmDelete').'\');">'.img_delete().'</a>
-						<a href="?id=@id@&action=edit&fk_product='.$object->id.'">'.img_edit().'</a>
 				'
 			)
 			,'eval'=>array(
