@@ -495,8 +495,8 @@ class TTarifTools {
 			foreach($TTarif as $k=>$v) {
 				
 				if($k=='prix') {
-					if(get_class($TTarif) === 'TTarif') $TTarifLinked->{$k}=$v*(1+($conf->global->TARIF_PERCENT_AUTO_CREATE/100));
-					else $TTarifLinked->{$k}=$v/(1+($conf->global->TARIF_PERCENT_AUTO_CREATE/100));
+					if(get_class($TTarif) === 'TTarif') $TTarifLinked->{$k}=$v/(1+($conf->global->TARIF_PERCENT_AUTO_CREATE/100));
+					else $TTarifLinked->{$k}=$v*(1+($conf->global->TARIF_PERCENT_AUTO_CREATE/100));
 				}
 				else if($k == 'table' || $k == 'rowid') continue;
 				else $TTarifLinked->{$k}=$v;
