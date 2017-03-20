@@ -258,12 +258,16 @@ class TTarif extends TObjetStd {
 		return $price;
 	}
 	
-	function save(&$ATMdb) {
+	function save(&$PDOdb, $save_linked_tarif=true) {
 		global $conf;
 		
-		if(empty($this->currency_code)) $this->currency_code = $conf->currency; 
+		if(empty($this->currency_code)) $this->currency_code = $conf->currency;
 		
-		parent::save($ATMdb);
+		parent::save($PDOdb);
+
+		// Enregistrement tarif linked uniquement si c'est un objet TTarif ou TTarifFournisseur
+		if(in_array(get_class($this), array('TTarif', 'TTarifFournisseur'))) TTarifTools::saveTarifLinked($PDOdb, $this, $save_linked_tarif);
+		
 	}
 	
 }
@@ -299,6 +303,10 @@ class TTarifFournisseur extends TTarif{
 	
 	static function getPrix(&$db, &$line,$qty,$conditionnement,$weight_units,$subprice,$coef,$devise,$price_level=1,$fk_country=0, $TFk_categorie=array(), $fk_soc = 0, $fk_project = 0, $type='CLIENT'){
 		return parent::getPrix($db, $line, $qty, $conditionnement, $weight_units, $subprice, $coef, $devise, $price_level, $fk_country, $TFk_categorie, $fk_soc, $fk_project, 'FOURNISSEUR');
+	}
+
+	function save(&$PDOdb, $save_linked_tarif=true) {
+		parent::save($PDOdb, $save_linked_tarif);
 	}
 	
 }
@@ -411,4 +419,80 @@ class TTarifFactureFourndet extends TObjetStd {
 		parent::_init_vars();
 		parent::start();
 	}
+}
+
+class TTarifTools {
+	
+	static function linkTarif($origin_id, $target_id) {
+		
+		global $db;
+		
+	    $sql = 'REPLACE INTO '.MAIN_DB_PREFIX.'element_element (fk_source, sourcetype, fk_target, targettype)
+	    		VALUES ('.$origin_id.', "TTarif", '.$target_id.', "TTarifFournisseur")';
+		
+		$db->query($sql);
+		
+	}
+	
+	static function getIdLinkedTarif($type_tarif, $id) {
+		
+		global $db;
+		
+		if($type_tarif === 'TTarif') {
+			
+			$field_search = 'fk_source';
+			$field_where = 'fk_target';
+			
+		} elseif($type_tarif === 'TTarifFournisseur') {
+			
+			$field_search = 'fk_target';
+			$field_where = 'fk_source';
+			
+		}
+		
+	    $sql = 'SELECT '.$field_search.'
+	    		FROM '.MAIN_DB_PREFIX.'element_element
+	    		WHERE sourcetype="TTarif"
+	    		AND targettype="TTarifFournisseur"
+	    		AND '.$field_where.' = '.$id;
+		
+		$resql = $db->query($sql);
+		$res = $db->fetch_object($resql);
+		
+		return $res->{$field_search};
+		
+	}
+
+	static function saveTarifLinked(&$PDOdb, &$TTarif, $save_linked_tarif=false) {
+		
+		global $conf;
+		
+		if(!empty($conf->global->TARIF_PERCENT_AUTO_CREATE) && $save_linked_tarif) {
+			
+			if(get_class($TTarif) === 'TTarif') $class_tarif_linked = 'TTarifFournisseur';
+			else $class_tarif_linked = 'TTarif';
+			
+			$TTarifLinked = new $class_tarif_linked;
+			$id_tarif_linked = TTarifTools::getIdLinkedTarif($class_tarif_linked, $TTarif->rowid);
+			if(!empty($id_tarif_linked)) $TTarifLinked->load($PDOdb, $id_tarif_linked); // Si existant, on charge pour MAJ
+
+			foreach($TTarif as $k=>$v) {
+				
+				if($k=='prix') {
+					if(get_class($TTarif) === 'TTarif') $TTarifLinked->{$k}=$v*(1+($conf->global->TARIF_PERCENT_AUTO_CREATE/100));
+					else $TTarifLinked->{$k}=$v/(1+($conf->global->TARIF_PERCENT_AUTO_CREATE/100));
+				}
+				else if($k == 'table' || $k == 'rowid') continue;
+				else $TTarifLinked->{$k}=$v;
+				
+			}
+			
+			$TTarifLinked->save($PDOdb, false);
+			
+			if(get_class($TTarif) === 'TTarif') TTarifTools::linkTarif($TTarif->rowid, $TTarifLinked->rowid);
+			else TTarifTools::linkTarif($TTarifLinked->rowid, $TTarif->rowid);
+		}
+		
+	}
+	
 }
