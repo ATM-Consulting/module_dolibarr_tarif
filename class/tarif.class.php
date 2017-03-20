@@ -270,6 +270,15 @@ class TTarif extends TObjetStd {
 		
 	}
 	
+	function delete(&$PDOdb, $delete_linked_tarif=true) {
+		
+		parent::delete($PDOdb);
+		
+		// Suppression du tarif linked uniquement si c'est un objet TTarif ou TTarifFournisseur
+		if(in_array(get_class($this), array('TTarif', 'TTarifFournisseur'))) TTarifTools::deleteTarifLinked($PDOdb, $this, $delete_linked_tarif);
+		
+	}
+	
 }
 
 class TTarifFournisseur extends TTarif{
@@ -307,6 +316,10 @@ class TTarifFournisseur extends TTarif{
 
 	function save(&$PDOdb, $save_linked_tarif=true) {
 		parent::save($PDOdb, $save_linked_tarif);
+	}
+
+	function delete(&$PDOdb, $delete_linked_tarif=true) {
+		parent::delete($PDOdb, $delete_linked_tarif);
 	}
 	
 }
@@ -427,7 +440,7 @@ class TTarifTools {
 		
 		global $db;
 		
-	    $sql = 'REPLACE INTO '.MAIN_DB_PREFIX.'element_element (fk_source, sourcetype, fk_target, targettype)
+	    $sql = 'INSERT INTO '.MAIN_DB_PREFIX.'element_element (fk_source, sourcetype, fk_target, targettype)
 	    		VALUES ('.$origin_id.', "TTarif", '.$target_id.', "TTarifFournisseur")';
 		
 		$db->query($sql);
@@ -450,7 +463,7 @@ class TTarifTools {
 			
 		}
 		
-	    $sql = 'SELECT '.$field_search.'
+	    $sql = 'SELECT rowid, '.$field_search.'
 	    		FROM '.MAIN_DB_PREFIX.'element_element
 	    		WHERE sourcetype="TTarif"
 	    		AND targettype="TTarifFournisseur"
@@ -459,7 +472,7 @@ class TTarifTools {
 		$resql = $db->query($sql);
 		$res = $db->fetch_object($resql);
 		
-		return $res->{$field_search};
+		return array('id_tarif'=>$res->{$field_search}, 'rowid'=>$res->rowid);
 		
 	}
 
@@ -473,7 +486,10 @@ class TTarifTools {
 			else $class_tarif_linked = 'TTarif';
 			
 			$TTarifLinked = new $class_tarif_linked;
-			$id_tarif_linked = TTarifTools::getIdLinkedTarif($class_tarif_linked, $TTarif->rowid);
+			$TRes = TTarifTools::getIdLinkedTarif($class_tarif_linked, $TTarif->rowid);
+			$id_tarif_linked = $TRes['id_tarif'];
+			$id_lien = $TRes['rowid'];
+			
 			if(!empty($id_tarif_linked)) $TTarifLinked->load($PDOdb, $id_tarif_linked); // Si existant, on charge pour MAJ
 
 			foreach($TTarif as $k=>$v) {
@@ -489,8 +505,34 @@ class TTarifTools {
 			
 			$TTarifLinked->save($PDOdb, false);
 			
-			if(get_class($TTarif) === 'TTarif') TTarifTools::linkTarif($TTarif->rowid, $TTarifLinked->rowid);
-			else TTarifTools::linkTarif($TTarifLinked->rowid, $TTarif->rowid);
+			if(empty($id_lien)) {
+				if(get_class($TTarif) === 'TTarif') TTarifTools::linkTarif($TTarif->rowid, $TTarifLinked->rowid);
+				else TTarifTools::linkTarif($TTarifLinked->rowid, $TTarif->rowid);
+			}
+		}
+		
+	}
+
+	static function deleteTarifLinked(&$PDOdb, &$TTarif, $delete_linked_tarif=false) {
+		
+		global $db, $conf;
+		
+		if($delete_linked_tarif) {
+			
+			if(get_class($TTarif) === 'TTarif') $class_tarif_linked = 'TTarifFournisseur';
+			else $class_tarif_linked = 'TTarif';
+			
+			$TTarifLinked = new $class_tarif_linked;
+			$TRes = TTarifTools::getIdLinkedTarif($class_tarif_linked, $TTarif->rowid);
+			$id_tarif_linked = $TRes['id_tarif'];
+			$id_lien = $TRes['rowid'];
+			
+			if(!empty($id_tarif_linked)) {
+				$TTarifLinked->load($PDOdb, $id_tarif_linked);
+				$TTarifLinked->delete($PDOdb, false);
+				$db->query('DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE rowid = '.$id_lien);
+			}
+			
 		}
 		
 	}
