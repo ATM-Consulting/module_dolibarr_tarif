@@ -339,18 +339,6 @@
 		
 		$Ttarif->save($ATMdb);
 		
-		if(!empty($conf->global->TARIF_PERCENT_AUTO_CREATE) && $id_tarif<=0){
-			//logueur, poids, etc
-			$TTarifFournisseur = new TTarifFournisseur;
-			foreach($Ttarif as $k=>$v) {
-				
-				if($k=='prix') $TTarifFournisseur->{$k}=$v*(1+($conf->global->TARIF_PERCENT_AUTO_CREATE/100));	
-				else if($k == 'table' || $k == 'rowid') continue;
-				else $TTarifFournisseur->{$k}=$v;
-				
-			}
-			$TTarifFournisseur->save($ATMdb);
-		}
 	}
 	elseif(!empty($action) && $action == 'delete' && !empty($id_tarif))
 	{
@@ -520,7 +508,6 @@
 			,'link'=>array(
 				'Actions'=>'
 						<a href="?id=@id@&action=deletelog&fk_product='.$object->id.'" onclick="return confirm(\''.$langs->trans('ConfirmDelete').'\');">'.img_delete().'</a>
-						<a href="?id=@id@&action=edit&fk_product='.$object->id.'">'.img_edit().'</a>
 				'
 			)
 			,'eval'=>array(

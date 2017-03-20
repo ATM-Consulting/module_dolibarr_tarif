@@ -187,7 +187,7 @@
 		$prix = ( ($action=='edit') ? $tarif->prix :$object->price);
 		// Price
 		print '<tr><td width="30%">';
-		print $langs->trans('SellingPrice');
+		print $langs->trans('BuyingPrice');
 		print '</td><td>
 		<input type="hidden" name="prix" id="prix" value="'.$prix.'">
 		<input size="10" name="prix_visu" value="'.price($prix).'"></td></tr>';
@@ -333,23 +333,9 @@
 		$TTarifFournisseur->fk_categorie_client = GETPOST('fk_categorie_client','int');
 		$TTarifFournisseur->date_fin = $TTarifFournisseur->set_date('date_fin',$_REQUEST['date_fin']);
 		$TTarifFournisseur->date_debut = $TTarifFournisseur->set_date('date_debut',$_REQUEST['date_debut']);
-		//$ATMdb->db->debug=true;
-		
-		
-		//pre($TTarifFournisseur,true);exit;
+
 		$TTarifFournisseur->save($ATMdb);
-		if(!empty($conf->global->TARIF_PERCENT_AUTO_CREATE) && $id_tarif<=0){
-			//logueur, poids, etc
-			$TTarif = new TTarif;
-			foreach($TTarifFournisseur as $k=>$v) {
-				
-				if($k=='prix') $TTarif->{$k}=$v/(1+($conf->global->TARIF_PERCENT_AUTO_CREATE/100));	
-				else if($k == 'table' || $k == 'rowid') continue;
-				else $TTarif->{$k}=$v;
-				
-			}
-			$TTarif->save($ATMdb);
-		}
+		
 	}
 	elseif(!empty($action) && $action == 'delete' && !empty($id_tarif))
 	{
@@ -519,7 +505,6 @@
 			,'link'=>array(
 				'Actions'=>'
 						<a href="?id=@id@&action=deletelog&fk_product='.$object->id.'" onclick="return confirm(\''.$langs->trans('ConfirmDelete').'\');">'.img_delete().'</a>
-						<a href="?id=@id@&action=edit&fk_product='.$object->id.'">'.img_edit().'</a>
 				'
 			)
 			,'eval'=>array(
