@@ -22,6 +22,7 @@ class ActionsTarif
 		
 		if(($parameters['currentcontext'] === 'invoicesuppliercard'
 			|| $parameters['currentcontext'] === 'ordersuppliercard'
+			|| $parameters['currentcontext'] === 'supplier_proposalcard'
 			|| $parameters['currentcontext'] === 'invoicecard'
 			|| $parameters['currentcontext'] === 'ordercard'
 			|| $parameters['currentcontext'] === 'propalcard')
@@ -29,6 +30,7 @@ class ActionsTarif
 				
 			if(get_class($object) === 'FactureFournisseur') {$tarif = new TTarifFournisseur; $field_url = 'facid'; $tabledet = MAIN_DB_PREFIX.'facture_fourn_det';}
 			elseif(get_class($object) === 'CommandeFournisseur') {$tarif = new TTarifFournisseur; $field_url = 'id'; $tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';}
+			elseif(get_class($object) === 'SupplierProposal') {$tarif = new TTarifFournisseur; $field_url = 'id'; $tabledet = MAIN_DB_PREFIX.'supplier_proposaldet';}
 			elseif(get_class($object) === 'Facture') {$tarif = new TTarif; $field_url = 'facid'; $tabledet = MAIN_DB_PREFIX.'facturedet';}
 			elseif(get_class($object) === 'Commande') {$tarif = new TTarif; $field_url = 'id'; $tabledet = MAIN_DB_PREFIX.'commandedet';}
 			elseif(get_class($object) === 'Propal') {$tarif = new TTarif; $field_url = 'id'; $tabledet = MAIN_DB_PREFIX.'propaldet';}
@@ -74,6 +76,8 @@ class ActionsTarif
 				// Spécificité côté commandes fournisseur pour ne pas recalculer le tarif fourn
 				$conf->global->SUPPLIERORDER_WITH_NOPRICEDEFINED=1;
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $fk_product, 0, '', $remise, 'HT', 0, 0, 0, $notrigger, null, null, 0, $fk_unit);
+			} elseif(get_class($object) === 'SupplierProposal') {
+				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $fk_product, $remise, 'HT', 0, 0, 0, -1, 0, 0, 0, $pa_ht, '', 0, '', $fk_unit);
 			} elseif(get_class($object) === 'Facture') {
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, 0, 0, $fk_product, $remise, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, $pa_ht, '', 0, 100, '', $fk_unit);
 			} elseif(get_class($object) === 'Propal') {
@@ -96,6 +100,7 @@ class ActionsTarif
 		
 		if(get_class($object) === 'FactureFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $tarif->tva_tx, 0, 0, $nb_colis*$tarif->quantite, $fk_product, 'HT', 0, 0, $remise, $notrigger, '', '', 0, $fk_unit);
 		elseif(get_class($object) === 'CommandeFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, 0, $notrigger, '', '', 0, $fk_unit);
+		elseif(get_class($object) === 'SupplierProposal') $res = $object->updateline($lineid, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, $desc, 'HT', 0, 0, 0, 0, 0, $pa_ht, '', 0, 0, '', $fk_unit);
 		elseif(get_class($object) === 'Facture') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, '', '', $tarif->tva_tx, 0, 0, 'HT', 0, 0, 0, 0, null, $pa_ht, '', 0, 0, 0, $fk_unit);
 		elseif(get_class($object) === 'Commande') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, '', '', 0, 0, 0, null, $pa_ht, '', 0, 0, $fk_unit);
 		elseif(get_class($object) === 'Propal') $res = $object->updateline($lineid, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, $desc, 'HT', 0, 0, 0, 0, 0, $pa_ht, '', 0, '', '', 0, $fk_unit);
@@ -234,11 +239,12 @@ class ActionsTarif
 			|| in_array('ordersuppliercard',explode(':',$parameters['context']))
     		|| in_array('invoicecard',explode(':',$parameters['context']))
     		|| in_array('invoicesuppliercard',explode(':',$parameters['context']))
+    		|| in_array('supplier_proposalcard',explode(':',$parameters['context']))
     		|| in_array('propalcard',explode(':',$parameters['context']))
 			)
         {
 
-			if(get_class($object) === 'FactureFournisseur' || get_class($object) === 'CommandeFournisseur') $type = 'fournisseur';
+			if(get_class($object) === 'FactureFournisseur' || get_class($object) === 'CommandeFournisseur' || get_class($object) === 'SupplierProposal') $type = 'fournisseur';
 			elseif(get_class($object) === 'Facture' || get_class($object) === 'Commande' || get_class($object) === 'Propal') $type = 'client';
 			
 			$this->printInputsSelectNBColis($object, 'edit', false, $type);
@@ -412,7 +418,8 @@ class ActionsTarif
 		global $db;
 		
 		if($parameters['currentcontext'] === 'invoicesuppliercard'
-			|| $parameters['currentcontext'] === 'ordersuppliercard') {
+			|| $parameters['currentcontext'] === 'ordersuppliercard'
+			|| $parameters['currentcontext'] === 'supplier_proposalcard') {
 			
 			$this->printInputsSelectNBColis($object);
 			$this->printColonneConditionnement($object);
@@ -503,6 +510,7 @@ class ActionsTarif
 		if($mode === 'edit') {
 			if(get_class($object) === 'FactureFournisseur') $tabledet = MAIN_DB_PREFIX.'facture_fourn_det';
 			elseif(get_class($object) === 'CommandeFournisseur') $tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';
+			elseif(get_class($object) === 'SupplierProposal') $tabledet = MAIN_DB_PREFIX.'supplier_proposaldet';
 			elseif(get_class($object) === 'Facture') $tabledet = MAIN_DB_PREFIX.'facturedet';
 			elseif(get_class($object) === 'Commande') $tabledet = MAIN_DB_PREFIX.'commandedet';
 			elseif(get_class($object) === 'Propal') $tabledet = MAIN_DB_PREFIX.'propaldet';
@@ -566,6 +574,7 @@ class ActionsTarif
 							// On récupère le nombre de colis et le conditionnement
 							if(get_class($object) === 'FactureFournisseur') {$tabledet = MAIN_DB_PREFIX.'facture_fourn_det'; $plus='_fournisseur';}
 							elseif(get_class($object) === 'CommandeFournisseur') {$tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet'; $plus='_fournisseur';}
+							elseif(get_class($object) === 'SupplierProposal') {$tabledet = MAIN_DB_PREFIX.'supplier_proposaldet'; $plus='_fournisseur';}
 							elseif(get_class($object) === 'Facture') $tabledet = MAIN_DB_PREFIX.'facturedet';
 							elseif(get_class($object) === 'Commande') $tabledet = MAIN_DB_PREFIX.'commandedet';
 							elseif(get_class($object) === 'Propal') $tabledet = MAIN_DB_PREFIX.'propaldet';

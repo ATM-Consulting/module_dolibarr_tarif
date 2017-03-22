@@ -434,6 +434,20 @@ class TTarifFactureFourndet extends TObjetStd {
 	}
 }
 
+class TTarifSupplierProposaldet extends TObjetStd {
+	function __construct() { /* declaration */
+		global $langs;
+		
+		parent::set_table(MAIN_DB_PREFIX.'supplier_proposaldet');
+		parent::add_champs('poids,fk_tarif,nb_colis','type=entier;');
+		parent::add_champs('tarif_poids','type=float;');
+		parent::add_champs('metre');
+		
+		parent::_init_vars();
+		parent::start();
+	}
+}
+
 class TTarifTools {
 	
 	static function linkTarif($origin_id, $target_id) {
