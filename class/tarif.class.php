@@ -450,11 +450,11 @@ class TTarifSupplierProposaldet extends TObjetStd {
 
 class TTarifTools {
 	
-	static function addline(&$object, &$tarif, $remise, $fk_product, $fk_tarif, $nb_colis, $desc, $fk_unit, $notrigger, $pa_ht='', $array_options=0) {
+	static function addline(&$object, &$tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger, $pa_ht='', $array_options=0) {
 		
 		global $conf;
 		
-		if(!empty($fk_product) && $nb_colis > 0 && $fk_tarif >0 ) {
+		if(!empty($fk_product) && $nb_colis > 0 && $tarif->rowid >0 ) {
 			
 			$conf->modules_parts['triggers'] = array(); // Nécessité de vider les triggers car on ne peut pas indiquer de no trigger dans le addline et updateline facture client
 			
@@ -479,7 +479,7 @@ class TTarifTools {
 		
 	}
 	
-	static function updateline(&$object, &$tarif, $remise, $fk_product, $fk_tarif, $nb_colis, $desc, $fk_unit, $notrigger, $lineid, $pa_ht='', $array_options=0) {
+	static function updateline(&$object, &$tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger, $lineid, $pa_ht='', $array_options=0) {
 		
 		global $conf;
 		

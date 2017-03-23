@@ -47,8 +47,8 @@ class ActionsTarif
 			
 			$notrigger=1; // Je mets un no trigger car à ce moment on a déjà récupéré le bon tarif, donc pas besoin de ré-exécuter le trigger
 			
-			if($action === 'addline') $res = TTarifTools::addline($object, $tarif, $remise, $fk_product, $fk_tarif, $nb_colis, $desc, $fk_unit, $notrigger, strtr($pa_ht, array(','=>'.')));
-			elseif($action === 'updateline' || $action === 'updateligne') $res = TTarifTools::updateline($object, $tarif, $remise, $fk_product, $fk_tarif, $nb_colis, $desc, $fk_unit, $notrigger, $lineid, $pa_ht);
+			if($action === 'addline') $res = TTarifTools::addline($object, $tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger, strtr($pa_ht, array(','=>'.')));
+			elseif($action === 'updateline' || $action === 'updateligne') $res = TTarifTools::updateline($object, $tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger, $lineid, $pa_ht);
 
 			// Enregistrement du nb colis et fk_tarif_fourn utilisés pour préselection lors de la modification de la ligne
 			if($res > 0) {
