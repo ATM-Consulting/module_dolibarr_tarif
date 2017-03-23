@@ -450,7 +450,7 @@ class TTarifSupplierProposaldet extends TObjetStd {
 
 class TTarifTools {
 	
-	static function addline(&$object, &$tarif, $remise, $fk_product, $fk_tarif, $nb_colis, $desc, $fk_unit, $notrigger, $pa_ht='') {
+	static function addline(&$object, &$tarif, $remise, $fk_product, $fk_tarif, $nb_colis, $desc, $fk_unit, $notrigger, $pa_ht='', $array_options=0) {
 		
 		global $conf;
 		
@@ -464,7 +464,7 @@ class TTarifTools {
 				$conf->global->SUPPLIERORDER_WITH_NOPRICEDEFINED=1;
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $fk_product, 0, '', $remise, 'HT', 0, 0, 0, $notrigger, null, null, 0, $fk_unit);
 			} elseif(get_class($object) === 'SupplierProposal') {
-				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $fk_product, $remise, 'HT', 0, 0, 0, -1, 0, 0, 0, $pa_ht, '', 0, '', $fk_unit);
+				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $fk_product, $remise, 'HT', 0, 0, 0, -1, 0, 0, 0, $pa_ht, '', $array_options, '', $fk_unit);
 			} elseif(get_class($object) === 'Facture') {
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, 0, 0, $fk_product, $remise, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, $pa_ht, '', 0, 100, '', $fk_unit);
 			} elseif(get_class($object) === 'Propal') {
@@ -479,7 +479,7 @@ class TTarifTools {
 		
 	}
 	
-	static function updateline(&$object, &$tarif, $remise, $fk_product, $fk_tarif, $nb_colis, $desc, $fk_unit, $notrigger, $lineid, $pa_ht='') {
+	static function updateline(&$object, &$tarif, $remise, $fk_product, $fk_tarif, $nb_colis, $desc, $fk_unit, $notrigger, $lineid, $pa_ht='', $array_options=0) {
 		
 		global $conf;
 		
@@ -487,7 +487,7 @@ class TTarifTools {
 		
 		if(get_class($object) === 'FactureFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $tarif->tva_tx, 0, 0, $nb_colis*$tarif->quantite, $fk_product, 'HT', 0, 0, $remise, $notrigger, '', '', 0, $fk_unit);
 		elseif(get_class($object) === 'CommandeFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, 0, $notrigger, '', '', 0, $fk_unit);
-		elseif(get_class($object) === 'SupplierProposal') $res = $object->updateline($lineid, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, $desc, 'HT', 0, 0, 0, 0, 0, $pa_ht, '', 0, 0, '', $fk_unit);
+		elseif(get_class($object) === 'SupplierProposal') $res = $object->updateline($lineid, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, $desc, 'HT', 0, 0, 0, 0, 0, $pa_ht, '', 0, $array_options, '', $fk_unit);
 		elseif(get_class($object) === 'Facture') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, '', '', $tarif->tva_tx, 0, 0, 'HT', 0, 0, 0, 0, null, $pa_ht, '', 0, 0, 0, $fk_unit);
 		elseif(get_class($object) === 'Commande') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, '', '', 0, 0, 0, null, $pa_ht, '', 0, 0, $fk_unit);
 		elseif(get_class($object) === 'Propal') $res = $object->updateline($lineid, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, $desc, 'HT', 0, 0, 0, 0, 0, $pa_ht, '', 0, '', '', 0, $fk_unit);
