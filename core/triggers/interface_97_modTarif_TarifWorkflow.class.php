@@ -275,6 +275,47 @@ class InterfaceTarifWorkflow
 		dol_include_once('/dispatch/class/dispatchdetail.class.php');
 		
 		global $user, $db,$conf;
+		/*if($action !== 'BILL_CREATE' && $action !== 'LINEBILL_SUPPLIER_DELETE' && $action !== 'ORDER_SUPPLIER_CREATE'
+		&& $action !== 'ORDER_SUPPLIER_SUBMIT' && $action != 'BILL_SUPPLIER_CREATE'){
+var_dump($action, $object);exit;}*/
+		// Transfert des champs nb_colis et fk_tarif de ligne en ligne, tout le reste n'a pas d'utilité pour solebio (les addline sont faits dans un hook)
+		
+		// Pour pouvoir forcer le prix fourn
+		if($action === 'ORDER_SUPPLIER_CREATE') $conf->global->SUPPLIERORDER_WITH_NOPRICEDEFINED = 1;
+		/*if($action != 'ORDER_SUPPLIER_CREATE' && $action !== 'ORDER_SUPPLIER_MODIFY'){
+		var_dump($action);exit;}*/
+		
+		/*if($action === 'LINEORDER_SUPPLIER_CREATE') {
+			var_dump($object);exit;
+		}*/
+		
+		if(($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT'
+			|| $action === 'LINEBILL_SUPPLIER_CREATE' || $action === 'LINEORDER_SUPPLIER_CREATE')
+			&& !empty($object->origin_id)) {
+			
+			$origin = $object->origin;
+			if($object->origin === 'propal') $origin = MAIN_DB_PREFIX.'propaldet';
+			elseif($object->origin === 'commande') $origin = MAIN_DB_PREFIX.'commandedet';
+			elseif($object->origin === 'order_supplier') $origin = MAIN_DB_PREFIX.'commande_fournisseurdet';
+			
+			if(get_class($object) === 'OrderLine') {$tabledet = MAIN_DB_PREFIX.'commandedet';}
+			elseif(get_class($object) === 'FactureLigne') {$tabledet = MAIN_DB_PREFIX.'facturedet';}
+			elseif(get_class($object) === 'SupplierInvoiceLine') {$tabledet = MAIN_DB_PREFIX.'facture_fourn_det';}
+						
+			// Récupération nb colis et fk_tarif de l'objet d'origine
+			$sql = 'SELECT nb_colis, fk_tarif FROM '.$origin.' WHERE rowid = '.$object->origin_id;
+			
+			$resql = $db->query($sql);
+			if($resql) $res = $db->fetch_object($resql);
+			
+			// Mise à jour des champs nb colis et fk_tarif de la ligne du nouvel objet
+			if($res->nb_colis > 0 && $res->fk_tarif > 0) {
+				$sql = 'UPDATE '.$tabledet.' SET nb_colis = '.$res->nb_colis.', fk_tarif = '.$res->fk_tarif.' WHERE rowid = '.(empty($object->id) ? $object->rowid : $object->id);
+				$db->query($sql);
+			}
+			
+			return 1;
+		}
 
 		// 1èrement, on vérifie si on est sur un objet tarif client ou tarif fournisseur
 		if($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT') $class = 'TTarif';	
