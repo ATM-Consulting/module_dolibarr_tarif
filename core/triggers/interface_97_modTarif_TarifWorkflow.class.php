@@ -275,19 +275,11 @@ class InterfaceTarifWorkflow
 		dol_include_once('/dispatch/class/dispatchdetail.class.php');
 		
 		global $user, $db,$conf;
-		/*if($action !== 'BILL_CREATE' && $action !== 'LINEBILL_SUPPLIER_DELETE' && $action !== 'ORDER_SUPPLIER_CREATE'
-		&& $action !== 'ORDER_SUPPLIER_SUBMIT' && $action != 'BILL_SUPPLIER_CREATE'){
-var_dump($action, $object);exit;}*/
-		// Transfert des champs nb_colis et fk_tarif de ligne en ligne, tout le reste n'a pas d'utilité pour solebio (les addline sont faits dans un hook)
+
+		/******* Transfert des champs nb_colis et fk_tarif de ligne en ligne, tout le reste n'a pas d'utilité pour solebio (les addline sont faits dans un hook) ******/
 		
 		// Pour pouvoir forcer le prix fourn
 		if($action === 'ORDER_SUPPLIER_CREATE') $conf->global->SUPPLIERORDER_WITH_NOPRICEDEFINED = 1;
-		/*if($action != 'ORDER_SUPPLIER_CREATE' && $action !== 'ORDER_SUPPLIER_MODIFY'){
-		var_dump($action);exit;}*/
-		
-		/*if($action === 'LINEORDER_SUPPLIER_CREATE') {
-			var_dump($object);exit;
-		}*/
 		
 		if(($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT'
 			|| $action === 'LINEBILL_SUPPLIER_CREATE' || $action === 'LINEORDER_SUPPLIER_CREATE')
@@ -297,10 +289,12 @@ var_dump($action, $object);exit;}*/
 			if($object->origin === 'propal') $origin = MAIN_DB_PREFIX.'propaldet';
 			elseif($object->origin === 'commande') $origin = MAIN_DB_PREFIX.'commandedet';
 			elseif($object->origin === 'order_supplier') $origin = MAIN_DB_PREFIX.'commande_fournisseurdet';
+			elseif($object->origin === 'supplier_proposal') $origin = MAIN_DB_PREFIX.'supplier_proposaldet';
 			
 			if(get_class($object) === 'OrderLine') {$tabledet = MAIN_DB_PREFIX.'commandedet';}
 			elseif(get_class($object) === 'FactureLigne') {$tabledet = MAIN_DB_PREFIX.'facturedet';}
 			elseif(get_class($object) === 'SupplierInvoiceLine') {$tabledet = MAIN_DB_PREFIX.'facture_fourn_det';}
+			elseif(get_class($object) === 'CommandeFournisseurLigne') {$tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';}
 						
 			// Récupération nb colis et fk_tarif de l'objet d'origine
 			$sql = 'SELECT nb_colis, fk_tarif FROM '.$origin.' WHERE rowid = '.$object->origin_id;
@@ -316,7 +310,9 @@ var_dump($action, $object);exit;}*/
 			
 			return 1;
 		}
-
+		
+		/**********************************************Fin spé solebio*************************************************************************/
+		
 		// 1èrement, on vérifie si on est sur un objet tarif client ou tarif fournisseur
 		if($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT') $class = 'TTarif';	
 		else $class = 'TTarifFournisseur';
