@@ -68,6 +68,17 @@ class ActionsTarif
 		
 		$langs->load('tarif@tarif');
 		
+		if($parameters['currentcontext'] === 'invoicesuppliercard'
+			|| $parameters['currentcontext'] === 'ordersuppliercard'
+			|| $parameters['currentcontext'] === 'supplier_proposalcard'
+			|| $parameters['currentcontext'] === 'invoicecard'
+			|| $parameters['currentcontext'] === 'propalcard'
+			|| $parameters['currentcontext'] === 'ordercard') {
+		
+			$this->printColonneConditionnement($object);
+			
+		}
+		
     	if (in_array('propalcard',explode(':',$parameters['context']))
     		|| in_array('ordercard',explode(':',$parameters['context']))
 			|| in_array('ordersuppliercard',explode(':',$parameters['context']))
@@ -374,7 +385,6 @@ class ActionsTarif
 			|| $parameters['currentcontext'] === 'supplier_proposalcard') {
 			
 			$this->printInputsSelectNBColis($object);
-			$this->printColonneConditionnement($object);
 			
 		}
 		
@@ -389,7 +399,6 @@ class ActionsTarif
 			|| $parameters['currentcontext'] === 'ordercard') {
 			
 			$this->printInputsSelectNBColis($object, 'view', false, 'client');
-			$this->printColonneConditionnement($object);
 			
 		}
 		
