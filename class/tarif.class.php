@@ -450,11 +450,11 @@ class TTarifSupplierProposaldet extends TObjetStd {
 
 class TTarifTools {
 	
-	static function addline(&$object, &$tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger, $pa_ht='', $array_options=0) {
+	static function addline(&$object, &$tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger=1, $pa_ht='', $array_options=0) {
 		
 		global $conf;
 		
-		if(!empty($fk_product) && $nb_colis > 0 && $tarif->rowid >0 ) {
+		if(!empty($fk_product) && $nb_colis > 0 && $tarif->rowid >0) {
 			
 			$conf->modules_parts['triggers'] = array(); // Nécessité de vider les triggers car on ne peut pas indiquer de no trigger dans le addline et updateline facture client
 			
@@ -473,13 +473,15 @@ class TTarifTools {
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, 0, 0, $fk_product, $remise, 0, 0, 'HT', 0, '', '', 0, -1, 0, 0, null, $pa_ht, '', 0, $fk_unit);
 			}
 			
+			self::updateNBColisAndTarif($object, $nb_colis, $tarif->rowid, $res);
+			
 			return $res;
 			
 		} else setEventMessage('Donnée manquante pour ajout de ligne (hook module tarif)', 'warnings');
 		
 	}
 	
-	static function updateline(&$object, &$tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger, $lineid, $pa_ht='', $array_options=0) {
+	static function updateline(&$object, &$tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger=1, $lineid, $pa_ht='', $array_options=0) {
 		
 		global $conf;
 		
@@ -494,7 +496,28 @@ class TTarifTools {
 		
 		if($lineid > 0) $res = $lineid;
 		
+		self::updateNBColisAndTarif($object, $nb_colis, $tarif->rowid, $lineid);
+		
 		return $res;
+		
+	}
+
+	// Enregistrement du nb colis et fk_tarif_fourn utilisés pour préselection lors de la modification de la ligne
+	static function updateNBColisAndTarif(&$object, $nb_colis, $fk_tarif, $lineid) {
+		
+		global $db;
+		
+		if(empty($nb_colis) || empty($fk_tarif) || empty($lineid)) return -1;
+		
+		if(get_class($object) === 'FactureFournisseur' || get_class($object) === 'SupplierInvoiceLine') {$tabledet = MAIN_DB_PREFIX.'facture_fourn_det';}
+		elseif(get_class($object) === 'CommandeFournisseur' || get_class($object) === 'CommandeFournisseurLigne') {$tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';}
+		elseif(get_class($object) === 'SupplierProposal') {$tabledet = MAIN_DB_PREFIX.'supplier_proposaldet';}
+		elseif(get_class($object) === 'Facture' || get_class($object) === 'FactureLigne') {$tabledet = MAIN_DB_PREFIX.'facturedet';}
+		elseif(get_class($object) === 'Commande' || get_class($object) === 'OrderLine') {$tabledet = MAIN_DB_PREFIX.'commandedet';}
+		elseif(get_class($object) === 'Propal') {$tabledet = MAIN_DB_PREFIX.'propaldet';}
+		
+		$sql = 'UPDATE '.$tabledet.' SET nb_colis = '.$nb_colis.', fk_tarif = '.$fk_tarif.' WHERE rowid = '.$lineid;
+		$db->query($sql);
 		
 	}
 	

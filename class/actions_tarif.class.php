@@ -28,12 +28,12 @@ class ActionsTarif
 			|| $parameters['currentcontext'] === 'propalcard')
 			&& ($action === 'addline' || $action === 'updateline' || $action === 'updateligne')) {
 				
-			if(get_class($object) === 'FactureFournisseur') {$tarif = new TTarifFournisseur; $field_url = 'facid'; $tabledet = MAIN_DB_PREFIX.'facture_fourn_det';}
-			elseif(get_class($object) === 'CommandeFournisseur') {$tarif = new TTarifFournisseur; $field_url = 'id'; $tabledet = MAIN_DB_PREFIX.'commande_fournisseurdet';}
-			elseif(get_class($object) === 'SupplierProposal') {$tarif = new TTarifFournisseur; $field_url = 'id'; $tabledet = MAIN_DB_PREFIX.'supplier_proposaldet';}
-			elseif(get_class($object) === 'Facture') {$tarif = new TTarif; $field_url = 'facid'; $tabledet = MAIN_DB_PREFIX.'facturedet';}
-			elseif(get_class($object) === 'Commande') {$tarif = new TTarif; $field_url = 'id'; $tabledet = MAIN_DB_PREFIX.'commandedet';}
-			elseif(get_class($object) === 'Propal') {$tarif = new TTarif; $field_url = 'id'; $tabledet = MAIN_DB_PREFIX.'propaldet';}
+			if(get_class($object) === 'FactureFournisseur') {$tarif = new TTarifFournisseur; $field_url = 'facid';}
+			elseif(get_class($object) === 'CommandeFournisseur') {$tarif = new TTarifFournisseur; $field_url = 'id';}
+			elseif(get_class($object) === 'SupplierProposal') {$tarif = new TTarifFournisseur; $field_url = 'id';}
+			elseif(get_class($object) === 'Facture') {$tarif = new TTarif; $field_url = 'facid';}
+			elseif(get_class($object) === 'Commande') {$tarif = new TTarif; $field_url = 'id';}
+			elseif(get_class($object) === 'Propal') {$tarif = new TTarif; $field_url = 'id';}
 			
 			$nb_colis = GETPOST('nb_colis', 'int');
 			$fk_tarif = GETPOST('fk_tarif', 'int');
@@ -49,12 +49,6 @@ class ActionsTarif
 			
 			if($action === 'addline') $res = TTarifTools::addline($object, $tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger, strtr($pa_ht, array(','=>'.')));
 			elseif($action === 'updateline' || $action === 'updateligne') $res = TTarifTools::updateline($object, $tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger, $lineid, $pa_ht);
-
-			// Enregistrement du nb colis et fk_tarif_fourn utilisés pour préselection lors de la modification de la ligne
-			if($res > 0) {
-				$sql = 'UPDATE '.$tabledet.' SET nb_colis = '.$nb_colis.', fk_tarif = '.$fk_tarif.' WHERE rowid = '.$res;
-				$db->query($sql);
-			}
 			
 			// Header car sinon blocage comme pas d'id tarif fournisseur ou de qté std doli
 			header('Location: '.$_SERVER['PHP_SELF'].'?'.$field_url.'='.$object->id);exit;
