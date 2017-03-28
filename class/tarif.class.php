@@ -439,18 +439,32 @@ class TTarifSupplierProposaldet extends TObjetStd {
 		global $langs;
 		
 		parent::set_table(MAIN_DB_PREFIX.'supplier_proposaldet');
-		parent::add_champs('poids,fk_tarif,nb_colis','type=entier;');
+		parent::add_champs('poids,fk_tarif,nb_colis,pppp_id','type=entier;');
 		parent::add_champs('tarif_poids','type=float;');
 		parent::add_champs('metre');
 		
 		parent::_init_vars();
 		parent::start();
 	}
+	
+	static function get_line_field($line_id, $field) {
+		
+		global $db;
+		$sql = 'SELECT '.$field.'
+				FROM '.MAIN_DB_PREFIX.'supplier_proposaldet
+				WHERE rowid = '.$line_id;
+		
+		$resql = $db->query($sql);
+		$res = $db->fetch_object($resql);
+		return $res->{$field};
+		
+	}
+	
 }
 
 class TTarifTools {
 	
-	static function addline(&$object, &$tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger=1, $pa_ht='', $array_options=0) {
+	static function addline(&$object, &$tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger=1, $pa_ht='', $array_options=0, $pppp_id=0) {
 		
 		global $conf;
 		
@@ -473,7 +487,7 @@ class TTarifTools {
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, 0, 0, $fk_product, $remise, 0, 0, 'HT', 0, '', '', 0, -1, 0, 0, null, $pa_ht, '', 0, $fk_unit);
 			}
 			
-			self::updateNBColisAndTarif($object, $nb_colis, $tarif->rowid, $res);
+			self::updateNBColisAndTarif($object, $nb_colis, $tarif->rowid, $res, $pppp_id);
 			
 			return $res;
 			
@@ -503,7 +517,7 @@ class TTarifTools {
 	}
 
 	// Enregistrement du nb colis et fk_tarif_fourn utilisés pour préselection lors de la modification de la ligne
-	static function updateNBColisAndTarif(&$object, $nb_colis, $fk_tarif, $lineid) {
+	static function updateNBColisAndTarif(&$object, $nb_colis, $fk_tarif, $lineid, $pppp_id=0) {
 		
 		global $db;
 		
@@ -516,7 +530,10 @@ class TTarifTools {
 		elseif(get_class($object) === 'Commande' || get_class($object) === 'OrderLine') {$tabledet = MAIN_DB_PREFIX.'commandedet';}
 		elseif(get_class($object) === 'Propal') {$tabledet = MAIN_DB_PREFIX.'propaldet';}
 		
-		$sql = 'UPDATE '.$tabledet.' SET nb_colis = '.$nb_colis.', fk_tarif = '.$fk_tarif.' WHERE rowid = '.$lineid;
+		$sql = 'UPDATE '.$tabledet.' SET nb_colis = '.$nb_colis;
+		$sql.= ', fk_tarif = '.$fk_tarif;
+		if($pppp_id > 0) $sql.= ', pppp_id = '.$pppp_id;
+		$sql.= ' WHERE rowid = '.$lineid;
 		$db->query($sql);
 		
 	}
