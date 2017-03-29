@@ -447,19 +447,6 @@ class TTarifSupplierProposaldet extends TObjetStd {
 		parent::start();
 	}
 	
-	static function get_line_field($line_id, $field) {
-		
-		global $db;
-		$sql = 'SELECT '.$field.'
-				FROM '.MAIN_DB_PREFIX.'supplier_proposaldet
-				WHERE rowid = '.$line_id;
-		
-		$resql = $db->query($sql);
-		$res = $db->fetch_object($resql);
-		return $res->{$field};
-		
-	}
-	
 }
 
 class TTarifTools {
@@ -639,6 +626,19 @@ class TTarifTools {
 			}
 			
 		}
+		
+	}
+	
+	static function get_line_field($line_id, $field, $table='supplier_proposaldet') {
+		
+		global $db;
+		$sql = 'SELECT '.$field.'
+				FROM '.MAIN_DB_PREFIX.$table.'
+				WHERE rowid = '.$line_id;
+		
+		$resql = $db->query($sql);
+		$res = $db->fetch_object($resql);
+		return $res->{$field};
 		
 	}
 	
