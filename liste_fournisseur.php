@@ -27,7 +27,7 @@
 	
 	//pre($langs);exit;
 	
-	llxHeader('',$langs->trans('TarifList'),'','');
+	llxHeader('',$langs->trans('TarifFournisseurList'),'','');
 	
 	$ATMdb = new TPDOdb;
 	
@@ -35,14 +35,14 @@
 	$ATMdb->Get_line();
 	$type_unite = $ATMdb->Get_field('unite_vente');
 	
-	$TTarif = new TTarif;
+	$TTarifFournisseur = new TTarifFournisseur;
 	$product = new Product($db);
 	$result=$product->fetch($fk_product);
 		
 	$head=product_prepare_head($product, $user);
 	$titre=$langs->trans("CardProduct".$product->type);
 	$picto=($product->type==1?'service':'product');
-	dol_fiche_head($head, 'tabTarif1', $titre, 0, $picto);
+	dol_fiche_head($head, 'tabTarif2', $titre, 0, $picto);
 	
 	$object = $product;
 	$form = new Form($db);
@@ -91,7 +91,7 @@
 	 
 	if(!empty($action) && ($action == 'add' || $action == 'edit' )){
 		
-		$tarif = new TTarif;
+		$tarif = new TTarifFournisseur;
 		$tarif->type_price = defined('TARIF_DEFAULT_TYPE') ? TARIF_DEFAULT_TYPE : '';
 		if($action=='edit') $tarif->load($ATMdb, __get('id',0,'integer'));
 
@@ -120,7 +120,7 @@
 		print '</tr>';
 		
 		print '<tr><td width="30%">'.$langs->trans('PriceType').'</td><td>';
-        print $form->selectarray("type_prix",$TTarif->TType_price,$tarif->type_price);
+        print $form->selectarray("type_prix",$TTarifFournisseur->TType_price,$tarif->type_price);
         print '</td></tr>';
         
         if($conf->multidevise->enabled){
@@ -137,8 +137,8 @@
 		print '</td></tr>';
 		
          //client
-        print '<tr><td>'.$langs->trans('Customer').'</td><td colspan="3">';
-        print $form->select_company($tarif->fk_soc, 'fk_soc','',1);
+        print '<tr><td>'.$langs->trans('Supplier').'</td><td colspan="3">';
+        print $form->select_company($tarif->fk_soc, 'fk_soc','fournisseur=1',1);
         print '</td></tr>';
         
         //categorie
@@ -187,7 +187,7 @@
 		$prix = ( ($action=='edit') ? $tarif->prix :$object->price);
 		// Price
 		print '<tr><td width="30%">';
-		print $langs->trans('SellingPrice');
+		print $langs->trans('BuyingPrice');
 		print '</td><td>
 		<input type="hidden" name="prix" id="prix" value="'.$prix.'">
 		<input size="10" name="prix_visu" value="'.price($prix).'"></td></tr>';
@@ -278,78 +278,75 @@
 			$unite = 'U';
 		}
 		
-		$Ttarif = new TTarif;
+		$TTarifFournisseur = new TTarifFournisseur;
 		
 		if($id_tarif>0) {
-			$Ttarif->load($ATMdb, $id_tarif);
+			$TTarifFournisseur->load($ATMdb, $id_tarif);
 			
 			// Si changemlent de prix et conf activée, on log l'ancien tarif
-			if((float)$Ttarif->prix != (float)price2num(GETPOST('prix_visu'))
+			if((float)$TTarifFournisseur->prix != (float)price2num(GETPOST('prix_visu'))
 				&& !empty($conf->global->TARIF_LOG_TARIF_UPDATE)) {
 					
-				$tarif_log = new TTarifLog;
-				foreach($Ttarif as $k=>$v) {
-					if($k != 'table') $tarif_log->{$k} = $v;
+				$tarif_fournisseur_log = new TTarifFournisseurLog;
+				foreach($TTarifFournisseur as $k=>$v) {
+					if($k != 'table') $tarif_fournisseur_log->{$k} = $v;
 				}
-				$tarif_log->rowid = 0;
-				$tarif_log->date_fin = strtotime(date('Y-m-d'));
-				$tarif_log->save($ATMdb);
+				$tarif_fournisseur_log->rowid = 0;
+				$tarif_fournisseur_log->date_fin = strtotime(date('Y-m-d'));
+				$tarif_fournisseur_log->save($ATMdb);
 				
 			}
 		}
 		
-		$Ttarif->tva_tx = GETPOST('tva_tx','int');
-		$Ttarif->price_base_type = 'HT';
-		$Ttarif->fk_user_author = $user->id;
-		$Ttarif->type_price = GETPOST('type_prix');
-		$Ttarif->currency_code = GETPOST('currency');
-		$Ttarif->fk_country = GETPOST('fk_country','int');
+		$TTarifFournisseur->tva_tx = GETPOST('tva_tx','int');
+		$TTarifFournisseur->price_base_type = 'HT';
+		$TTarifFournisseur->fk_user_author = $user->id;
+		$TTarifFournisseur->type_price = GETPOST('type_prix');
+		$TTarifFournisseur->currency_code = GETPOST('currency');
+		$TTarifFournisseur->fk_country = GETPOST('fk_country','int');
 		
-        $Ttarif->fk_soc = GETPOST('fk_soc','int');
-        $Ttarif->fk_project = GETPOST('fk_project','int');
+        $TTarifFournisseur->fk_soc = GETPOST('fk_soc','int');
+        $TTarifFournisseur->fk_project = GETPOST('fk_project','int');
         
 		$prix = price2num(GETPOST('prix_visu'));
 		$remise = price2num(GETPOST('remise'));
 		
-		if($Ttarif->type_price == 'PERCENT/PRICE'){
-			$Ttarif->prix = $prix;
-			$Ttarif->remise_percent = $remise;
+		if($TTarifFournisseur->type_price == 'PERCENT/PRICE'){
+			$TTarifFournisseur->prix = $prix;
+			$TTarifFournisseur->remise_percent = $remise;
 		}
-		else if($Ttarif->type_price == 'PRICE'){
-			$Ttarif->prix = $prix;
+		else if($TTarifFournisseur->type_price == 'PRICE'){
+			$TTarifFournisseur->prix = $prix;
 		}
 		else{
-			$Ttarif->prix = $prix;
-			$Ttarif->remise_percent = $remise;
+			$TTarifFournisseur->prix = $prix;
+			$TTarifFournisseur->remise_percent = $remise;
 		}
 		
-		$Ttarif->quantite = price2num(GETPOST('quantite'));
-		//$Ttarif->quantite =  number_format(str_replace(",", ".", $_POST['quantite']),2,".","");
-		$Ttarif->unite = $unite;
+		$TTarifFournisseur->quantite = price2num(GETPOST('quantite'));
+		//$TTarifFournisseur->quantite =  number_format(str_replace(",", ".", $_POST['quantite']),2,".","");
+		$TTarifFournisseur->unite = $unite;
 		
-		$Ttarif->unite_value = GETPOST('weight_units');
-		$Ttarif->fk_product = $fk_product;
-		$Ttarif->fk_categorie_client = GETPOST('fk_categorie_client','int');
-		$Ttarif->date_fin = $Ttarif->set_date('date_fin',$_REQUEST['date_fin']);
-		$Ttarif->date_debut = $Ttarif->set_date('date_debut',$_REQUEST['date_debut']);
-		//$ATMdb->db->debug=true;
+		$TTarifFournisseur->unite_value = GETPOST('weight_units');
+		$TTarifFournisseur->fk_product = $fk_product;
+		$TTarifFournisseur->fk_categorie_client = GETPOST('fk_categorie_client','int');
+		$TTarifFournisseur->date_fin = $TTarifFournisseur->set_date('date_fin',$_REQUEST['date_fin']);
+		$TTarifFournisseur->date_debut = $TTarifFournisseur->set_date('date_debut',$_REQUEST['date_debut']);
 
-		//pre($Ttarif,true);exit;
-		
-		$Ttarif->save($ATMdb);
+		$TTarifFournisseur->save($ATMdb);
 		
 	}
 	elseif(!empty($action) && $action == 'delete' && !empty($id_tarif))
 	{
-		$Ttarif = new TTarif;
-		$Ttarif->load($ATMdb,$id_tarif);
-		$Ttarif->delete($ATMdb);
+		$TTarifFournisseur = new TTarifFournisseur;
+		$TTarifFournisseur->load($ATMdb,$id_tarif);
+		$TTarifFournisseur->delete($ATMdb);
 	}
 	elseif(!empty($action) && $action == 'deletelog' && !empty($id_tarif))
 	{
-		$TtarifLog = new TTarifLog;
-		$TtarifLog->load($ATMdb,$id_tarif);
-		$TtarifLog->delete($ATMdb);
+		$TtarifFournLog = new TTarifFournisseurLog;
+		$TtarifFournLog->load($ATMdb,$id_tarif);
+		$TtarifFournLog->delete($ATMdb);
 	}
 	
 	
@@ -362,7 +359,7 @@
 	 **********************************/
 	$TConditionnement = array();
 
-	if($conf->multidevise->enabled){
+	/*if($conf->multidevise->enabled){ TODO pour l'instant on laisse de côté la partie multidevise
 
 		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price, ".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays'
 		              , tc.fk_soc
@@ -378,7 +375,7 @@
 
 			$sql.=" ,tc.unite_value AS unite_value,
 				tc.quantite * tc.prix";
-			if($Ttarif->remise_percent){
+			if($TTarifFournisseur->remise_percent){
 				$sql .= "* (100-tc.remise_percent)/100";
 			} 
 			$sql .=	"  AS 'Total'";
@@ -388,7 +385,7 @@
 			
 			$sql.=" , p.".$type_unite."_units AS base_poids, tc.unite_value AS unite_value,
 				((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix)";
-			if($Ttarif->remise_percent){
+			if($TTarifFournisseur->remise_percent){
 				$sql .=  	  "* (tc.remise_percent/100)";
 			}
 			$sql .=	  " AS 'Total'";
@@ -404,7 +401,7 @@
 				WHERE fk_product = ".$product->id."
 				ORDER BY unite_value, quantite ASC";
 	}
-	else {
+	else {*/
 		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price,".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays', tc.fk_soc, cat.label as 'Catégorie', tc.price_base_type AS base, tc.quantite as quantite,";
 		if($type_unite == "unite") {
 			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, tc.unite_value AS unite_value,";
@@ -413,7 +410,7 @@
 		else {
 			$sql.=			   "tc.unite AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, p.".$type_unite."_units AS base_poids, tc.unite_value AS unite_value,";
 			$sql.=			  "((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix)";
-			if($Ttarif->remise_percent){
+			if($TTarifFournisseur->remise_percent){
 				$sql .=  	  "* (tc.remise_percent/100)";
 			}
 			$sql .=			  " AS 'Total',";
@@ -426,16 +423,16 @@
 	
 		$sql.=			   ", '' AS 'Actions' ";
 		
-		$sql.=		" FROM ".MAIN_DB_PREFIX."tarif_conditionnement AS tc
+		$sql.=		" FROM ".MAIN_DB_PREFIX."tarif_conditionnement_fournisseur AS tc
 					LEFT JOIN ".MAIN_DB_PREFIX."product AS p ON (tc.fk_product = p.rowid)
 					LEFT JOIN ".MAIN_DB_PREFIX.((DOL_VERSION >= 3.7) ? "c_country" : "c_pays")." AS pays ON (pays.rowid = tc.fk_country)
 					LEFT JOIN ".MAIN_DB_PREFIX."categorie AS cat ON (cat.rowid = tc.fk_categorie_client)
 					
 				WHERE fk_product = ".$product->id."
 				ORDER BY unite_value, quantite ASC";
-	}
+	//}
 	//echo $sql;
-	$r = new TSSRenderControler(new TTarif);
+	$r = new TSSRenderControler(new TTarifFournisseur);
 	
 	$THide = array(
 			'id'
@@ -482,7 +479,7 @@
 	
 		print '<br />';
 		
-		$sql = strtr($sql, array('tarif_conditionnement'=>'tarif_conditionnement_log')); // Même requête mais dans la table log
+		$sql = strtr($sql, array('tarif_conditionnement_fournisseur'=>'tarif_conditionnement_fournisseur_log')); // Même requête mais dans la table log
 		
 		print $r->liste($ATMdb, $sql, array(
 			'limit'=>array('nbLine'=>1000)
@@ -519,7 +516,7 @@
 		));
 	
 	}
-
+	
 	print '
 		<style type="text/css">
 			#list_llx_tarif_conditionnement td div {
@@ -534,9 +531,9 @@
 
 		$TPDOdb = new TPDOdb;
 
-		$TTarif = new TTarif;
+		$TTarifFournisseur = new TTarifFournisseur;
 
-		return $langs->trans($TTarif->TType_price[$idPriceCondi]);
+		return $langs->trans($TTarifFournisseur->TType_price[$idPriceCondi]);
 	}
 	
 	function _getNomURLSoc($id_soc) {

@@ -88,7 +88,7 @@ class modTarif extends DolibarrModules
 		//							'dir' => array('output' => 'othermodulename'),      // To force the default directories names
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@mymodule')) // Set here all workflow context managed by module
 		//	                       );
-		$this->module_parts = array('hooks'=>array('ordersuppliercard','propalcard', 'ordercard', 'invoicecard'),'triggers' => 1);
+		$this->module_parts = array('hooks'=>array('ordersuppliercard', 'invoicesuppliercard', 'propalcard', 'ordercard', 'invoicecard'),'triggers' => 1);
 
 		// Data directories to create when module is enabled.
 		// Example: this->dirs = array("/mymodule/temp");
@@ -124,7 +124,10 @@ class modTarif extends DolibarrModules
         //                              'objecttype:+tabname2:Title2:mylangfile@mymodule:$user->rights->othermodule->read:/mymodule/mynewtab2.php?id=__ID__',  	// To add another new tab identified by code tabname2
         //                              'objecttype:-tabname':NU:conditiontoremove);                                                     						// To remove an existing tab identified by code tabname
         
-        $this->tabs = array('product:+tabTarif1:Tarifs:tarif@tarif:/tarif/liste.php?fk_product=__ID__');
+        $this->tabs = array(
+        						'product:+tabTarif1:Tarifs:tarif@tarif:/tarif/liste.php?fk_product=__ID__'
+        						,'product:+tabTarif2:Tarifs (fournisseurs):tarif@tarif:/tarif/liste_fournisseur.php?fk_product=__ID__'
+							);
         
 		// where objecttype can be
 		// 'thirdparty'       to add a tab in third party view
