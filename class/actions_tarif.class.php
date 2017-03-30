@@ -45,10 +45,15 @@ class ActionsTarif
 			$fk_unit=$tarif->unite;
 			$pa_ht = GETPOST('buying_price');
 			
+			$array_options=array();
+			foreach($_REQUEST as $k=>$v) {
+				if(strpos($k, 'options_') !== false && !empty($v)) $array_options[$k]=$v;
+			}
+			
 			$notrigger=1; // Je mets un no trigger car à ce moment on a déjà récupéré le bon tarif, donc pas besoin de ré-exécuter le trigger
 			
-			if($action === 'addline') $res = TTarifTools::addline($object, $tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger, strtr($pa_ht, array(','=>'.')));
-			elseif($action === 'updateline' || $action === 'updateligne') $res = TTarifTools::updateline($object, $tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger, $lineid, $pa_ht);
+			if($action === 'addline') $res = TTarifTools::addline($object, $tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger, strtr($pa_ht, array(','=>'.')), $array_options);
+			elseif($action === 'updateline' || $action === 'updateligne') $res = TTarifTools::updateline($object, $tarif, $remise, $fk_product, $nb_colis, $desc, $fk_unit, $notrigger, $lineid, $pa_ht, $array_options);
 			
 			// Header car sinon blocage comme pas d'id tarif fournisseur ou de qté std doli
 			header('Location: '.$_SERVER['PHP_SELF'].'?'.$field_url.'='.$object->id);exit;
