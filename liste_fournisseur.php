@@ -280,23 +280,7 @@
 		
 		$TTarifFournisseur = new TTarifFournisseur;
 		
-		if($id_tarif>0) {
-			$TTarifFournisseur->load($ATMdb, $id_tarif);
-			
-			// Si changemlent de prix et conf activée, on log l'ancien tarif
-			if((float)$TTarifFournisseur->prix != (float)price2num(GETPOST('prix_visu'))
-				&& !empty($conf->global->TARIF_LOG_TARIF_UPDATE)) {
-					
-				$tarif_fournisseur_log = new TTarifFournisseurLog;
-				foreach($TTarifFournisseur as $k=>$v) {
-					if($k != 'table') $tarif_fournisseur_log->{$k} = $v;
-				}
-				$tarif_fournisseur_log->rowid = 0;
-				$tarif_fournisseur_log->date_fin = strtotime(date('Y-m-d'));
-				$tarif_fournisseur_log->save($ATMdb);
-				
-			}
-		}
+		if($id_tarif>0) $TTarifFournisseur->load($ATMdb, $id_tarif);
 		
 		$TTarifFournisseur->tva_tx = GETPOST('tva_tx','int');
 		$TTarifFournisseur->price_base_type = 'HT';
