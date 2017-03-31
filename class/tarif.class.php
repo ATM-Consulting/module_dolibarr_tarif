@@ -500,7 +500,6 @@ class TTarifTools {
 				if($k=='prix') {
 					if(get_class($TTarif) === 'TTarif') $TTarifLinked->{$k}=$v/(1+($conf->global->TARIF_PERCENT_AUTO_CREATE/100));
 					else $TTarifLinked->{$k}=$v*(1+($conf->global->TARIF_PERCENT_AUTO_CREATE/100));
-					$TTarifLinked->{$k} = (float)$TTarifLinked->{$k};
 				}
 				else if($k == 'table' || $k == 'rowid') continue;
 				else $TTarifLinked->{$k}=$v;
@@ -554,9 +553,9 @@ class TTarifTools {
 			$old_class = get_class($TTarif);
 			$old_tarif = new $old_class;
 			$old_tarif->load($PDOdb, $TTarif->rowid);
-			//var_dump($old_class, $old_tarif->rowid, $old_tarif->prix);
-			var_dump($old_tarif->prix, $TTarif->prix, $old_tarif->prix != $TTarif->prix);
-			if($old_tarif->prix != $TTarif->prix) {
+
+			//var_dump(round($old_tarif->prix, 2), round($TTarif->prix, 2), round($old_tarif->prix, 2) != round($TTarif->prix, 2));
+			if(round($old_tarif->prix, 2) != round($TTarif->prix, 2)) {
 			
 				$TTarifLog = new $class_tarif;
 				$TTarifLog->prix = $old_tarif->prix;
