@@ -281,22 +281,10 @@
 		//var_dump($_REQUEST);exit;
 		$TTarifFournisseur = new TTarifFournisseur;
 		
+		$log_tarif = false;
 		if($id_tarif>0) {
 			$TTarifFournisseur->load($ATMdb, $id_tarif);
-			
-			// Si changemlent de prix et conf activée, on log l'ancien tarif
-			if((float)$TTarifFournisseur->prix != (float)price2num(GETPOST('prix_visu'))
-				&& !empty($conf->global->TARIF_LOG_TARIF_UPDATE)) {
-					
-				$tarif_fournisseur_log = new TTarifFournisseurLog;
-				foreach($TTarifFournisseur as $k=>$v) {
-					if($k != 'table') $tarif_fournisseur_log->{$k} = $v;
-				}
-				$tarif_fournisseur_log->rowid = 0;
-				$tarif_fournisseur_log->date_fin = strtotime(date('Y-m-d'));
-				$tarif_fournisseur_log->save($ATMdb);
-				
-			}
+			$log_tarif = true;
 		}
 		
 		$TTarifFournisseur->tva_tx = GETPOST('tva_tx','int');
@@ -334,7 +322,7 @@
 		$TTarifFournisseur->date_fin = $TTarifFournisseur->set_date('date_fin',$_REQUEST['date_fin']);
 		$TTarifFournisseur->date_debut = $TTarifFournisseur->set_date('date_debut',$_REQUEST['date_debut']);
 
-		$TTarifFournisseur->save($ATMdb);
+		$TTarifFournisseur->save($ATMdb, true, $log_tarif);
 		
 	}
 	elseif(!empty($action) && $action == 'delete' && !empty($id_tarif))

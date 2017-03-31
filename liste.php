@@ -281,22 +281,10 @@
 		$unite = GETPOST('units');
 		$Ttarif = new TTarif;
 		
+		$log_tarif = false;
 		if($id_tarif>0) {
 			$Ttarif->load($ATMdb, $id_tarif);
-			
-			// Si changemlent de prix et conf activée, on log l'ancien tarif
-			if((float)$Ttarif->prix != (float)price2num(GETPOST('prix_visu'))
-				&& !empty($conf->global->TARIF_LOG_TARIF_UPDATE)) {
-					
-				$tarif_log = new TTarifLog;
-				foreach($Ttarif as $k=>$v) {
-					if($k != 'table') $tarif_log->{$k} = $v;
-				}
-				$tarif_log->rowid = 0;
-				$tarif_log->date_fin = strtotime(date('Y-m-d'));
-				$tarif_log->save($ATMdb);
-				
-			}
+			$log_tarif=true;
 		}
 		
 		$Ttarif->tva_tx = GETPOST('tva_tx','int');
@@ -337,7 +325,7 @@
 
 		//pre($Ttarif,true);exit;
 		
-		$Ttarif->save($ATMdb);
+		$Ttarif->save($ATMdb, true, $log_tarif);
 		
 	}
 	elseif(!empty($action) && $action == 'delete' && !empty($id_tarif))
