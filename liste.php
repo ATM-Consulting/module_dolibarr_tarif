@@ -280,7 +280,11 @@
 		
 		$Ttarif = new TTarif;
 		
-		if($id_tarif>0) $Ttarif->load($ATMdb, $id_tarif);
+		$log_tarif = false;
+		if($id_tarif>0) {
+			$Ttarif->load($ATMdb, $id_tarif);
+			$log_tarif=true;
+		}
 		
 		$Ttarif->tva_tx = GETPOST('tva_tx','int');
 		$Ttarif->price_base_type = 'HT';
@@ -320,7 +324,7 @@
 
 		//pre($Ttarif,true);exit;
 		
-		$Ttarif->save($ATMdb);
+		$Ttarif->save($ATMdb, true, $log_tarif);
 		
 	}
 	elseif(!empty($action) && $action == 'delete' && !empty($id_tarif))

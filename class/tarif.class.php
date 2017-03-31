@@ -269,7 +269,7 @@ class TTarif extends TObjetStd {
 		parent::save($PDOdb);
 
 		// Enregistrement tarif linked uniquement si c'est un objet TTarif ou TTarifFournisseur
-		if(in_array(get_class($this), array('TTarif', 'TTarifFournisseur'))) TTarifTools::saveTarifLinked($PDOdb, $this, $save_linked_tarif);
+		if(in_array(get_class($this), array('TTarif', 'TTarifFournisseur'))) TTarifTools::saveTarifLinked($PDOdb, $this, $save_linked_tarif, $log_tarif);
 		
 	}
 	
@@ -479,7 +479,7 @@ class TTarifTools {
 		
 	}
 
-	static function saveTarifLinked(&$PDOdb, &$TTarif, $save_linked_tarif=false) {
+	static function saveTarifLinked(&$PDOdb, &$TTarif, $save_linked_tarif=false, $log_tarif=false) {
 		
 		global $conf;
 		
@@ -506,7 +506,7 @@ class TTarifTools {
 				
 			}
 			
-			$TTarifLinked->save($PDOdb, false, true);
+			$TTarifLinked->save($PDOdb, false, $log_tarif);
 			
 			if(empty($id_lien)) {
 				if(get_class($TTarif) === 'TTarif') TTarifTools::linkTarif($TTarif->rowid, $TTarifLinked->rowid);
@@ -543,7 +543,7 @@ class TTarifTools {
 	static function logTarif(&$PDOdb, &$TTarif, $log_tarif=false) {
 		
 		global $db, $conf;
-		//var_dump($log_tarif);exit;
+		
 		if($log_tarif && !empty($conf->global->TARIF_LOG_TARIF_UPDATE)) {
 			
 			if(get_class($TTarif) === 'TTarif') $class_tarif = 'TTarifLog';

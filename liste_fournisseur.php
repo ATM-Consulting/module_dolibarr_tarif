@@ -280,7 +280,11 @@
 		
 		$TTarifFournisseur = new TTarifFournisseur;
 		
-		if($id_tarif>0) $TTarifFournisseur->load($ATMdb, $id_tarif);
+		$log_tarif = false;
+		if($id_tarif>0) {
+			$TTarifFournisseur->load($ATMdb, $id_tarif);
+			$log_tarif = true;
+		}
 		
 		$TTarifFournisseur->tva_tx = GETPOST('tva_tx','int');
 		$TTarifFournisseur->price_base_type = 'HT';
@@ -317,7 +321,7 @@
 		$TTarifFournisseur->date_fin = $TTarifFournisseur->set_date('date_fin',$_REQUEST['date_fin']);
 		$TTarifFournisseur->date_debut = $TTarifFournisseur->set_date('date_debut',$_REQUEST['date_debut']);
 
-		$TTarifFournisseur->save($ATMdb);
+		$TTarifFournisseur->save($ATMdb, true, $log_tarif);
 		
 	}
 	elseif(!empty($action) && $action == 'delete' && !empty($id_tarif))
