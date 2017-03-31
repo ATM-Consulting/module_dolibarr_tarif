@@ -634,10 +634,16 @@ class TTarifTools {
 		global $db;
 		$sql = 'SELECT '.$field.'
 				FROM '.MAIN_DB_PREFIX.$table.'
-				WHERE rowid = '.$line_id;
+				WHERE rowid = '.(int)$line_id;
 		
 		$resql = $db->query($sql);
+		
+		if(!$resql) {
+			echo $sql.' '.$db->error;
+		}
+		
 		$res = $db->fetch_object($resql);
+		
 		return $res->{$field};
 		
 	}
