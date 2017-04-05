@@ -258,15 +258,18 @@ class TTarif extends TObjetStd {
 		return $price;
 	}
 	
-	function save(&$PDOdb, $save_linked_tarif=true) {
+	function save(&$PDOdb, $save_linked_tarif=true, $log_tarif=true) {
 		global $conf;
 		
 		if(empty($this->currency_code)) $this->currency_code = $conf->currency;
 		
+		// Avant le save sinon on ne peut plus récupérer l'ancien tarif
+		if(in_array(get_class($this), array('TTarif', 'TTarifFournisseur'))) TTarifTools::logTarif($PDOdb, $this, $log_tarif);
+		
 		parent::save($PDOdb);
 
 		// Enregistrement tarif linked uniquement si c'est un objet TTarif ou TTarifFournisseur
-		if(in_array(get_class($this), array('TTarif', 'TTarifFournisseur'))) TTarifTools::saveTarifLinked($PDOdb, $this, $save_linked_tarif);
+		if(in_array(get_class($this), array('TTarif', 'TTarifFournisseur'))) TTarifTools::saveTarifLinked($PDOdb, $this, $save_linked_tarif, $log_tarif);
 		
 	}
 	
@@ -314,8 +317,8 @@ class TTarifFournisseur extends TTarif{
 		return parent::getPrix($db, $line, $qty, $conditionnement, $weight_units, $subprice, $coef, $devise, $price_level, $fk_country, $TFk_categorie, $fk_soc, $fk_project, 'FOURNISSEUR');
 	}
 
-	function save(&$PDOdb, $save_linked_tarif=true) {
-		parent::save($PDOdb, $save_linked_tarif);
+	function save(&$PDOdb, $save_linked_tarif=true, $log_tarif=true) {
+		parent::save($PDOdb, $save_linked_tarif, $log_tarif);
 	}
 
 	function delete(&$PDOdb, $delete_linked_tarif=true) {
@@ -476,7 +479,7 @@ class TTarifTools {
 		
 	}
 
-	static function saveTarifLinked(&$PDOdb, &$TTarif, $save_linked_tarif=false) {
+	static function saveTarifLinked(&$PDOdb, &$TTarif, $save_linked_tarif=false, $log_tarif=false) {
 		
 		global $conf;
 		
@@ -503,7 +506,7 @@ class TTarifTools {
 				
 			}
 			
-			$TTarifLinked->save($PDOdb, false);
+			$TTarifLinked->save($PDOdb, false, $log_tarif);
 			
 			if(empty($id_lien)) {
 				if(get_class($TTarif) === 'TTarif') TTarifTools::linkTarif($TTarif->rowid, $TTarifLinked->rowid);
@@ -533,6 +536,36 @@ class TTarifTools {
 				$db->query('DELETE FROM '.MAIN_DB_PREFIX.'element_element WHERE rowid = '.$id_lien);
 			}
 			
+		}
+		
+	}
+	
+	static function logTarif(&$PDOdb, &$TTarif, $log_tarif=false) {
+		
+		global $db, $conf;
+		
+		if($log_tarif && !empty($conf->global->TARIF_LOG_TARIF_UPDATE)) {
+			
+			if(get_class($TTarif) === 'TTarif') $class_tarif = 'TTarifLog';
+			else $class_tarif = 'TTarifFournisseurLog';
+
+			// Si changement de prix et conf activée, on log l'ancien tarif
+			$old_class = get_class($TTarif);
+			$old_tarif = new $old_class;
+			$old_tarif->load($PDOdb, $TTarif->rowid);
+
+			//var_dump(round($old_tarif->prix, 2), round($TTarif->prix, 2), round($old_tarif->prix, 2) != round($TTarif->prix, 2));
+			if(round($old_tarif->prix, 2) != round($TTarif->prix, 2)) {
+			
+				$TTarifLog = new $class_tarif;
+				$TTarifLog->prix = $old_tarif->prix;
+				foreach($TTarif as $k=>$v) {
+					if($k != 'table' && $k != 'rowid' && $k != 'prix') $TTarifLog->{$k} = $v;
+				}
+				$TTarifLog->date_fin = strtotime(date('Y-m-d'));
+				$TTarifLog->save($PDOdb, false, false);
+			
+			}
 		}
 		
 	}
