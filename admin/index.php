@@ -39,6 +39,7 @@ if (! $user->admin) accessforbidden();
 
 $action = GETPOST('action', 'alpha');
 
+
 /*
  * Actions
  */
@@ -85,6 +86,7 @@ function showParameters() {
 	global $db,$conf,$langs,$bc;
 	
 	$form=new Form($db);
+	$dolibarr_version = (float) DOL_VERSION;
 	
 	$var=false;
 	print '<table class="noborder" width="100%">';
@@ -151,14 +153,6 @@ function showParameters() {
 	
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
-	print '<td>'.$langs->trans("tarifTARIF_ONLY_UPDATE_LINE_PRICE").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-	print '<td align="center" width="300">';
-	print ajax_constantonoff('TARIF_ONLY_UPDATE_LINE_PRICE');
-	print '</td></tr>';
-	
-	$var=!$var;
-	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("tarifTARIF_DOL_DEFAULT_UNIT").'</td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="300">';
@@ -193,7 +187,20 @@ function showParameters() {
 	print $formCore->texte('', 'TARIF_PERCENT_AUTO_CREATE', $conf->global->TARIF_PERCENT_AUTO_CREATE, 10, 50);
 	print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 	print '</form>';
-	print '</td></tr>'; 
+	print '</td></tr>';
+	
+	if($dolibarr_version < 3.8) {
+		/*
+		 * Configurations obsolètes
+		 */
+		$var=!$var;
+		print '<tr '.$bc[$var].'>';
+		print '<td>'.$langs->trans("tarifTARIF_ONLY_UPDATE_LINE_PRICE").'</td>';
+		print '<td align="center" width="20">&nbsp;</td>';
+		print '<td align="center" width="300">';
+		print ajax_constantonoff('TARIF_ONLY_UPDATE_LINE_PRICE');
+		print '</td></tr>';
+	}
 	 
 	print '</table><br />';
 }
