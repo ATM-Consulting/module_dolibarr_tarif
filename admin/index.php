@@ -85,6 +85,7 @@ function showParameters() {
 	global $db,$conf,$langs,$bc;
 	
 	$form=new Form($db);
+	$dolibarr_version = (float) DOL_VERSION;
 	
 	$var=false;
 	print '<table class="noborder" width="100%">';
@@ -149,13 +150,18 @@ function showParameters() {
 	print ajax_constantonoff('TARIF_USE_METRE');
 	print '</td></tr>';
 	
-	$var=!$var;
-	print '<tr '.$bc[$var].'>';
-	print '<td>'.$langs->trans("tarifTARIF_ONLY_UPDATE_LINE_PRICE").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-	print '<td align="center" width="300">';
-	print ajax_constantonoff('TARIF_ONLY_UPDATE_LINE_PRICE');
-	print '</td></tr>';
+	if($dolibarr_version < 3.8) {
+		/*
+		 * Configurations obsolètes
+		 */
+		$var=!$var;
+		print '<tr '.$bc[$var].'>';
+		print '<td>'.$langs->trans("tarifTARIF_ONLY_UPDATE_LINE_PRICE").'</td>';
+		print '<td align="center" width="20">&nbsp;</td>';
+		print '<td align="center" width="300">';
+		print ajax_constantonoff('TARIF_ONLY_UPDATE_LINE_PRICE');
+		print '</td></tr>';
+	}
 	
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
