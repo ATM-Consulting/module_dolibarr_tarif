@@ -223,7 +223,7 @@
 				
 				$('input[name=prix_visu]').change(function() {
 					if($('#type_prix').val() != 'PERCENT/PRICE') {
-						var n_price = parseFloat($(this).val());
+						var n_price = parseFloat($(this).val().replace(',','.'));
 						if (isNaN(n_price)) { 
 							n_price = 0;
 							$(this).val(0);

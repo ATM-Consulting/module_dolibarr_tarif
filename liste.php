@@ -223,13 +223,14 @@
 				
 				$('input[name=prix_visu]').change(function() {
 					if($('#type_prix').val() != 'PERCENT/PRICE') {
-						var n_price = parseFloat($(this).val());
+						var n_price = parseFloat($(this).val().replace(',','.'));
 						if (isNaN(n_price)) { 
 							n_price = 0;
 							$(this).val(0);
 						}
 						
 						var price = parseFloat($('#prix').val());
+						
 						var priceFo = n_price*(1-(<?php echo $conf->global->TARIF_PERCENT_AUTO_CREATE ?>/100));
 						var priceFourn = Math.floor(priceFo*100)/100;
 						$('span[name=prix_fourn_visu]').html(priceFourn);
