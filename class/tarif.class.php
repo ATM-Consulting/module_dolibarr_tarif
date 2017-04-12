@@ -589,7 +589,7 @@ class TTarifTools {
 				if($k=='prix') {
 					if(get_class($TTarif) === 'TTarif') {
 						$newprice=$v*(1-($conf->global->TARIF_PERCENT_AUTO_CREATE/100));
-						$TTarifLinked->{$k}=round($newprice, 2, PHP_ROUND_HALF_DOWN);
+						$TTarifLinked->{$k}=floor($newprice*100)/100;
 					}
 					else $TTarifLinked->{$k}=$v/(1-($conf->global->TARIF_PERCENT_AUTO_CREATE/100));
 				}
