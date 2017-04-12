@@ -185,12 +185,14 @@
         print '</td></tr>';
 		
 		$prix = ( ($action=='edit') ? $tarif->prix :$object->price);
+		$newprice=$prix*(1-($conf->global->TARIF_PERCENT_AUTO_CREATE/100));
+		$prixAchat=floor($newprice*100)/100;
 		// Price
 		print '<tr><td width="30%">';
 		print $langs->trans('SellingPrice');
 		print '</td><td>
 		<input type="hidden" name="prix" id="prix" value="'.$prix.'">
-		<input size="10" name="prix_visu" value="'.price($prix).'"></td></tr>';
+		<input size="10" name="prix_visu" value="'.price($prix).'"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ('.$langs->trans('BuyingPrice').' : <span size="10" name="prix_fourn_visu">'.$prixAchat.'</span>)</td></tr>';
 		
 		$remise = $tarif->remise_percent;		
 		// Remise
@@ -228,6 +230,9 @@
 						}
 						
 						var price = parseFloat($('#prix').val());
+						var priceFo = n_price*(1-(<?php echo $conf->global->TARIF_PERCENT_AUTO_CREATE ?>/100));
+						var priceFourn = Math.floor(priceFo*100)/100;
+						$('span[name=prix_fourn_visu]').html(priceFourn);
 						var percent;
 						
 						if (price == 0) {
