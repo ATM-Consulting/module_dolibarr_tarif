@@ -474,7 +474,7 @@ class TTarifTools {
 			} elseif(get_class($object) === 'Propal') {
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, 0, 0, $fk_product, $remise, 'HT', 0, 0, 0, -1, 0, 0, 0, $pa_ht, '', '', '', $array_options, $fk_unit);
 			} elseif(get_class($object) === 'Commande') {
-				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, 0, 0, $fk_product, $remise, 0, 0, 'HT', 0, '', '', 0, -1, 0, 0, null, $pa_ht, '', 0, $fk_unit);
+				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, 0, 0, $fk_product, $remise, 0, 0, 'HT', 0, '', '', 0, -1, 0, 0, null, $pa_ht, '', $array_options, $fk_unit);
 			}
 			
 			self::updateNBColisAndTarif($object, $nb_colis, $tarif->rowid, $res, $pppp_id);
