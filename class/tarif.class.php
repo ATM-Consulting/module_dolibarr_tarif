@@ -70,7 +70,7 @@ class TTarif extends TObjetStd {
 			
 			while($res = $db->fetch_object($resql)) {
 				
-				if ($res->date_debut !== '0000-00-00 00:00:00' && $res->date_debut !== '1000-01-01 00:00:00')
+				if ($res->date_debut !== '0000-00-00 00:00:00' && $res->date_debut !== '1000-01-01 00:00:00' && $res->date_debut !== null)
 				{
 					$date_deb_remise = $db->jdate($res->date_debut);
 					
@@ -87,7 +87,7 @@ class TTarif extends TObjetStd {
 					}	
 				}
 					
-				if ($res->date_fin !== '0000-00-00 00:00:00' && $res->date_fin !== '1000-01-01 00:00:00')
+				if ($res->date_fin !== '0000-00-00 00:00:00' && $res->date_fin !== '1000-01-01 00:00:00' && $res->date_fin !== null)
 				{
 					$date_fin_remise = $db->jdate($res->date_fin);
 					if (is_object($line) && (!empty($line->date_start) || !empty($parent->date)))
@@ -145,17 +145,16 @@ class TTarif extends TObjetStd {
 				 LEFT JOIN ".MAIN_DB_PREFIX."product pr ON p.fk_object=pr.rowid ";
 		$sql.= " WHERE fk_product = ".$idProd." AND (tc.currency_code = '".$devise."' OR tc.currency_code IS NULL)";
 		
-		if($fk_country>0) {
-			
-			$sql.=" AND tc.fk_country IN (-1,0, $fk_country)";
-			
-		}
-		if(!empty($TFk_categorie) && is_array($TFk_categorie)) {
-			
-			$sql.=" AND tc.fk_categorie_client IN (-1,0, ".implode(',', $TFk_categorie).")";
-
-			
-		}
+		$sql.=" AND tc.fk_country IN (-1,0";
+		if($fk_country>0) $sql .= ','.$fk_country;
+		$sql .= ")";
+		
+		
+		$sql.=" AND tc.fk_categorie_client IN (-1,0";
+		if(!empty($TFk_categorie) && is_array($TFk_categorie)) $sql .= ','.implode(',', $TFk_categorie);
+		$sql .= ")";
+		
+		
 		if($fk_soc>0) {
             $sql.=" AND tc.fk_soc IN (-1,0, $fk_soc)";
         }
@@ -163,18 +162,19 @@ class TTarif extends TObjetStd {
             $sql.=" AND tc.fk_project IN (-1,0, $fk_project)";
         }
 		
-		$sql .= 'ORDER BY ';
+		$sql .= ' ORDER BY ';
 		if($fk_country>0) {
 			$sql .= 'tc.fk_country DESC, ';
 		}
+
 		$sql.= 'quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC, tc.fk_soc DESC, tc.fk_project DESC';
 		
 		$resql = $db->query($sql);
-		//print ($sql);
+		//print ($sql);exit;
 		if($db->num_rows($resql) > 0) {
 			while($res = $db->fetch_object($resql)) {
 					
-				if ($res->date_debut !== '0000-00-00 00:00:00' && $res->date_debut !== '1000-01-01 00:00:00')
+				if ($res->date_debut !== '0000-00-00 00:00:00' && $res->date_debut !== '1000-01-01 00:00:00' && $res->date_debut !== null)
 				{
 					$date_deb_remise = $db->jdate($res->date_debut);
 					
@@ -191,7 +191,7 @@ class TTarif extends TObjetStd {
 					}	
 				}
 					
-				if ($res->date_fin !== '0000-00-00 00:00:00' && $res->date_fin !== '1000-01-01 00:00:00')
+				if ($res->date_fin !== '0000-00-00 00:00:00' && $res->date_fin !== '1000-01-01 00:00:00' && $res->date_fin !== null)
 				{
 					$date_fin_remise = $db->jdate($res->date_fin);
 					if (is_object($line) && (!empty($line->date_start) || !empty($parent->date)))
