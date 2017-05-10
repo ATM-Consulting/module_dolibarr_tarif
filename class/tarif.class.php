@@ -8,7 +8,7 @@ class TTarif extends TObjetStd {
 		parent::add_champs('unite','type=chaine;');
 		parent::add_champs('unite_value','type=entier;');
 		parent::add_champs('price_base_type,type_price,currency_code','type=chaine;');
-		parent::add_champs('prix,tva_tx,quantite,remise_percent','type=float;');
+		parent::add_champs('prix,tva_tx,quantite,remise_percent,poids_unite','type=float;');
 		parent::add_champs('fk_user_author,fk_product,fk_country,fk_categorie_client,fk_soc,fk_project','type=entier;index;');
 		parent::add_champs('date_debut,date_fin','type=date;');
 		
@@ -293,7 +293,7 @@ class TTarifFournisseur extends TTarif{
 		parent::add_champs('unite','type=chaine;');
 		parent::add_champs('unite_value','type=entier;');
 		parent::add_champs('price_base_type,type_price,currency_code','type=chaine;');
-		parent::add_champs('prix,tva_tx,quantite,remise_percent','type=float;');
+		parent::add_champs('prix,tva_tx,quantite,remise_percent,poids_unite','type=float;');
 		parent::add_champs('fk_user_author,fk_product,fk_country,fk_categorie_client,fk_soc,fk_project','type=entier;index;');
 		parent::add_champs('date_debut,date_fin','type=date;');
 		
@@ -336,7 +336,7 @@ class TTarifLog extends TTarif{
 		parent::add_champs('unite','type=chaine;');
 		parent::add_champs('unite_value','type=entier;');
 		parent::add_champs('price_base_type,type_price,currency_code','type=chaine;');
-		parent::add_champs('prix,tva_tx,quantite,remise_percent','type=float;');
+		parent::add_champs('prix,tva_tx,quantite,remise_percent,poids_unite','type=float;');
 		parent::add_champs('fk_user_author,fk_product,fk_country,fk_categorie_client,fk_soc,fk_project','type=entier;index;');
 		parent::add_champs('date_debut,date_fin','type=date;');
 		
@@ -356,7 +356,7 @@ class TTarifFournisseurLog extends TTarif{
 		parent::add_champs('unite','type=chaine;');
 		parent::add_champs('unite_value','type=entier;');
 		parent::add_champs('price_base_type,type_price,currency_code','type=chaine;');
-		parent::add_champs('prix,tva_tx,quantite,remise_percent','type=float;');
+		parent::add_champs('prix,tva_tx,quantite,remise_percent,poids_unite','type=float;');
 		parent::add_champs('fk_user_author,fk_product,fk_country,fk_categorie_client,fk_soc,fk_project','type=entier;index;');
 		parent::add_champs('date_debut,date_fin','type=date;');
 		
@@ -670,8 +670,9 @@ class TTarifTools {
 			
 				$TTarifLog = new $class_tarif;
 				$TTarifLog->prix = $old_tarif->prix;
+				$TTarifLog->poids_unite = $old_tarif->poids_unite;
 				foreach($TTarif as $k=>$v) {
-					if($k != 'table' && $k != 'rowid' && $k != 'prix') $TTarifLog->{$k} = $v;
+					if($k != 'table' && $k != 'rowid' && $k != 'prix' && $k != 'poids_unite') $TTarifLog->{$k} = $v;
 				}
 				$TTarifLog->date_fin = strtotime(date('Y-m-d'));
 				$TTarifLog->save($PDOdb, false, false);

@@ -259,6 +259,12 @@
 		if($type_unite=='unite') print 'U';
 		else print $form->selectUnits($tarif->unite);
 		print '</td></tr>';
+		print '<tr><td width="30%">';
+		print $langs->trans('PoidsUnite');
+		print '</td><td>';
+		if($type_unite=='unite') print 'U';
+		else print '<input size="10" name="poids_unite" value="'.__val($tarif->poids_unite,0,'double',true).'">';
+		print '</td></tr>';
 		
 		
 	
@@ -327,6 +333,8 @@
 		$TTarifFournisseur->fk_categorie_client = GETPOST('fk_categorie_client','int');
 		$TTarifFournisseur->date_fin = $TTarifFournisseur->set_date('date_fin',$_REQUEST['date_fin']);
 		$TTarifFournisseur->date_debut = $TTarifFournisseur->set_date('date_debut',$_REQUEST['date_debut']);
+
+		$TTarifFournisseur->poids_unite = price2num(GETPOST('poids_unite'));
 
 		$TTarifFournisseur->save($ATMdb, true, $log_tarif);
 		
@@ -399,11 +407,11 @@
 	else {*/
 		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price,".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays', tc.fk_soc, cat.label as 'Catégorie', tc.price_base_type AS base, tc.quantite as quantite,";
 		if($type_unite == "unite") {
-			$sql.=			   "unit.label AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, tc.unite_value AS unite_value,";
+			$sql.=			   "unit.label AS unite, tc.poids_unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, tc.unite_value AS unite_value,";
 			$sql.=			  "tc.quantite * tc.prix * (100-tc.remise_percent)/100 AS 'Total',";
 		} 
 		else {
-			$sql.=			   "unit.label AS unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, p.".$type_unite."_units AS base_poids, tc.unite_value AS unite_value,";
+			$sql.=			   "unit.label AS unite, tc.poids_unite, tc.remise_percent AS remise, tc.tva_tx AS tva, tc.prix AS prix, p.".$type_unite."_units AS base_poids, tc.unite_value AS unite_value,";
 			$sql.=			  "((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix) - ((tc.quantite * POWER(10,(tc.unite_value-p.".$type_unite."_units))) * tc.prix)";
 			if($TTarifFournisseur->remise_percent){
 				$sql .=  	  "* (tc.remise_percent/100)";
@@ -449,12 +457,13 @@
 			,'currency'=>$langs->trans('Devise')
 			,'type_price' =>$langs->trans('PriceType')
 			,'unite'=>$langs->trans('Unit')
-			,'prix'=>$langs->trans('Tarif')
+			,'prix'=>$langs->trans('TarifU')
 			,'remise' =>$langs->trans('Remise(%)')
 			,'tva'=>$langs->trans('TVA')
 			,'Total' =>$langs->trans('Total')
 			,'Supprimer' =>$langs->trans('Delete')
 			,'Pays' =>$langs->trans('Country')
+			,'poids_unite'=>$langs->trans('PoidsUnite')
 		)
 		,'type'=>array(/*'date_debut'=>'date','date_fin'=>'date',*/'tva' => 'number', 'prix'=>'number', 'Total' => 'number' , 'quantite' => 'number')
 		,'hide'=> $THide
@@ -487,12 +496,13 @@
 				,'currency'=>$langs->trans('Devise')
 				,'type_price' =>$langs->trans('PriceType')
 				,'unite'=>$langs->trans('Unit')
-				,'prix'=>$langs->trans('Tarif')
+				,'prix'=>$langs->trans('TarifU')
 				,'remise' =>$langs->trans('Remise(%)')
 				,'tva'=>$langs->trans('TVA')
 				,'Total' =>$langs->trans('Total')
 				,'Supprimer' =>$langs->trans('Delete')
 				,'Pays' =>$langs->trans('Country')
+				,'poids_unite'=>$langs->trans('PoidsUnite')
 			)
 			,'type'=>array(/*'date_debut'=>'date','date_fin'=>'date',*/'tva' => 'number', 'prix'=>'number', 'Total' => 'number' , 'quantite' => 'number')
 			,'hide'=> $THide
