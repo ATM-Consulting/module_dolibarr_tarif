@@ -460,7 +460,8 @@ class TTarifTools {
 		
 		if(!empty($fk_product) && $nb_colis > 0 && $tarif->rowid >0) {
 			
-			$conf->modules_parts['triggers'] = array(); // Nécessité de vider les triggers car on ne peut pas indiquer de no trigger dans le addline et updateline facture client
+			$old_triggers = $conf->modules_parts['triggers'];
+			$conf->modules_parts['triggers'] = array(); // Nécessité de vider les triggers car on ne peut pas indiquer de no trigger dans le addline et updateline facture client (les triggers sont qd même conservés pour être réappliqués après les addline)
 			
 			if(get_class($object) === 'FactureFournisseur') $res = $object->addline($desc, $tarif->prix, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $nb_colis*$tarif->quantite, $fk_product, $remise, '', '', 0, '', 'HT', 0, -1, $notrigger, 0, $fk_unit);
 			elseif(get_class($object) === 'CommandeFournisseur') {
@@ -479,6 +480,8 @@ class TTarifTools {
 			
 			self::updateNBColisAndTarif($object, $nb_colis, $tarif->rowid, $res, $pppp_id);
 			
+			$conf->modules_parts['triggers'] = $old_triggers;
+			
 			return $res;
 			
 		} else setEventMessage('Donnée manquante pour ajout de ligne (hook module tarif)', 'warnings');
@@ -489,7 +492,8 @@ class TTarifTools {
 		
 		global $conf;
 		
-		$conf->modules_parts['triggers'] = array(); // Nécessité de vider les triggers car on ne peut pas indiquer de no trigger dans le addline et updateline facture client
+		$old_triggers = $conf->modules_parts['triggers'];
+		$conf->modules_parts['triggers'] = array(); // Nécessité de vider les triggers car on ne peut pas indiquer de no trigger dans le addline et updateline facture client (les triggers sont qd même conservés pour être réappliqués après les addline)
 		
 		if(get_class($object) === 'FactureFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $tarif->tva_tx, 0, 0, $nb_colis*$tarif->quantite, $fk_product, 'HT', 0, 0, $remise, $notrigger, '', '', 0, $fk_unit);
 		elseif(get_class($object) === 'CommandeFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, 0, $notrigger, '', '', $array_options, $fk_unit);
@@ -501,6 +505,8 @@ class TTarifTools {
 		if($lineid > 0) $res = $lineid;
 		
 		self::updateNBColisAndTarif($object, $nb_colis, $tarif->rowid, $lineid);
+		
+		$conf->modules_parts['triggers'] = $old_triggers;
 		
 		return $res;
 		
