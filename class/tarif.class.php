@@ -501,6 +501,9 @@ class TTarifTools {
 		elseif(get_class($object) === 'Facture') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, '', '', $tarif->tva_tx, 0, 0, 'HT', 0, 0, 0, 0, null, $pa_ht, '', 0, 0, 0, $fk_unit);
 		elseif(get_class($object) === 'Commande') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, '', '', 0, 0, 0, null, $pa_ht, '', 0, 0, $fk_unit);
 		elseif(get_class($object) === 'Propal') $res = $object->updateline($lineid, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, $desc, 'HT', 0, 0, 0, 0, 0, $pa_ht, '', 0, '', '', $array_options, $fk_unit);
+		if($res<0) {
+			var_dump($res,get_class($object),$lineid, $object->error,$fk_unit);
+		}
 		
 		if($lineid > 0) $res = $lineid;
 		
@@ -638,12 +641,12 @@ class TTarifTools {
 		
 	}
 	
-	static function get_line_field($line_id, $field, $table='supplier_proposaldet') {
+	static function get_line_field($line_id, $field, $table='supplier_proposaldet', $id_field='rowid') {
 		
 		global $db;
 		$sql = 'SELECT '.$field.'
 				FROM '.MAIN_DB_PREFIX.$table.'
-				WHERE rowid = '.(int)$line_id;
+				WHERE '.$id_field.' = '.(int)$line_id;
 		
 		$resql = $db->query($sql);
 		
