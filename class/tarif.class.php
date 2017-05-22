@@ -262,9 +262,8 @@ class TTarif extends TObjetStd {
 		global $conf;
 		
 		if(empty($this->currency_code)) $this->currency_code = $conf->currency;
-		
 		// Avant le save sinon on ne peut plus récupérer l'ancien tarif
-		if(in_array(get_class($this), array('TTarif', 'TTarifFournisseur'))) TTarifTools::logTarif($PDOdb, $this, $log_tarif);
+		if(in_array(get_class($this), array('TTarif', 'TTarifFournisseur'))) TTarifTools::logTarif($PDOdb, $this, $log_tarif,$this->date_debut);
 		
 		parent::save($PDOdb);
 
@@ -660,7 +659,7 @@ class TTarifTools {
 		
 	}
 	
-	static function logTarif(&$PDOdb, &$TTarif, $log_tarif=false) {
+	static function logTarif(&$PDOdb, &$TTarif, $log_tarif=false,$date_fin='') {
 		
 		global $db, $conf;
 		
@@ -675,7 +674,7 @@ class TTarifTools {
 			$old_tarif->load($PDOdb, $TTarif->rowid);
 
 			//var_dump(round($old_tarif->prix, 2), round($TTarif->prix, 2), round($old_tarif->prix, 2) != round($TTarif->prix, 2));
-			if(round($old_tarif->prix, 2) != round($TTarif->prix, 2)) {
+			if(!empty($old_tarif->rowid)&& round($old_tarif->prix, 2) != round($TTarif->prix, 2)) {
 			
 				$TTarifLog = new $class_tarif;
 				$TTarifLog->prix = $old_tarif->prix;
@@ -683,7 +682,11 @@ class TTarifTools {
 				foreach($TTarif as $k=>$v) {
 					if($k != 'table' && $k != 'rowid' && $k != 'prix' && $k != 'poids_unite') $TTarifLog->{$k} = $v;
 				}
-				$TTarifLog->date_fin = strtotime(date('Y-m-d'));
+				$TTarifLog->date_debut = $old_tarif->date_debut;
+				
+				
+				if(empty($date_fin)) $date_fin =  strtotime(date('Y-m-d'));
+				$TTarifLog->date_fin = $date_fin;
 				$TTarifLog->save($PDOdb, false, false);
 			
 			}
