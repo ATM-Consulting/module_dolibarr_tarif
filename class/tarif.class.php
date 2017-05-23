@@ -258,12 +258,12 @@ class TTarif extends TObjetStd {
 		return $price;
 	}
 	
-	function save(&$PDOdb, $save_linked_tarif=true, $log_tarif=true) {
+	function save(&$PDOdb, $save_linked_tarif=true, $log_tarif=true, $date_fin_log='') {
 		global $conf;
 		
 		if(empty($this->currency_code)) $this->currency_code = $conf->currency;
 		// Avant le save sinon on ne peut plus récupérer l'ancien tarif
-		if(in_array(get_class($this), array('TTarif', 'TTarifFournisseur'))) TTarifTools::logTarif($PDOdb, $this, $log_tarif,$this->date_debut);
+		if(in_array(get_class($this), array('TTarif', 'TTarifFournisseur'))) TTarifTools::logTarif($PDOdb, $this, $log_tarif,$date_fin_log);
 		
 		parent::save($PDOdb);
 
@@ -659,7 +659,7 @@ class TTarifTools {
 		
 	}
 	
-	static function logTarif(&$PDOdb, &$TTarif, $log_tarif=false,$date_fin='') {
+	static function logTarif(&$PDOdb, &$TTarif, $log_tarif=false, $date_fin_log='') {
 		
 		global $db, $conf;
 		
@@ -685,10 +685,10 @@ class TTarifTools {
 				$TTarifLog->date_debut = $old_tarif->date_debut;
 				
 				
-				if(empty($date_fin)) $date_fin =  strtotime(date('Y-m-d'));
-				$TTarifLog->date_fin = $date_fin;
+				if(empty($date_fin_log)) $date_fin_log =  strtotime(date('Y-m-d'));
+				$TTarifLog->date_fin = $date_fin_log;
 				$TTarifLog->save($PDOdb, false, false);
-			
+				
 			}
 		}
 		
