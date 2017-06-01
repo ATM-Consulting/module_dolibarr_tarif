@@ -470,7 +470,7 @@ class TTarifTools {
 			} elseif(get_class($object) === 'SupplierProposal') {
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $fk_product, $remise, 'HT', 0, 0, 0, -1, 0, 0, 0, $pa_ht, '', $array_options, '', $fk_unit);
 			} elseif(get_class($object) === 'Facture') {
-				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, 0, 0, $fk_product, $remise, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, $pa_ht, '', 0, 100, '', $fk_unit);
+				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, 0, 0, $fk_product, $remise, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, $pa_ht, '', $array_options, 100, '', $fk_unit);
 			} elseif(get_class($object) === 'Propal') {
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, 0, 0, $fk_product, $remise, 'HT', 0, 0, 0, -1, 0, 0, 0, $pa_ht, '', '', '', $array_options, $fk_unit);
 			} elseif(get_class($object) === 'Commande') {
@@ -497,7 +497,7 @@ class TTarifTools {
 		if(get_class($object) === 'FactureFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $tarif->tva_tx, 0, 0, $nb_colis*$tarif->quantite, $fk_product, 'HT', 0, 0, $remise, $notrigger, '', '', 0, $fk_unit);
 		elseif(get_class($object) === 'CommandeFournisseur') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, 0, $notrigger, '', '', $array_options, $fk_unit);
 		elseif(get_class($object) === 'SupplierProposal') $res = $object->updateline($lineid, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, $desc, 'HT', 0, 0, 0, 0, 0, $pa_ht, '', 0, $array_options, '', $fk_unit);
-		elseif(get_class($object) === 'Facture') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, '', '', $tarif->tva_tx, 0, 0, 'HT', 0, 0, 0, 0, null, $pa_ht, '', 0, 0, 100, $fk_unit);
+		elseif(get_class($object) === 'Facture') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, '', '', $tarif->tva_tx, 0, 0, 'HT', 0, 0, 0, 0, null, $pa_ht, '', 0, $array_options, 100, $fk_unit);
 		elseif(get_class($object) === 'Commande') $res = $object->updateline($lineid, $desc, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, 'HT', 0, '', '', 0, 0, 0, null, $pa_ht, '', 0, 0, $fk_unit);
 		elseif(get_class($object) === 'Propal') $res = $object->updateline($lineid, $tarif->prix, $nb_colis*$tarif->quantite, $remise, $tarif->tva_tx, 0, 0, $desc, 'HT', 0, 0, 0, 0, 0, $pa_ht, '', 0, '', '', $array_options, $fk_unit);
 		if($res<0) {
