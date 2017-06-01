@@ -41,6 +41,7 @@ class ActionsTarif
 			$lineid = GETPOST('lineid');
 			$remise = GETPOST('remise_percent') ? GETPOST('remise_percent') : 0;
 			$desc = GETPOST('dp_desc');
+			if(empty($desc)) $desc = GETPOST('product_desc');
 			$tarif->load($PDOdb, $fk_tarif);
 			$fk_unit=$tarif->unite;
 			$pa_ht = GETPOST('buying_price');
