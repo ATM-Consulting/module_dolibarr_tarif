@@ -34,7 +34,9 @@ EndDate=Date fin application
 StartDateInfo=Date excluse
 EndDateInfo=Date incluse
 PriceLog=Historique des changements de prix
-
+MotifChangement=Raison du changement de tarif (historisé si changement de tarif)
+MotifChangementShort=Motif changement
+ 
 #Lignes
 Cond=Cond.
 
