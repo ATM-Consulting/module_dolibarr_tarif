@@ -536,30 +536,6 @@
 			}
 		</style>
 	';
-
-
-	function _getTypePrice($idPriceCondi){
-		global $langs;
-
-		$TPDOdb = new TPDOdb;
-
-		$TTarifFournisseur = new TTarifFournisseur;
-
-		return $langs->trans($TTarifFournisseur->TType_price[$idPriceCondi]);
-	}
-	
-	function _getNomURLSoc($id_soc) {
-		
-		global $db;
-		
-		$s = new Societe($db);
-		$s->fetch($id_soc);
-		
-		if($s->id > 0) {
-			return $s->getNomUrl(1);
-		}
-		
-	}
 	
 	llxFooter();
 	
