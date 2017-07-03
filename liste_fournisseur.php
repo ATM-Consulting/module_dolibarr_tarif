@@ -1,6 +1,7 @@
 <?php
 	require('config.php');
 	require('class/tarif.class.php');
+	dol_include_once('/tarif/lib/tarif.lib.php');
 	dol_include_once('/core/lib/product.lib.php');
 	dol_include_once('/product/class/product.class.php');
 	dol_include_once('/product/class/html.formproduct.class.php');
@@ -265,7 +266,11 @@
 		if($type_unite=='unite') print 'U';
 		else print '<input size="10" name="poids_unite" value="'.__val($tarif->poids_unite,0,'double',true).'">';
 		print '</td></tr>';
-		
+		print '<tr><td width="30%">';
+		print $langs->trans('MotifChangement');
+		print '</td><td>';
+		print '<textarea name="motif_changement"></textarea>';
+		print '</td></tr>';
 		
 	
 
@@ -474,7 +479,7 @@
 			'
 		)
 		,'eval'=>array(
-			'type_price'=>'_getTypePrice("@val@")'
+			'type_price'=>'_getTypePrice("@val@", "TTarifFournisseur")'
 			,'fk_soc'=>'_getNomURLSoc(@val@)'
 		)
 	));
@@ -483,7 +488,7 @@
 	
 		print '<br />';
 		
-		$sql = strtr($sql, array('tarif_conditionnement_fournisseur'=>'tarif_conditionnement_fournisseur_log')); // Même requête mais dans la table log
+		$sql = strtr($sql, array('tarif_conditionnement_fournisseur'=>'tarif_conditionnement_fournisseur_log', 'AS date_fin'=>'AS date_fin, tc.motif_changement'));// Même requête mais dans la table log
 		
 		print $r->liste($ATMdb, $sql, array(
 			'limit'=>array('nbLine'=>1000)
@@ -503,6 +508,7 @@
 				,'Supprimer' =>$langs->trans('Delete')
 				,'Pays' =>$langs->trans('Country')
 				,'poids_unite'=>$langs->trans('PoidsUnite')
+				,'motif_changement'=>$langs->trans('MotifChangementShort')
 			)
 			,'type'=>array(/*'date_debut'=>'date','date_fin'=>'date',*/'tva' => 'number', 'prix'=>'number', 'Total' => 'number' , 'quantite' => 'number')
 			,'hide'=> $THide
@@ -514,6 +520,7 @@
 			,'eval'=>array(
 				'type_price'=>'_getTypePrice("@val@")'
 				,'fk_soc'=>'_getNomURLSoc(@val@)'
+				,'motif_changement'=>'_getMotif("@val@")'
 			)
 			,'liste'=>array(
 				'titre'=>$langs->trans('PriceLog')
