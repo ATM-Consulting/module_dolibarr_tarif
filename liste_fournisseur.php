@@ -265,6 +265,12 @@
 		if($type_unite=='unite') print 'U';
 		else print '<input size="10" name="poids_unite" value="'.__val($tarif->poids_unite,0,'double',true).'">';
 		print '</td></tr>';
+		print '<tr><td width="30%">';
+		print $langs->trans('MotifChangement');
+		print '</td><td>';
+		if($type_unite=='unite') print 'U';
+		else print '<textarea name="motif_changement"></textarea>';
+		print '</td></tr>';
 		
 		
 	
@@ -483,7 +489,7 @@
 	
 		print '<br />';
 		
-		$sql = strtr($sql, array('tarif_conditionnement_fournisseur'=>'tarif_conditionnement_fournisseur_log')); // Même requête mais dans la table log
+		$sql = strtr($sql, array('tarif_conditionnement_fournisseur'=>'tarif_conditionnement_fournisseur_log', 'AS date_fin'=>'AS date_fin, tc.motif_changement')); // Même requête mais dans la table log
 		
 		print $r->liste($ATMdb, $sql, array(
 			'limit'=>array('nbLine'=>1000)
@@ -503,6 +509,7 @@
 				,'Supprimer' =>$langs->trans('Delete')
 				,'Pays' =>$langs->trans('Country')
 				,'poids_unite'=>$langs->trans('PoidsUnite')
+				,'motif_changement'=>$langs->trans('MotifChangementShort')
 			)
 			,'type'=>array(/*'date_debut'=>'date','date_fin'=>'date',*/'tva' => 'number', 'prix'=>'number', 'Total' => 'number' , 'quantite' => 'number')
 			,'hide'=> $THide
@@ -514,6 +521,7 @@
 			,'eval'=>array(
 				'type_price'=>'_getTypePrice("@val@")'
 				,'fk_soc'=>'_getNomURLSoc(@val@)'
+				,'motif_changement'=>'_getMotif("@val@")'
 			)
 			,'liste'=>array(
 				'titre'=>$langs->trans('PriceLog')
@@ -552,6 +560,11 @@
 			return $s->getNomUrl(1);
 		}
 		
+	}
+	
+	function _getMotif($motif) {
+		if(strlen($motif) > 20) return '<span title="...'.substr($motif, 20).'">'.substr($motif, 0, 20).'...</span>';
+		return $motif;
 	}
 	
 	llxFooter();

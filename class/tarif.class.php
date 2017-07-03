@@ -328,6 +328,8 @@ class TTarifFournisseur extends TTarif{
 
 class TTarifLog extends TTarif{
 	
+	public static $table = 'tarif_conditionnement_log';
+	
 	function __construct() { /* declaration */
 		global $langs;
 		
@@ -338,6 +340,7 @@ class TTarifLog extends TTarif{
 		parent::add_champs('prix,tva_tx,quantite,remise_percent,poids_unite','type=float;');
 		parent::add_champs('fk_user_author,fk_product,fk_country,fk_categorie_client,fk_soc,fk_project','type=entier;index;');
 		parent::add_champs('date_debut,date_fin','type=date;');
+		parent::add_champs('motif_changement',array('type'=>'text'));
 		
 		parent::_init_vars();
 		parent::start();
@@ -347,6 +350,8 @@ class TTarifLog extends TTarif{
 }
 
 class TTarifFournisseurLog extends TTarif{
+	
+	public static $table = 'tarif_conditionnement_fournisseur_log';
 	
 	function __construct() { /* declaration */
 		global $langs;
@@ -358,6 +363,7 @@ class TTarifFournisseurLog extends TTarif{
 		parent::add_champs('prix,tva_tx,quantite,remise_percent,poids_unite','type=float;');
 		parent::add_champs('fk_user_author,fk_product,fk_country,fk_categorie_client,fk_soc,fk_project','type=entier;index;');
 		parent::add_champs('date_debut,date_fin','type=date;');
+		parent::add_champs('motif_changement',array('type'=>'text'));
 		
 		parent::_init_vars();
 		parent::start();
@@ -688,6 +694,14 @@ class TTarifTools {
 				if(empty($date_fin_log)) $date_fin_log =  strtotime(date('Y-m-d'));
 				$TTarifLog->date_fin = $date_fin_log;
 				$TTarifLog->save($PDOdb, false, false);
+				
+				/**
+				 * Enregistrement du motif à l'aide d'une requête sql pour la raison suivante :
+				 * Les classes TTarifLog et TTarifFournisseurLog héritent des classes TTarif & TTarifFournisseur,
+				 * donc pour pouvoir save un champ, il faut qu'il existe dans l'objet parent or, aucun sens d'avoir le champ motif dans la classe perente
+				 */
+				$motif_changement = trim(GETPOST('motif_changement'));
+				if(!empty($motif_changement)) $db->query('UPDATE '.MAIN_DB_PREFIX.$TTarifLog::$table.' SET motif_changement = "'.$motif_changement.'" WHERE rowid = '.(int)$TTarifLog->rowid);
 				
 			}
 		}
