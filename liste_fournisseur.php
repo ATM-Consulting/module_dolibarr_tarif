@@ -257,8 +257,7 @@
 		print '<tr><td width="30%">';
 		print $langs->trans('MotifChangement');
 		print '</td><td>';
-		if($type_unite=='unite') print 'U';
-		else print '<textarea name="motif_changement"></textarea>';
+		print '<textarea name="motif_changement"></textarea>';
 		print '</td></tr>';
 		
 		
