@@ -53,3 +53,32 @@ function tarifAdminPrepareHead()
 
     return $head;
 }
+
+function _getTypePrice($idPriceCondi, $type_object='TTarif'){
+	global $langs;
+	
+	$TPDOdb = new TPDOdb;
+	
+	$TTarif = new $type_object;
+	
+	return $langs->trans($TTarif->TType_price[$idPriceCondi]);
+}
+
+function _getNomURLSoc($id_soc) {
+	
+	global $db;
+	
+	$s = new Societe($db);
+	$s->fetch($id_soc);
+	
+	if($s->id > 0) {
+		return $s->getNomUrl(1);
+	}
+	
+}
+
+function _getMotif($motif) {
+	if(strlen($motif) > 20) return '<span title="...'.substr($motif, 20).'">'.substr($motif, 0, 20).'...</span>';
+	return $motif;
+}
+
