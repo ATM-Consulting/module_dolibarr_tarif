@@ -52,7 +52,7 @@ class TTarif extends TObjetStd {
         if($fk_soc>0) $sql.=" AND tc.fk_soc IN (-1,0, $fk_soc)";
         if($fk_project>0) $sql.=" AND tc.fk_project IN (-1,0, $fk_project)";
 		
-		$sql .= 'ORDER BY ';
+		$sql .= ' ORDER BY ';
 		if($fk_country>0) $sql .= 'tc.fk_country DESC, ';
 		$sql.= 'quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC, tc.fk_soc DESC, tc.fk_project DESC';
 		
@@ -64,7 +64,7 @@ class TTarif extends TObjetStd {
 			
 			while($res = $db->fetch_object($resql)) {
 				
-				if ($res->date_debut !== '0000-00-00 00:00:00' && $res->date_debut !== '1000-01-01 00:00:00')
+				if ($res->date_debut !== '0000-00-00 00:00:00' && $res->date_debut !== '1000-01-01 00:00:00' && $res->date_debut !== null)
 				{
 					$date_deb_remise = $db->jdate($res->date_debut);
 					
@@ -81,7 +81,7 @@ class TTarif extends TObjetStd {
 					}	
 				}
 					
-				if ($res->date_fin !== '0000-00-00 00:00:00' && $res->date_fin !== '1000-01-01 00:00:00')
+				if ($res->date_fin !== '0000-00-00 00:00:00' && $res->date_fin !== '1000-01-01 00:00:00' && $res->date_fin !== null)
 				{
 					$date_fin_remise = $db->jdate($res->date_fin);
 					if (is_object($line) && (!empty($line->date_start) || !empty($parent->date)))
@@ -151,7 +151,7 @@ class TTarif extends TObjetStd {
 		if($fk_soc>0) $sql.=" AND tc.fk_soc IN (-1,0, $fk_soc)";
         if($fk_project>0) $sql.=" AND tc.fk_project IN (-1,0, $fk_project)";
 		
-		$sql .= 'ORDER BY ';
+		$sql .= ' ORDER BY ';
 		if($fk_country>0) $sql .= 'tc.fk_country DESC, ';
 		$sql.= 'quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC, tc.fk_soc DESC, tc.fk_project DESC';
 		
@@ -160,7 +160,7 @@ class TTarif extends TObjetStd {
 		if($db->num_rows($resql) > 0) {
 			while($res = $db->fetch_object($resql)) {
 					
-				if ($res->date_debut !== '0000-00-00 00:00:00' && $res->date_debut !== '1000-01-01 00:00:00')
+				if ($res->date_debut !== '0000-00-00 00:00:00' && $res->date_debut !== '1000-01-01 00:00:00' && $res->date_debut !== null)
 				{
 					$date_deb_remise = $db->jdate($res->date_debut);
 					
@@ -177,7 +177,7 @@ class TTarif extends TObjetStd {
 					}	
 				}
 					
-				if ($res->date_fin !== '0000-00-00 00:00:00' && $res->date_fin !== '1000-01-01 00:00:00')
+				if ($res->date_fin !== '0000-00-00 00:00:00' && $res->date_fin !== '1000-01-01 00:00:00' && $res->date_fin !== null)
 				{
 					$date_fin_remise = $db->jdate($res->date_fin);
 					if (is_object($line) && (!empty($line->date_start) || !empty($parent->date)))
