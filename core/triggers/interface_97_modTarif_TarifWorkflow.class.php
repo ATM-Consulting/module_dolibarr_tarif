@@ -282,7 +282,7 @@ class InterfaceTarifWorkflow
 
 		//Création d'une ligne de facture, propale ou commande, ou commande fournisseur
 		if (($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT'
-			|| $action === 'LINEORDER_SUPPLIER_CREATE' || $action === 'LINEBILL_SUPPLIER_CREATE') 
+			/*|| $action === 'LINEORDER_SUPPLIER_CREATE' || $action === 'LINEBILL_SUPPLIER_CREATE'*/) 
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)
 			&& (!empty($object->fk_product) || !empty($_REQUEST['idprodfournprice']))
 			&& (!empty($_REQUEST['addline_predefined']) || !empty($_REQUEST['addline_libre'])  || !empty($_REQUEST['prod_entry_mode']))) {
@@ -572,7 +572,7 @@ class InterfaceTarifWorkflow
 		}
 
 		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE'
-				|| $action==='LINEORDER_SUPPLIER_UPDATE' || $action === 'LINEBILL_SUPPLIER_UPDATE') 
+				/*|| $action==='LINEORDER_SUPPLIER_UPDATE' || $action === 'LINEBILL_SUPPLIER_UPDATE'*/) 
 				&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
 			
 			$idProd = __val( $object->fk_product, $object->oldline->fk_product, 'integer');
