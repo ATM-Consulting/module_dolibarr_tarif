@@ -126,7 +126,7 @@ class modTarif extends DolibarrModules
         
         $this->tabs = array(
         						'product:+tabTarif1:Tarifs:tarif@tarif:/tarif/liste.php?fk_product=__ID__'
-        						,'product:+tabTarif2:Tarifs (fournisseurs):tarif@tarif:/tarif/liste_fournisseur.php?fk_product=__ID__'
+        						//,'product:+tabTarif2:Tarifs (fournisseurs):tarif@tarif:/tarif/liste_fournisseur.php?fk_product=__ID__'
 							);
         
 		// where objecttype can be
