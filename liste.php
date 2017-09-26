@@ -395,8 +395,7 @@
 					LEFT JOIN ".MAIN_DB_PREFIX."currency AS c ON (c.code = tc.currency_code)
 					LEFT JOIN ".MAIN_DB_PREFIX.((DOL_VERSION >= 3.7) ? "c_country" : "c_pays")." AS pays ON (pays.rowid = tc.fk_country)
 					LEFT JOIN ".MAIN_DB_PREFIX."categorie AS cat ON (cat.rowid = tc.fk_categorie_client)
-				WHERE fk_product = ".$product->id."
-				ORDER BY unite_value, quantite ASC";
+				WHERE fk_product = ".$product->id;
 	}
 	else {
 		$sql = "SELECT tc.rowid AS 'id', tc.type_price as type_price,".((DOL_VERSION >= 3.7) ? "pays.label" : "pays.libelle")." as 'Pays', tc.fk_soc, cat.label as 'Catégorie', tc.price_base_type AS base, tc.quantite as quantite,";
@@ -425,10 +424,13 @@
 					LEFT JOIN ".MAIN_DB_PREFIX.((DOL_VERSION >= 3.7) ? "c_country" : "c_pays")." AS pays ON (pays.rowid = tc.fk_country)
 					LEFT JOIN ".MAIN_DB_PREFIX."categorie AS cat ON (cat.rowid = tc.fk_categorie_client)
 					
-				WHERE fk_product = ".$product->id."
-				ORDER BY unite_value, quantite ASC";
+				WHERE fk_product = ".$product->id;
 	}
-	//echo $sql;
+	
+	if(empty($_REQUEST['TListTBS']['list_llx_tarif_conditionnement']['orderBy'])) {
+	    $sql.=" ORDER BY unite_value, quantite ASC";
+	}
+	
 	$r = new TSSRenderControler(new TTarif);
 	
 	$THide = array(
