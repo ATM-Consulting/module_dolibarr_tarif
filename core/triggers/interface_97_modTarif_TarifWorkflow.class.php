@@ -413,7 +413,9 @@ class InterfaceTarifWorkflow
 				// Chargement de l'objet parent
 				$object_parent = $this->_getObjectParent($object);
 				$price_level = $object_parent->client->price_level;
+				if(empty($price_level)) $price_level = $object_parent->thirdparty->price_level;
 				$fk_country = $object_parent->client->country_id;
+				if(empty($fk_country)) $fk_country = $object_parent->thirdparty->country_id;
 				
 				// On récupère les catégories dont le client fait partie
 				$TFk_categorie = $class::getCategTiers($object_parent->thirdparty->id); // $this->getCategTiers($object_parent);
