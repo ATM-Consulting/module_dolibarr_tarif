@@ -188,9 +188,11 @@ class ActionsTarif
 
          				$resql = $db->query($sql);
 						$res = $db->fetch_object($resql);
-						
-						?>$('#row-<?=$idLine ?>').children().eq(3).after('<td align="right" tarif-col="conditionnement"><?php
-						
+						if((float) DOL_VERSION > 3.8){
+							?>$('#row-<?=$idLine ?> .linecolqty').after('<td align="right" tarif-col="conditionnement"><?php
+						} else {
+							?>$('#row-<?=$idLine ?> ').children().eq(3).after('<td align="right" tarif-col="conditionnement"><?php
+						}
 							if(!is_null($res->tarif_poids)) {
 								if($conf->global->TARIF_CAN_SET_PACKAGE_ON_LINE) {
 									//if($res->poids != 69){ //69 = chiffre au hasard pour définir qu'on est sur un type "unité" et non "poids"
