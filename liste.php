@@ -65,7 +65,7 @@
 	print '</tr>';
 	
 	// Label
-	print '<tr><td>'.$langs->trans("Label").'</td><td>'.$object->libelle.'</td>';
+	print '<tr><td>'.$langs->trans("Label").'</td><td>'.(!empty($object->libelle) ? $object->libelle : $object->label).'</td>';
 	print '</tr>';
 	// TVA
     print '<tr><td>'.$langs->trans("VATRate").'</td><td>'.vatrate($object->tva_tx.($object->tva_npr?'*':''),true).'</td></tr>';
