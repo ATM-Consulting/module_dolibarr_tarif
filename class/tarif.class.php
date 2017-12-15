@@ -471,7 +471,7 @@ class TTarifTools {
 			if(get_class($object) === 'FactureFournisseur') $res = $object->addline($desc, $tarif->prix, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $nb_colis*$tarif->quantite, $fk_product, $remise, '', '', 0, '', 'HT', 0, -1, $notrigger, 0, $fk_unit);
 			elseif(get_class($object) === 'CommandeFournisseur') {
 				// Spécificité côté commandes fournisseur pour ne pas recalculer le tarif fourn
-				$conf->global->SUPPLIERORDER_WITH_NOPRICEDEFINED=1;
+				$conf->global->SUPPLIERORDER_WITH_NOPRICEDEFINED=$conf->global->SUPPLIER_ORDER_WITH_NOPRICEDEFINED=1;
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $fk_product, 0, '', $remise, 'HT', 0, 0, 0, $notrigger, null, null, $array_options, $fk_unit);
 			} elseif(get_class($object) === 'SupplierProposal') {
 				$res = $object->addline($desc, $tarif->prix, $nb_colis*$tarif->quantite, $tarif->tva_tx, $txlocaltax1, $txlocaltax2, $fk_product, $remise, 'HT', 0, 0, 0, -1, 0, 0, 0, $pa_ht, '', $array_options, '', $fk_unit);
