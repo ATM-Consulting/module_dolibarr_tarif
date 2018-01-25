@@ -186,7 +186,7 @@
         print '</td></tr>';
 		
 		$prix = ( ($action=='edit') ? $tarif->prix :$object->price);
-		$newprice=$prix*(1-($conf->global->TARIF_PERCENT_AUTO_CREATE/100));
+		$newprice=$prix*(1-($conf->global->TARIF_PERCENT_AUTO_CREATE/100)) + 0.0001; // hack pour la précision des float
 		$prixAchat=floor($newprice*100)/100;
 		// Price
 		print '<tr><td width="30%">';
@@ -232,7 +232,7 @@
 						
 						var price = parseFloat($('#prix').val());
 						
-						var priceFo = n_price*(1-(<?php echo $conf->global->TARIF_PERCENT_AUTO_CREATE ?>/100));
+						var priceFo = n_price*(1-(<?php echo $conf->global->TARIF_PERCENT_AUTO_CREATE ?>/100)) + 0.0001; // hack pour la précision des float
 						var priceFourn = Math.floor(priceFo*100)/100;
 						$('span[name=prix_fourn_visu]').html(priceFourn);
 						var percent;
