@@ -316,8 +316,8 @@ class TTarifFournisseur extends TTarif{
 		return parent::getPrix($db, $line, $qty, $conditionnement, $weight_units, $subprice, $coef, $devise, $price_level, $fk_country, $TFk_categorie, $fk_soc, $fk_project, 'FOURNISSEUR');
 	}
 
-	function save(&$PDOdb, $save_linked_tarif=true, $log_tarif=true) {
-		parent::save($PDOdb, $save_linked_tarif, $log_tarif);
+	function save(&$PDOdb, $save_linked_tarif=true, $log_tarif=true, $date_fin_log = '') {
+		parent::save($PDOdb, $save_linked_tarif, $log_tarif, $date_fin_log);
 	}
 
 	function delete(&$PDOdb, $delete_linked_tarif=true) {
