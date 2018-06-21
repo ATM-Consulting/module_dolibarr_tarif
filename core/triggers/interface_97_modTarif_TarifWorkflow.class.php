@@ -430,7 +430,7 @@ class InterfaceTarifWorkflow
 						$prix = $prix_devise / $coef_conv;
 					}
 
-					if($prix_devise !== false) {
+					if($remise !== false || $prix_devise !== false) {
 						$this->_updateLineProduct($object,$user,$idProd,$poids,$weight_units,$remise,$prix,$prix_devise,$tvatx); //--- $poids = conditionnement !
 						$this->_updateTotauxLine($object,$qtyline);
 					}
