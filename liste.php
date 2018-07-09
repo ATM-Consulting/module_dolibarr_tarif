@@ -248,12 +248,16 @@
 		print '<tr><td width="30%">';
 		print $langs->trans('Quantity');
 		print '</td><td><input size="10" name="quantite" value="'.__val($tarif->quantite,1,'double',true).'"></td></tr>';
-		print '<tr><td width="30%">';
-		print $langs->trans('Unit');
-		print '</td><td>';
-		if($type_unite=='unite') print 'U';
-		else print $formproduct->select_measuring_units("weight_units", $type_unite, ($action=='edit') ? $tarif->unite_value : $object->{$type_unite.'_units'});
-		print '</td></tr>';
+
+		if(! empty($type_unite) && $type_unite != 'unite') {
+			//Unité
+			print '<tr><td width="30%">';
+			print $langs->trans('Unit');
+			print '</td><td>';
+			print $formproduct->select_measuring_units("weight_units", $type_unite, ($action=='edit') ? $tarif->unite_value : $object->{$type_unite.'_units'});
+			print '</td></tr>';
+		}
+
 		print '<tr><td width="30%">';
 		print $langs->trans('MotifChangement');
 		print '</td><td>';
