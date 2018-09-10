@@ -279,9 +279,11 @@ class InterfaceTarifWorkflow
 		dol_include_once('/dispatch/class/dispatchdetail.class.php');
 		
 		global $user, $db,$conf;
-
+		
+		$useWithSupplierOrders = empty($conf->global->TARIF_USE_WITH_SUPPLIER_ORDERS) ? 0 : 1; // utilisation sur les commandes fournisseurs soumise à configuration
+		
 		//Création d'une ligne de facture, propale ou commande, ou commande fournisseur
-		if (($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT' || $action === 'LINEORDER_SUPPLIER_CREATE') 
+		if (($action === 'LINEORDER_INSERT' || $action === 'LINEPROPAL_INSERT' || $action === 'LINEBILL_INSERT' || ($action === 'LINEORDER_SUPPLIER_CREATE' && $useWithSupplierOrders)) 
 			&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)
 			&& (!empty($object->fk_product) || !empty($_REQUEST['idprodfournprice']))
 			&& (!empty($_REQUEST['addline_predefined']) || !empty($_REQUEST['addline_libre'])  || !empty($_REQUEST['prod_entry_mode']))) {
@@ -604,7 +606,7 @@ class InterfaceTarifWorkflow
 			}
 		}
 
-		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE'  || $action==='LINEORDER_SUPPLIER_UPDATE') 
+		elseif(($action == 'LINEORDER_UPDATE' || $action == 'LINEPROPAL_UPDATE' || $action == 'LINEBILL_UPDATE'  || ($action==='LINEORDER_SUPPLIER_UPDATE' && $useWithSupplierOrders)) 
 				&& (!isset($_REQUEST['notrigger']) || $_REQUEST['notrigger'] != 1)) {
 			
 			$idProd = __val( $object->fk_product, $object->oldline->fk_product, 'integer');
