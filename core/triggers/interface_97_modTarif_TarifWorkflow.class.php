@@ -419,6 +419,7 @@ class InterfaceTarifWorkflow
 					if($remise == 0 || $type_prix == 'PERCENT/PRICE'){
 
 						$TRes = $class::getPrix($this->db,$object,$qtyline*$poids,$poids,$weight_units,$prix,$coef_conv,$devise,$price_level,$fk_country, $TFk_categorie, $object_parent->thirdparty->id, $object_parent->fk_project);
+						if ($TRes[0] === false && $TRes[1] === false) return 0;
 						if(is_array($TRes)) {
 							$prix_devise = $TRes[0];
 							$tvatx = $TRes[1];

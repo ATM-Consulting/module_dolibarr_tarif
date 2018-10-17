@@ -196,7 +196,7 @@ class TTarif extends TObjetStd {
 				if(method_exists($parent, 'fetch_thirdparty')) {
 					$parent->fetch_thirdparty();
 					$soc = $parent->thirdparty;
-					$tva_tx = get_default_tva($mysoc, $soc, $idprod);
+					$tva_tx = get_default_tva($mysoc, $soc, $idProd);
 					//if(empty($tva_tx)) $tva_tx=$res->tva_tx; TODO, ici en fait on réucpère jamais la TVA définie sur le tarif du produit !
 				}
 				
