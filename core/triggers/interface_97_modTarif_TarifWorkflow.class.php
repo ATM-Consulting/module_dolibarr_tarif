@@ -109,7 +109,7 @@ class InterfaceTarifWorkflow
 		$conditionnement = $conditionnement * pow(10, ($weight_units - $product->weight_units ));
 		
 		//echo $product->price; exit;
-		$object->remise_percent = $remise;
+		if(!empty($remise)) $object->remise_percent = $remise;
 		
 		$object->subprice = $prix ;
 		if(empty($conf->global->TARIF_DONT_USE_TVATX)) $object->tva_tx = $tvatx;
