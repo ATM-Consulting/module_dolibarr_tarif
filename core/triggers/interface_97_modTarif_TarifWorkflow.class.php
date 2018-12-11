@@ -118,8 +118,8 @@ class InterfaceTarifWorkflow
 		//echo $object->subprice; exit;
 		
  		if(get_class($object_parent) == "Facture" && $object_parent->type == 2){ // facture d'avoir
- 			$object->remise_percent = -$object->remise_percent;
-			$object->subprice = -$object->subprice;
+ 			$object->remise_percent = abs($object->remise_percent);
+			$object->subprice = -abs($object->subprice);
 			
 			$object->price = $object->subprice;
 		}
