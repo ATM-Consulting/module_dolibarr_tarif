@@ -108,9 +108,10 @@ class InterfaceTarifWorkflow
 		$object_parent = $this->_getObjectParent($object);
 
 		$conditionnement = $conditionnement * pow(10, ($weight_units - $product->weight_units ));
-
-		$object->remise_percent = $remise;
-
+		
+		//echo $product->price; exit;
+		if(!empty($remise)) $object->remise_percent = $remise;
+		
 		$object->subprice = $prix ;
 
 		if(get_class($object) === 'SupplierInvoiceLine') {

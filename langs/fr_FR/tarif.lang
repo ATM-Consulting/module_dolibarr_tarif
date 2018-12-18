@@ -52,6 +52,7 @@ tarifTARIF_USE_METRE = Utiliser la gestion du métré
 tarifConfigSetup=Configuration du module Tarif
 PricesQtyOnTotalInvoiceQty=Calculer les tarifs par quantité sur la totalité des quantités facturé au client
 tarifSaveMetre = Enregistrement du métré
+UseWithSupplierOrders = Utiliser le module pour les commandes fournisseurs également
 TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE=Ne pas récupérer la remise liée au tarif lors de l'édition d'une ligne en changeant sa quantité
 TARIF_LOG_TARIF_UPDATE=Historiser les changements de prix
 tarifTARIF_ONLY_UPDATE_LINE_PRICE=Seulement mettre à jour les ligne de prix

@@ -95,6 +95,14 @@ function showParameters() {
 	print '<td align="center" width="20">&nbsp;</td>';
 	print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 	
+	/*$var=!$var;
+	print '<tr '.$bc[$var].'>';
+	print '<td>'.$langs->trans("UseWithSupplierOrders").'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('TARIF_USE_WITH_SUPPLIER_ORDERS');
+	print '</td></tr>';*/
+	
 	$var=!$var;
 	print '<tr '.$bc[$var].'>';
 	print '<td>'.$langs->trans("PricesQtyOnTotalInvoiceQty").'</td>';
