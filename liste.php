@@ -25,7 +25,9 @@
 	$langs->Load("tarif@tarif");
 	
 	$fk_product = GETPOST('fk_product','int');
-	
+    $action=__get('action','list');
+    $id_tarif=__get('id',0,'integer');
+
 	//pre($langs);exit;
 	
 	llxHeader('',$langs->trans('TarifList'),'','');
@@ -78,17 +80,17 @@
 	print "</table>\n";
 	
 	print "</div>\n";
-	
-	print '<div class="tabsAction">
+
+	if ($action != 'add')
+    {
+		print '<div class="tabsAction">
 				<a class="butAction" href="?action=add&fk_product='.$object->id.'">'.$langs->trans('AddTarif').'</a>
 			</div><br>';
+    }
 	
 	/***********************************
 	 * Traitements actions
 	 ***********************************/
-	 
-	$action=__get('action','list');
-	$id_tarif=__get('id',0,'integer');
 	 
 	if(!empty($action) && ($action == 'add' || $action == 'edit' )){
 		
