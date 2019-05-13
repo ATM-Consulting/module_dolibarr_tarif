@@ -1,43 +1,23 @@
 <?php
 /*
  * Script créant et vérifiant que les champs requis s'ajoutent bien
- * 
  */
-	if(!defined('INC_FROM_DOLIBARR')) {
-		define('INC_FROM_CRON_SCRIPT', true);
-		
-		require('../config.php');
-	
-	}
 
-	dol_include_once('/tarif/class/tarif.class.php');
-	
-	$PDOdb=new TPDOdb;
-	//$PDOdb->debug=true;
+if(!defined('INC_FROM_DOLIBARR')) {
+	define('INC_FROM_CRON_SCRIPT', true);
 
-	$o=new TTarif;
-	$o->init_db_by_vars($PDOdb);
+	require('../config.php');
+} else {
+	global $db;
+}
 
-	$o=new TTarifFournisseur;
-	$o->init_db_by_vars($PDOdb);
-	
-	$o=new TTarifCommandedet;
-	$o->init_db_by_vars($PDOdb);
-	
-	$o=new TTarifPropaldet;
-	$o->init_db_by_vars($PDOdb);
-	
-	$o=new TTarifFacturedet;
-	$o->init_db_by_vars($PDOdb);
-	
-	$o=new TTarifCommandeFourndet;
-	$o->init_db_by_vars($PDOdb);
-	
-	$o=new TTarifFactureFourndet;
-	$o->init_db_by_vars($PDOdb);
-	
-	$o=new TTarifLog;
-	$o->init_db_by_vars($PDOdb);
-	
-	$o=new TTarifFournisseurLog;
-	$o->init_db_by_vars($PDOdb);
+
+dol_include_once('/tarif/class/tarif.class.php');
+
+$o=new Tarif($db);
+$o->init_db_by_vars();
+
+
+$o=new TarifLog($db);
+$o->init_db_by_vars();
+

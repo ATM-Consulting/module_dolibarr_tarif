@@ -1,5 +1,5 @@
-Module210006Name=Tarif par conditionnement
-Module210006Desc=Gestion de tarif par conditionnement
+Module104190Name=Tarif par conditionnement
+Module104190Desc=Gestion de tarif par conditionnement
 
 # Onglet tarif
 Tarifs=Tarifs
@@ -34,25 +34,36 @@ EndDate=Date fin application
 StartDateInfo=Date excluse
 EndDateInfo=Date incluse
 PriceLog=Historique des changements de prix
-MotifChangement=Raison du changement de tarif (historisé si changement de tarif)
+MotifChangement=Raison du changement de tarif <br /><small>(historisé si changement de tarif)</small>
 MotifChangementShort=Motif changement
- 
+NoTarif=Aucun tarif de défini
+
 #Lignes
 Cond=Cond.
 
 #conf
 set_TARIF_PERCENT_AUTO_CREATE= Pourcentage ajouté/retiré à l'auto création d'un tarif client/fournisseur  (mettre 0 pour ne plus avoir accès à cette fonctionnalité)
-tarifTARIF_CAN_SET_PACKAGE_ON_LINE=Le conditionnement de poids peut se définir ligne à ligne
-tarifTARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO=Utilise le niveau de prix précédent si celui-ci est à zéro
-tarifTARIF_FACTURE_DISPATCH_ON_EXPEDITION=Liaison du module dispatch sur expédition
-tarifTARIF_DONT_ADD_UNIT_SELECT=Ne pas ajouter la sélection du l'unité
-tarifTARIF_DOL_DEFAULT_UNIT=Unité par défaut
-tarifTARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES = Conserver le champ conditionnement pour les services
-tarifTARIF_USE_METRE = Utiliser la gestion du métré
-tarifConfigSetup=Configuration du module Tarif
-PricesQtyOnTotalInvoiceQty=Calculer les tarifs par quantité sur la totalité des quantités facturé au client
+TARIF_CAN_SET_PACKAGE_ON_LINE=Le conditionnement de poids peut se définir ligne à ligne
+TARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO=Utilise le niveau de prix précédent si celui-ci est à zéro
+TARIF_FACTURE_DISPATCH_ON_EXPEDITION=Liaison du module dispatch sur expédition
+TARIF_DONT_ADD_UNIT_SELECT=Ne pas ajouter la sélection du l'unité
+TARIF_DOL_DEFAULT_UNIT=Unité par défaut
+TARIF_KEEP_FIELD_CONDITIONNEMENT_FOR_SERVICES = Conserver le champ conditionnement pour les services
+TARIF_USE_METRE = Utiliser la gestion du métré
+ConfigSetup=Configuration du module Tarif
+TARIF_TOTAL_QTY_ON_TOTAL_INVOICE_QTY=Calculer les tarifs par quantité sur la totalité des quantités facturé au client
 tarifSaveMetre = Enregistrement du métré
 UseWithSupplierOrders = Utiliser le module pour les commandes fournisseurs également
 TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE=Ne pas récupérer la remise liée au tarif lors de l'édition d'une ligne en changeant sa quantité
 TARIF_LOG_TARIF_UPDATE=Historiser les changements de prix
-tarifTARIF_ONLY_UPDATE_LINE_PRICE=Seulement mettre à jour les ligne de prix
+TARIF_ONLY_UPDATE_LINE_PRICE=Seulement mettre à jour les ligne de prix
+
+
+
+TarifNewPrice=Nouveau tarif
+TarifUpdatePrice=Modifier le tarif
+
+DeleteTarif=Supprimer tarif
+ConfirmDeleteTarif=Êtes-vous sûr de vouloir supprimer ce tarif ?
+
+
