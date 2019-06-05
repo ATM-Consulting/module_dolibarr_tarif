@@ -11,11 +11,8 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 
 require_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
 
-if (! empty($conf->projet->enabled))
-{
-	require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
-}
+require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
 
 // TODO check si droit de modifier un produit à minima
 //if(empty($user->rights->tarif->read)) accessforbidden();
@@ -132,7 +129,7 @@ if (empty($reshook))
 			$object->date_debut = dol_mktime(0, 0, 0, GETPOST('date_debutmonth'), GETPOST('date_debutday'), GETPOST('date_debutyear'));
 			$object->date_fin = dol_mktime(23, 59, 59, GETPOST('date_finmonth'), GETPOST('date_finday'), GETPOST('date_finyear'));
 
-			$res = $object->create($user);
+			$res = $object->save();
 			if ($res < 0)
 			{
 				setEventMessage($object->error, 'errors');
