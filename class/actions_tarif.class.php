@@ -205,7 +205,7 @@ class ActionsTarif
 
 			$langs->load("other");
 
-			if (!define('INC_FROM_DOLIBARR')) define('INC_FROM_DOLIBARR', true);
+			if (!defined('INC_FROM_DOLIBARR')) define('INC_FROM_DOLIBARR', true);
 			dol_include_once('/tarif/config.php');
 
 
