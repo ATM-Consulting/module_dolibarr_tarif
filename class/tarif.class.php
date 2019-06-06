@@ -231,8 +231,6 @@ class Tarif extends SeedObject
 		$sql .= $sql_additional_conditions;
 		$sql .= $sql_order_by;
          prsql($sql);// exit;
-        $matching_rates = array();
-//echo $sql;exit;
 		$resql = $db->query($sql);
 		while($obj = $db->fetch_object($resql))
 		{
@@ -259,92 +257,10 @@ class Tarif extends SeedObject
 					elseif (empty($object->date_start) && !empty($parent->date) && $tarif->date_fin <= $parent->date) continue;
 				}
 			}
-
-			// TODO à quoi sert ce if ou à quoi sert ce code tout court ?
-//			if(strpos($tarif->type_price,'PRICE') !== false)
-//			{
-//				if(($tarif->type_remise == "qte" || $tarif->type_remise == 0) && $qty >= $tarif->quantite)
-//				{
-//					//Ici on récupère le pourcentage correspondant et on arrête la boucle
-//					return array(self::priceWithMultiprix($obj->prix, $parent->thirdparty->price_level), $tva_tx);
-//				}
-//				elseif($obj->type_remise == "conditionnement" && $weight >= $obj->quantite &&  $obj->unite_value == $weight_units)
-//				{
-//					return array(self::priceWithMultiprix($obj->prix * ($weight / (($obj->weight != 0) ? $obj->weight : 1 )), $parent->thirdparty->price_level), $tva_tx); // prise en compte unité produit et poid init produit
-//				}
-//			}
-
 			return $tarif;
-
 		}
-
-		/******/
 		return false;
-//
-//		$resql = $db->query($sql);
-//		if ($resql)
-//		{
-//			$TTarif = array();
-//			while ($obj = $db->fetch_object($resql))
-//			{
-//				$tarif = new Tarif($db);
-//				$tarif->fetch($obj->rowid);
-//				$TTarif[$tarif->id] = $tarif;
-//			}
-//		}
-//		else
-//		{
-//			dol_print_error($db);
-//			exit;
-//		}
-//
-//
-//		// TODO selected the appropriate tarif
-//		foreach ($TTarif as $tarif)
-//		{
-//
-//		}
-//
-////		echo $sql;exit;
-//		echo $sql;exit;
 	}
-
-	public static function priceWithMultiprix($price, $price_level)
-	{
-		global $conf;
-
-		if (!empty($conf->multipsrixcascade->enabled))
-		{
-			/*
-			 * Si multiprix cascade est présent, on ajoute le pourcentage de réduction défini directement dans le multiprix
-			 */
-
-			$TNiveau  = unserialize($conf->global->MULTI_PRIX_CASCADE_LEVEL);
-
-			if(isset($TNiveau[$price_level]))
-			{
-				$price = $price * ($TNiveau[$price_level] / 100);
-			}
-		}
-
-		return $price;
-	}
-
-	public static function getRemise()
-	{
-
-	}
-
-	public static function getPrix()
-	{
-
-	}
-
-	public static function getCategTiers()
-	{
-
-	}
-
 }
 
 class TarifLog extends Tarif
@@ -365,25 +281,3 @@ class TarifLog extends Tarif
 //		$this->init();
 	}
 }
-
-/*
-class TarifDet extends TObjetStd
-{
-	public $table_element = 'tarifdet';
-
-	public $element = 'tarifdet';
-	
-	public function __construct($db)
-	{
-		global $conf,$langs;
-		
-		$this->db = $db;
-		
-		$this->init();
-		
-		$this->user = null;
-	}
-	
-	
-}
-*/
