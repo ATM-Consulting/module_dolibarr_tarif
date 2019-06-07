@@ -11,8 +11,12 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 
 require_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
 
-require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
-require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
+
+$is_project_module_enabled = !empty($conf->projet->enabled);
+if ($is_project_module_enabled) {
+    require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+    require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
+}
 
 // TODO check si droit de modifier un produit à minima
 //if(empty($user->rights->tarif->read)) accessforbidden();
@@ -99,6 +103,7 @@ if (empty($reshook))
 			$object->fk_user_author = $user->id;
 			$object->type_price = GETPOST('type_prix');
 			$object->currency_code = GETPOST('currency');
+			var_dump($object->currency_code);
 			$object->fk_country = GETPOST('fk_country','int');
 
 			$object->fk_soc = GETPOST('fk_soc','int');
@@ -239,7 +244,7 @@ if ($action == 'add' || $action == 'edit')
 	print '</td></tr>';
 
 	//Projet
-	if (! empty($conf->projet->enabled))
+	if ($is_project_module_enabled)
 	{
 		$formproject = new FormProjets($db);
 		print '<tr><td>'.$langs->trans('Project').'</td><td colspan="3">';
@@ -365,78 +370,86 @@ else
 	$nbLine = !empty($user->conf->MAIN_SIZE_LISTE_LIMIT) ? $user->conf->MAIN_SIZE_LISTE_LIMIT : $conf->global->MAIN_SIZE_LISTE_LIMIT;
 
 	$r = new Listview($db, 'tarif');
-	echo $r->render($sql, array(
-		'view_type' => 'list' // default = [list], [raw], [chart]
-		,'limit'=>array(
-			'nbLine' => 0
-		)
-		,'subQuery' => array()
-		,'link' => array(
-			'action' => '
-				<a href="'.$_SERVER['PHP_SELF'].'?id=@rowid@&action=edit&fk_product='.$product->id.'">'.img_edit().'</a>
-				<a href="'.$_SERVER['PHP_SELF'].'?id=@rowid@&action=delete&fk_product='.$product->id.'">'.img_delete().'</a>
-			'
-		)
-		,'type' => array(
-			'date_debut' => 'date' // [datetime], [hour], [money], [number], [integer]
-			,'date_fin' => 'date'
-			, 'prix'=>'money'
-			, 'total'=>'money'
-		)
-		,'search' => array(
-//			'date_creation' => array('search_type' => 'calendars', 'allow_is_null' => true)
-//			,'tms' => array('search_type' => 'calendars', 'allow_is_null' => false)
-//			,'ref' => array('search_type' => true, 'table' => 't', 'field' => 'ref')
-//			,'label' => array('search_type' => true, 'table' => array('t', 't'), 'field' => array('label')) // input text de recherche sur plusieurs champs
-//			,'status' => array('search_type' => Tarif::$TStatus, 'to_translate' => true) // select html, la clé = le status de l'objet, 'to_translate' à true si nécessaire
-		)
-		,'translate' => array()
-		,'hide' => array(
-			'rowid'
-		)
-		,'list' => array(
-			'title' => $langs->trans('TarifList')
-			,'image' => 'title_accountancy.png'
-			,'picto_precedent' => '<'
-			,'picto_suivant' => '>'
-			,'noheader' => 0
-			,'messageNothing' => $langs->trans('NoTarif')
-			,'picto_search' => img_picto('','search.png', '', 0)
-		)
-		,'title'=>array(
-			'type_price' =>$langs->trans('PriceBase')
-			, 'fk_country'=>$langs->trans('Country')
-			, 'fk_country'=>$langs->trans('Country')
-			, 'fk_soc'=>$langs->trans('Company')
-			, 'fk_categorie_client'=>$langs->trans('Category')
-			, 'fk_project'=>$langs->trans('Project')
-			, 'quantite'=>$langs->trans('Quantity')
-			, 'unite'=>$langs->trans('Unit')
-			, 'remise_percent'=>$langs->trans('Remise(%)')
-			, 'prix'=>$langs->trans('Tarif')
-			, 'total'=>$langs->trans('Total')
-			, 'date_debut'=>$form->textwithpicto($langs->trans('StartDate'), $langs->trans('StartDateInfo'), 1, 'help', '', 0, 3)
-			, 'date_fin'=>$form->textwithpicto($langs->trans('EndDate'), $langs->trans('EndDateInfo'), 1, 'help', '', 0, 3)
-			, 'action'=> ''
-		)
-		,'position' => array(
-			'text-align' => array(
-				'remise_percent' => 'right'
-				,'prix'=>'right'
-				,'total'=>'right'
-				,'date_debut' => 'right'
-				,'date_fin' => 'right'
-				,'action' => 'right'
-			)
-		)
-		,'eval'=>array(
-			'type_price' => 'Tarif::getPriceType("@val@")'
-			,'fk_country' => '_getCountryName("@val@")' // Si on a un fk_user dans notre requête
-			,'fk_soc' => '_getNomURLSoc(@val@)' // Si on a un fk_user dans notre requête
-			,'fk_categorie_client' => '_getCategoryName("@val@")' // Si on a un fk_user dans notre requête
-			,'fk_project' => '_getProjectName("@val@")' // Si on a un fk_user dans notre requête
-		)
-	));
+
+	$renderParameters = array(
+        'view_type' => 'list' // default = [list], [raw], [chart]
+        ,'limit'=>array(
+                'nbLine' => 0
+            )
+        ,'subQuery' => array()
+        ,'link' => array(
+                'action' => '
+                    <a href="'.$_SERVER['PHP_SELF'].'?id=@rowid@&action=edit&fk_product='.$product->id.'">'.img_edit().'</a>
+                    <a href="'.$_SERVER['PHP_SELF'].'?id=@rowid@&action=delete&fk_product='.$product->id.'">'.img_delete().'</a>
+                '
+            )
+        ,'type' => array(
+                'date_debut' => 'date' // [datetime], [hour], [money], [number], [integer]
+                ,'date_fin' => 'date'
+                , 'prix'=>'money'
+                , 'total'=>'money'
+            )
+        ,'search' => array(
+    //			'date_creation' => array('search_type' => 'calendars', 'allow_is_null' => true)
+    //			,'tms' => array('search_type' => 'calendars', 'allow_is_null' => false)
+    //			,'ref' => array('search_type' => true, 'table' => 't', 'field' => 'ref')
+    //			,'label' => array('search_type' => true, 'table' => array('t', 't'), 'field' => array('label')) // input text de recherche sur plusieurs champs
+    //			,'status' => array('search_type' => Tarif::$TStatus, 'to_translate' => true) // select html, la clé = le status de l'objet, 'to_translate' à true si nécessaire
+            )
+        ,'translate' => array()
+        ,'hide' => array(
+             'rowid'
+            )
+        ,'list' => array(
+             'title' => $langs->trans('TarifList')
+            ,'image' => 'title_accountancy.png'
+            ,'picto_precedent' => '<'
+            ,'picto_suivant' => '>'
+            ,'noheader' => 0
+            ,'messageNothing' => $langs->trans('NoTarif')
+            ,'picto_search' => img_picto('','search.png', '', 0)
+            )
+        ,'title'=>array(
+              'type_price' =>$langs->trans('PriceBase')
+            , 'fk_soc'=>$langs->trans('Company')
+            , 'fk_country'=>$langs->trans('Country')
+            , 'fk_categorie_client'=>$langs->trans('Category')
+            , 'fk_project'=>$langs->trans('Project') // TODO: activate this column only when the Project module is enabled; then Project should be editable too
+            , 'quantite'=>$langs->trans('Quantity')
+            , 'unite'=>$langs->trans('Unit')
+            , 'remise_percent'=>$langs->trans('Remise(%)')
+            , 'prix'=>$langs->trans('Tarif')
+            , 'total'=>$langs->trans('Total')
+            , 'date_debut'=>$form->textwithpicto($langs->trans('StartDate'), $langs->trans('StartDateInfo'), 1, 'help', '', 0, 3)
+            , 'date_fin'=>$form->textwithpicto($langs->trans('EndDate'), $langs->trans('EndDateInfo'), 1, 'help', '', 0, 3)
+            , 'action'=> ''
+            )
+        ,'position' => array(
+                'text-align' => array(
+                    'remise_percent' => 'right'
+                    ,'prix'=>'right'
+                    ,'total'=>'right'
+                    ,'date_debut' => 'right'
+                    ,'date_fin' => 'right'
+                    ,'action' => 'right'
+                )
+            )
+        ,'eval'=>array(
+                'type_price' => 'Tarif::getPriceType("@val@")'
+                ,'fk_country' => '_getCountryName("@val@")' // Si on a un fk_user dans notre requête
+                ,'fk_soc' => '_getNomURLSoc(@val@)' // Si on a un fk_user dans notre requête
+                ,'fk_categorie_client' => '_getCategoryName("@val@")' // Si on a un fk_user dans notre requête
+                ,'fk_project' => '_getProjectName("@val@")' // Si on a un fk_user dans notre requête
+            )
+
+    );
+
+	if (!$is_project_module_enabled) {
+	    // if the project module is not enabled, remove this.
+	    unset($renderParameters['title']['fk_project']);
+    }
+
+	echo $r->render($sql, $renderParameters);
 
 	$parameters=array('sql'=>$sql);
 	$reshook=$hookmanager->executeHooks('printFieldListFooter', $parameters, $object);    // Note that $action and $object may have been modified by hook
