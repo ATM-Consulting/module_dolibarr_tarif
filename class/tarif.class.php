@@ -225,12 +225,13 @@ class Tarif extends SeedObject
 		$sql_additional_conditions .= ' AND tarif.quantite <= ' . $qty;
 		$sql_order_by[] = 'tarif.quantite DESC';
 		$sql_order_by[] = 'tarif.fk_project DESC';
+        $sql_order_by[] = 'tarif.date_debut DESC';
+        $sql_order_by[] = 'tarif.date_fin DESC';
 
 		$sql_order_by = ' ORDER BY ' . implode(', ', $sql_order_by);
 
 		$sql .= $sql_additional_conditions;
 		$sql .= $sql_order_by;
-         prsql($sql);// exit;
 		$resql = $db->query($sql);
 		while($obj = $db->fetch_object($resql))
 		{
