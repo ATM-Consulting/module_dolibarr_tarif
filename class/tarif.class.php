@@ -202,6 +202,7 @@ class Tarif extends SeedObject
 		$sql_additional_conditions = '';
 		$sql_order_by = array();
 
+		// As it stands, it will sort by: customer, then customer category, customer country, quantity, project and dates
 		// TODO: make precedence order configurable?
 		$fields_by_precedence = array (
 		    // rules with this document's client have highest precedence
