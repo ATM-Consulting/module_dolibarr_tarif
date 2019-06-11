@@ -131,10 +131,13 @@ print 'définition non disponible ici. cf.divers';
 print '</td></tr>';
 
 setup_print_on_off('TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE');
-setup_print_on_off('TARIF_LOG_TARIF_UPDATE');
+// TODO: uncomment the following line once logging is implemented.
+//setup_print_on_off('TARIF_LOG_TARIF_UPDATE');
 
 $var=!$var;
-print '<tr '.$bc[$var].'>';
+
+// TODO: uncomment the following section once supplier rates are implemented.
+/*print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("set_TARIF_PERCENT_AUTO_CREATE").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="right" width="300" style="white-space:nowrap;">';
@@ -144,7 +147,7 @@ print '<input type="hidden" name="action" value="set_TARIF_PERCENT_AUTO_CREATE">
 print '<input type="text" name="TARIF_PERCENT_AUTO_CREATE" value="'.$conf->global->TARIF_PERCENT_AUTO_CREATE.'" size="10"/>';
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
-print '</td></tr>';
+print '</td></tr>';*/
 
 
 // Example with imput

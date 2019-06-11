@@ -103,7 +103,6 @@ if (empty($reshook))
 			$object->fk_user_author = $user->id;
 			$object->type_price = GETPOST('type_prix');
 			$object->currency_code = GETPOST('currency');
-			var_dump($object->currency_code);
 			$object->fk_country = GETPOST('fk_country','int');
 
 			$object->fk_soc = GETPOST('fk_soc','int');
@@ -414,7 +413,7 @@ else
             , 'fk_soc'=>$langs->trans('Company')
             , 'fk_country'=>$langs->trans('Country')
             , 'fk_categorie_client'=>$langs->trans('Category')
-            , 'fk_project'=>$langs->trans('Project') // TODO: activate this column only when the Project module is enabled; then Project should be editable too
+            , 'fk_project'=>$langs->trans('Project')
             , 'quantite'=>$langs->trans('Quantity')
             , 'unite'=>$langs->trans('Unit')
             , 'remise_percent'=>$langs->trans('Remise(%)')

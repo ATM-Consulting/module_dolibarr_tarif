@@ -241,6 +241,11 @@ class ActionsTarif
 								WHERE e.rowid = ".$idLine;
 
 						$resql = $db->query($sql);
+						if (!$resql) {
+                            echo '</script>';
+						    dol_print_error($db);
+						    exit;
+                        }
 						$res = $db->fetch_object($resql);
 
 						if((float) DOL_VERSION > 3.8)
