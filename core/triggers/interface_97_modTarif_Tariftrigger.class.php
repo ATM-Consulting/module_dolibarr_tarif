@@ -239,7 +239,13 @@ class InterfaceTariftrigger
 						if (method_exists($object, 'update_total')) $object->update_total();
 						elseif (method_exists($object, 'updateTotal')) $object->updateTotal();
 					}
-				}
+				} else {
+				    $object->total_ht  = price2num($object->subprice * $qty * (1 - $object->remise_percent / 100), 'MT');
+                    $object->total_tva = price2num($object->total_ht * $object->tva_tx / 100, 'MT');
+                    $object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
+                    if (method_exists($object, 'update_total')) $object->update_total();
+                    elseif (method_exists($object, 'updateTotal')) $object->updateTotal();
+                }
 
 				if ($object->element == 'propaldet') $object->update(true);
 				else $object->update($user, true); // Commande / Factureq
