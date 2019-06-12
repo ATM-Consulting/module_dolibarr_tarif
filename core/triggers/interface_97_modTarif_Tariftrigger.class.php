@@ -152,6 +152,9 @@ class InterfaceTariftrigger
 		{
 			$is_update = false;
 			if (in_array($action, array('LINEPROPAL_UPDATE', 'LINEORDER_UPDATE', 'LINEBILL_UPDATE'))) $is_update = true;
+            if (!empty($conf->global->TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE) && $is_update) {
+                return 0;
+            }
 
 			if (!defined('INC_FROM_DOLIBARR')) define('INC_FROM_DOLIBARR', 1);
 			dol_include_once('/tarif/config.php');
@@ -220,9 +223,9 @@ class InterfaceTariftrigger
 				elseif ($tarif->type_price === 'PERCENT') $object->remise_percent = $tarif->remise_percent;
 				$object->tva_tx = $tarif->tva_tx;
 
-				if (!empty($conf->global->TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE) && $is_update) {}
-				else $object->remise_percent = $tarif->remise_percent;
+				$object->remise_percent = $tarif->remise_percent;
 
+				$do_update_total = true;
 				if (!empty($conf->subtotal->enabled))
 				{
 					if(empty($object->array_options) && method_exists($object, 'fetch_optionals'))
@@ -230,16 +233,19 @@ class InterfaceTariftrigger
 						$object->fetch_optionals();
 					}
 
-					if(empty($object->array_options['options_subtotal_nc'])) { // Compatibilité sous-total : les lignes non-comprises doivent rester à 0
-
-						//MAJ des totaux de la ligne
-						$object->total_ht  = price2num($object->subprice * $qty * (1 - $object->remise_percent / 100), 'MT');
-						$object->total_tva = price2num(($object->total_ht * (1 + ($object->tva_tx/100))) - $object->total_ht, 'MT');
-						$object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
-						if (method_exists($object, 'update_total')) $object->update_total();
-						elseif (method_exists($object, 'updateTotal')) $object->updateTotal();
+					if(!empty($object->array_options['options_subtotal_nc'])) {
+					    // Compatibilité sous-total : les lignes non-comprises doivent rester à 0
+                        // MAJ des totaux de la ligne
+					    $do_update_total = false;
 					}
 				}
+				if ($do_update_total) {
+                    $object->total_ht  = price2num($object->subprice * $qty * (1 - $object->remise_percent / 100), 'MT');
+                    $object->total_tva = price2num($object->total_ht * $object->tva_tx / 100, 'MT');
+                    $object->total_ttc = price2num($object->total_ht + $object->total_tva, 'MT');
+                    if (method_exists($object, 'update_total')) $object->update_total();
+                    elseif (method_exists($object, 'updateTotal')) $object->updateTotal();
+                }
 
 				if ($object->element == 'propaldet') $object->update(true);
 				else $object->update($user, true); // Commande / Factureq

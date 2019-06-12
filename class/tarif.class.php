@@ -181,31 +181,65 @@ class Tarif extends SeedObject
 		$table = 'tarif_conditionnement';
 		$TFk_categorie = $TCategoryId;
 
-		$sql = "SELECT tc.rowid, p.type_remise as type_remise, tc.type_price, tc.quantite as quantite, tc.unite as unite, tc.prix as prix, tc.unite_value as unite_value, tc.tva_tx as tva_tx, tc.remise_percent as remise_percent, tc.date_debut as date_debut, tc.date_fin as date_fin, pr.weight";
-		$sql.= " FROM ".MAIN_DB_PREFIX.$table." as tc";
-		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as p on p.fk_object = tc.fk_product
-				 LEFT JOIN ".MAIN_DB_PREFIX."product pr ON p.fk_object=pr.rowid ";
-		$sql.= " WHERE fk_product = ".$idProd." AND (tc.currency_code = '".$devise."' OR tc.currency_code IS NULL)";
+		$sql = "SELECT tarif.rowid,
+                 prod_extra.type_remise as type_remise,
+                 tarif.currency_code,
+                 tarif.type_price,
+                 tarif.quantite as quantite,
+                 tarif.unite as unite,
+                 tarif.prix as prix,
+                 tarif.unite_value as unite_value,
+                 tarif.tva_tx as tva_tx,
+                 tarif.remise_percent as remise_percent,
+                 tarif.date_debut as date_debut,
+                 tarif.date_fin as date_fin,
+                 product.weight
+                FROM ".MAIN_DB_PREFIX.$table."                   AS tarif
+                 LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields AS prod_extra ON prod_extra.fk_object = tarif.fk_product
+                 LEFT JOIN ".MAIN_DB_PREFIX."product             AS product    ON prod_extra.fk_object = product.rowid
+                WHERE fk_product = ".$idProd." AND (tarif.currency_code = '$devise' OR tarif.currency_code IS NULL OR tarif.currency_code = '')";
 
-		if($fk_country>0) $sql.=" AND tc.fk_country IN (-1,0, $fk_country)";
-		if(!empty($TFk_categorie) && is_array($TFk_categorie)) $sql.=" AND tc.fk_categorie_client IN (-1,0, ".implode(',', $TFk_categorie).")";
-		if($fk_soc>0) $sql.=" AND tc.fk_soc IN (-1,0, $fk_soc)";
-		if($fk_project>0) $sql.=" AND tc.fk_project IN (-1,0, $fk_project)";
-        $sql.= ' AND tc.quantite <= '.$qty;
+		$sql_additional_conditions = '';
+		$sql_order_by = array();
 
+		// As it stands, it will sort by: customer, then customer category, customer country, quantity, project and dates
+		// TODO: make precedence order configurable?
+		$fields_by_precedence = array (
+		    // rules with this document's client have highest precedence
+		    'fk_soc' => $fk_soc,
+            // rules with any category of this document's client
+            'fk_categorie_client' => $TFk_categorie,
+            // rules with this document's client's country
+            'fk_country' => $fk_country
+        );
 
-		$sql .= ' ORDER BY ';
-		if($fk_country>0) $sql .= 'tc.fk_country DESC, ';
-		$sql.= 'quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC, tc.fk_soc DESC, tc.fk_project DESC';
+		foreach ($fields_by_precedence as $field_name => $field_content) {
+		    // skip empty or undefined fields
+		    if (empty($field_content) || $field_content <= 0) continue;
 
-		// TODO voir l'ordre de priorité
-//echo $sql;exit;
+		    if (is_array($field_content)) { $sql_retained_values  = '(-1,0,' . implode(',', $field_content) . ')'; }
+            else                          { $sql_retained_values = '(-1,0,' . $field_content . ')'; }
+		    $sql_additional_conditions .= " AND tarif.$field_name IN $sql_retained_values ";
+		    $sql_order_by[] = "tarif.$field_name DESC";
+        }
+
+		$sql_additional_conditions .= ' AND tarif.quantite <= ' . $qty;
+		$sql_order_by[] = 'tarif.quantite DESC';
+		$sql_order_by[] = 'tarif.fk_project DESC';
+        $sql_order_by[] = 'tarif.date_debut DESC';
+        $sql_order_by[] = 'tarif.date_fin DESC';
+
+		$sql_order_by = ' ORDER BY ' . implode(', ', $sql_order_by);
+
+		$sql .= $sql_additional_conditions;
+		$sql .= $sql_order_by;
 		$resql = $db->query($sql);
 		while($obj = $db->fetch_object($resql))
 		{
 			$tarif = new Tarif($db);
 			$tarif->fetch($obj->rowid);
 
+            // filter out rates whose date range doesn't encompass the document's date
 			if ($tarif->date_debut !== '0000-00-00 00:00:00' && $tarif->date_debut !== '1000-01-01 00:00:00' && $tarif->date_debut !== null)
 			{
 				if (!empty($object->date_start) || !empty($parent->date) )
@@ -225,92 +259,10 @@ class Tarif extends SeedObject
 					elseif (empty($object->date_start) && !empty($parent->date) && $tarif->date_fin <= $parent->date) continue;
 				}
 			}
-
-			// TODO à quoi sert ce if ou à quoi sert ce code tout court ?
-//			if(strpos($tarif->type_price,'PRICE') !== false)
-//			{
-//				if(($tarif->type_remise == "qte" || $tarif->type_remise == 0) && $qty >= $tarif->quantite)
-//				{
-//					//Ici on récupère le pourcentage correspondant et on arrête la boucle
-//					return array(self::priceWithMultiprix($obj->prix, $parent->thirdparty->price_level), $tva_tx);
-//				}
-//				elseif($obj->type_remise == "conditionnement" && $weight >= $obj->quantite &&  $obj->unite_value == $weight_units)
-//				{
-//					return array(self::priceWithMultiprix($obj->prix * ($weight / (($obj->weight != 0) ? $obj->weight : 1 )), $parent->thirdparty->price_level), $tva_tx); // prise en compte unité produit et poid init produit
-//				}
-//			}
-
 			return $tarif;
-
 		}
-
-		/******/
 		return false;
-//
-//		$resql = $db->query($sql);
-//		if ($resql)
-//		{
-//			$TTarif = array();
-//			while ($obj = $db->fetch_object($resql))
-//			{
-//				$tarif = new Tarif($db);
-//				$tarif->fetch($obj->rowid);
-//				$TTarif[$tarif->id] = $tarif;
-//			}
-//		}
-//		else
-//		{
-//			dol_print_error($db);
-//			exit;
-//		}
-//
-//
-//		// TODO selected the appropriate tarif
-//		foreach ($TTarif as $tarif)
-//		{
-//
-//		}
-//
-////		echo $sql;exit;
-//		echo $sql;exit;
 	}
-
-	public static function priceWithMultiprix($price, $price_level)
-	{
-		global $conf;
-
-		if (!empty($conf->multipsrixcascade->enabled))
-		{
-			/*
-			 * Si multiprix cascade est présent, on ajoute le pourcentage de réduction défini directement dans le multiprix
-			 */
-
-			$TNiveau  = unserialize($conf->global->MULTI_PRIX_CASCADE_LEVEL);
-
-			if(isset($TNiveau[$price_level]))
-			{
-				$price = $price * ($TNiveau[$price_level] / 100);
-			}
-		}
-
-		return $price;
-	}
-
-	public static function getRemise()
-	{
-
-	}
-
-	public static function getPrix()
-	{
-
-	}
-
-	public static function getCategTiers()
-	{
-
-	}
-
 }
 
 class TarifLog extends Tarif
@@ -331,25 +283,3 @@ class TarifLog extends Tarif
 //		$this->init();
 	}
 }
-
-/*
-class TarifDet extends TObjetStd
-{
-	public $table_element = 'tarifdet';
-
-	public $element = 'tarifdet';
-	
-	public function __construct($db)
-	{
-		global $conf,$langs;
-		
-		$this->db = $db;
-		
-		$this->init();
-		
-		$this->user = null;
-	}
-	
-	
-}
-*/

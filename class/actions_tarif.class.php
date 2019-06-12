@@ -142,7 +142,8 @@ class ActionsTarif
 						<?php
 						$formproduct = new FormProduct($db);
 
-						if(!empty($conf->global->DONT_ADD_UNIT_SELECT))
+                        // TODO: re-implement this feature when needed
+						if(true || !empty($conf->global->DONT_ADD_UNIT_SELECT))
 						{
 							null;
 						}
@@ -205,7 +206,7 @@ class ActionsTarif
 
 			$langs->load("other");
 
-			if (!define('INC_FROM_DOLIBARR')) define('INC_FROM_DOLIBARR', true);
+			if (!defined('INC_FROM_DOLIBARR')) define('INC_FROM_DOLIBARR', true);
 			dol_include_once('/tarif/config.php');
 
 
@@ -224,7 +225,8 @@ class ActionsTarif
 				$formproduct = new FormProduct($db);
 				//echo (count($instance->lines) >0)? "$('#tablelines').children().first().children().first().children().last().prev().prev().prev().prev().prev().after('<td align=\"right\" width=\"50\">Poids</td>');" : '' ;
 
-				if(!empty($conf->global->DONT_ADD_UNIT_SELECT))
+                // TODO: re-implement this feature when needed
+				if(true || !empty($conf->global->DONT_ADD_UNIT_SELECT))
 				{
 					null;
 				}
@@ -241,6 +243,11 @@ class ActionsTarif
 								WHERE e.rowid = ".$idLine;
 
 						$resql = $db->query($sql);
+						if (!$resql) {
+                            echo '</script>';
+						    dol_print_error($db);
+						    exit;
+                        }
 						$res = $db->fetch_object($resql);
 
 						if((float) DOL_VERSION > 3.8)
