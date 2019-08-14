@@ -329,7 +329,7 @@ class TTarifFournisseur extends TTarif{
 
 class TTarifLog extends TTarif{
 	
-	public static $table = 'tarif_conditionnement_log';
+	public $table = 'tarif_conditionnement_log';
 	
 	function __construct() { /* declaration */
 		global $langs;
@@ -352,7 +352,7 @@ class TTarifLog extends TTarif{
 
 class TTarifFournisseurLog extends TTarif{
 	
-	public static $table = 'tarif_conditionnement_fournisseur_log';
+	public $table = 'tarif_conditionnement_fournisseur_log';
 	
 	function __construct() { /* declaration */
 		global $langs;
@@ -577,7 +577,7 @@ class TTarifTools {
 				 * donc pour pouvoir save un champ, il faut qu'il existe dans l'objet parent or, aucun sens d'avoir le champ motif dans la classe perente
 				 */
 				$motif_changement = trim(GETPOST('motif_changement'));
-				if(!empty($motif_changement)) $db->query('UPDATE '.MAIN_DB_PREFIX.$TTarifLog::$table.' SET motif_changement = "'.$motif_changement.'" WHERE rowid = '.(int)$TTarifLog->rowid);
+				if(!empty($motif_changement)) $db->query('UPDATE '.MAIN_DB_PREFIX.$TTarifLog->table.' SET motif_changement = "'.$motif_changement.'" WHERE rowid = '.(int)$TTarifLog->rowid);
 				
 			}
 		}
