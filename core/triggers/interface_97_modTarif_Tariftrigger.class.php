@@ -139,14 +139,19 @@ class InterfaceTariftrigger
 		$all_progress = GETPOST('all_progress');
 		if (!empty($all_progress)) return 0; // cas mise à jour facture de situation, ici c'est inutile et en plus ça fuck tout les pandas du monde
 
-		$TActionAllowed = array(
+		$TActionInsertAllowed = array(
 			'LINEPROPAL_INSERT'
-			,'LINEPROPAL_UPDATE'
 			,'LINEORDER_INSERT'
-			,'LINEORDER_UPDATE'
 			,'LINEBILL_INSERT'
-			,'LINEBILL_UPDATE'
 		);
+
+        $TActionUpdateAllowed = array(
+            'LINEPROPAL_UPDATE'
+            ,'LINEORDER_UPDATE'
+            ,'LINEBILL_UPDATE'
+        );
+
+        $TActionAllowed = array_merge($TActionInsertAllowed, $TActionUpdateAllowed);
 
 		if (in_array($action, $TActionAllowed) && !empty($object->fk_product))
 		{
@@ -172,7 +177,7 @@ class InterfaceTariftrigger
 			/** @var Propal|Commande|Facture $parent */
 			$parent = new $classParent($this->db);
 			$parent->fetch($object->{$foreignKey});
-			if (empty($parent->thirdparty)) $parent->fetch_thirdparty();
+			if (empty($parent->thirdparty) && method_exists($parent, 'fetch_thirdparty')) $parent->fetch_thirdparty();
 
 			$qty = $object->qty; // TODO gérer la partie par conditionnement
 			// TODO à ré-écrire, ceci doit modifier la variable $qty
@@ -220,10 +225,15 @@ class InterfaceTariftrigger
 			{
 				// Si nous sommes sur un tarif appliquant simplement une réduction, alors il ne faut pas toucher au prix unitaire
 				if ($tarif->type_price !== 'PERCENT') $object->subprice = $tarif->prix;
-				elseif ($tarif->type_price === 'PERCENT') $object->remise_percent = $tarif->remise_percent;
+				elseif ($tarif->type_price === 'PERCENT')
+                {
+                    if (!empty($conf->global->TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE) && in_array($action, $TActionUpdateAllowed)) { /* do nothing */ }
+                    else $object->remise_percent = $tarif->remise_percent;
+                }
 				$object->tva_tx = $tarif->tva_tx;
 
-				$object->remise_percent = $tarif->remise_percent;
+				if (!empty($conf->global->TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE) && in_array($action, $TActionUpdateAllowed)) { /* do nothing */ }
+				else $object->remise_percent = $tarif->remise_percent;
 
 				$do_update_total = true;
 				if (!empty($conf->subtotal->enabled))

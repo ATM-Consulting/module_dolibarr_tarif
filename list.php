@@ -418,6 +418,7 @@ else
             , 'unite'=>$langs->trans('Unit')
             , 'remise_percent'=>$langs->trans('Remise(%)')
             , 'prix'=>$langs->trans('Tarif')
+            , 'tva_tx'=>$langs->trans('VAT')
             , 'total'=>$langs->trans('Total')
             , 'date_debut'=>$form->textwithpicto($langs->trans('StartDate'), $langs->trans('StartDateInfo'), 1, 'help', '', 0, 3)
             , 'date_fin'=>$form->textwithpicto($langs->trans('EndDate'), $langs->trans('EndDateInfo'), 1, 'help', '', 0, 3)
@@ -439,6 +440,7 @@ else
                 ,'fk_soc' => '_getNomURLSoc(@val@)' // Si on a un fk_user dans notre requête
                 ,'fk_categorie_client' => '_getCategoryName("@val@")' // Si on a un fk_user dans notre requête
                 ,'fk_project' => '_getProjectName("@val@")' // Si on a un fk_user dans notre requête
+                ,'tva_tx' => 'vatrate("@val@", true)'
             )
 
     );
