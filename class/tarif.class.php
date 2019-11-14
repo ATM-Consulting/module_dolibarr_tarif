@@ -78,9 +78,9 @@ class Tarif extends SeedObject
 	public function __construct($db)
 	{
 		global $langs;
-		
+
 		$this->db = $db;
-		
+
 		$this->fields=array(
 			'unite'=>array('type'=>'string')
 			,'unite_value'=>array('type'=>'integer') // date, integer, string, float, array, text
@@ -100,14 +100,14 @@ class Tarif extends SeedObject
 			,'date_debut'=>array('type'=>'date')
 			,'date_fin'=>array('type'=>'date')
 		);
-		
+
 		$this->init();
 
 		$this->date_debut = null;
 		$this->date_fin = null;
 	}
 
-	public function fetch($id, $loadChild = true)
+	public function fetch($id, $loadChild = true, $ref = NULL)
 	{
 		$res = parent::fetch($id, $loadChild);
 
@@ -128,30 +128,30 @@ class Tarif extends SeedObject
 	public function save()
 	{
 		global $conf,$user;
-		
+
 		if (!$this->id) $this->fk_user_author = $user->id;
 
 		if (empty($this->currency_code)) $this->currency_code = $conf->currency;
 
 		$res = $this->id>0 ? $this->updateCommon($user) : $this->createCommon($user);
-		
+
 		return $res;
 	}
-	
-	
+
+
 	public function loadBy($value, $field, $annexe = false)
 	{
 		$res = parent::loadBy($value, $field, $annexe);
-		
+
 		return $res;
 	}
-	
+
 	public function load($id, $ref, $loadChild = true)
 	{
 		$res = parent::fetchCommon($id, $ref);
-		
+
 		if ($loadChild) $this->fetchObjectLinked();
-		
+
 		return $res;
 	}
 
