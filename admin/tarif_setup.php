@@ -131,6 +131,9 @@ print 'définition non disponible ici. cf.divers';
 print '</td></tr>';
 
 setup_print_on_off('TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE');
+
+setup_print_on_off('TARIF_DONOT_UPDATE_VAT');
+
 // TODO: uncomment the following line once logging is implemented.
 //setup_print_on_off('TARIF_LOG_TARIF_UPDATE');
 

@@ -57,7 +57,7 @@ UseWithSupplierOrders = Utiliser le module pour les commandes fournisseurs égal
 TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE=Ne pas récupérer la remise liée au tarif lors de l'édition d'une ligne en changeant sa quantité
 TARIF_LOG_TARIF_UPDATE=Historiser les changements de prix
 TARIF_ONLY_UPDATE_LINE_PRICE=Seulement mettre à jour les ligne de prix
-
+TARIF_DONOT_UPDATE_VAT=Ne pas récupérer la tva du tarif à la modification d'une ligne
 
 
 TarifNewPrice=Nouveau tarif

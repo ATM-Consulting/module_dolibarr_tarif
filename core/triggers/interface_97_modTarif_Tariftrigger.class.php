@@ -230,10 +230,12 @@ class InterfaceTariftrigger
                     if (!empty($conf->global->TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE) && in_array($action, $TActionUpdateAllowed)) { /* do nothing */ }
                     else $object->remise_percent = $tarif->remise_percent;
                 }
-				$object->tva_tx = $tarif->tva_tx;
 
-				if (!empty($conf->global->TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE) && in_array($action, $TActionUpdateAllowed)) { /* do nothing */ }
-				else $object->remise_percent = $tarif->remise_percent;
+				if (!$is_update) $object->tva_tx = $tarif->tva_tx; // récupérer la tva du tarif uniquement à la création de ligne
+				else if (empty($conf->global->TARIF_DONOT_UPDATE_VAT)) $object->tva_tx = $tarif->tva_tx;
+
+//				if (!empty($conf->global->TARIF_DO_NOT_GET_REMISE_ON_UPDATE_LINE) && in_array($action, $TActionUpdateAllowed)) { /* do nothing */ }
+//				else $object->remise_percent = $tarif->remise_percent;
 
 				$do_update_total = true;
 				if (!empty($conf->subtotal->enabled))
