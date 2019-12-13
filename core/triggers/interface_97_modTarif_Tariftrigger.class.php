@@ -177,6 +177,9 @@ class InterfaceTariftrigger
 			/** @var Propal|Commande|Facture $parent */
 			$parent = new $classParent($this->db);
 			$parent->fetch($object->{$foreignKey});
+
+			if(isset($parent->type) && class_exists('Facture') && $parent->type == Facture::TYPE_CREDIT_NOTE) return 0;
+
 			if (empty($parent->thirdparty) && method_exists($parent, 'fetch_thirdparty')) $parent->fetch_thirdparty();
 
 			$qty = $object->qty; // TODO gérer la partie par conditionnement
