@@ -1,4 +1,7 @@
 <?php
+	// Fix TK11198 : pour ne pas renouveller le token CSRF à chaque inclusion du main.inc.php et Eviter l'erreur CSRF
+	define('NOTOKENRENEWAL', 1);
+
 	require('config.default.php');
 
 	if(!defined('FACTURE_DISPATCH_ON_EXPEDITION'))
