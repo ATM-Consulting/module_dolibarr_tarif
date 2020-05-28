@@ -58,7 +58,7 @@ class modTarif extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Gestion de tarif par conditionnement";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.0.2';
+		$this->version = '1.0.3';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -111,21 +111,21 @@ class modTarif extends DolibarrModules
 		// );
 		$this->const = array(
 			array('TARIF_USE_PRICE_OF_PRECEDENT_LEVEL_IF_ZERO','chaine','0','Constante pour utiliser le premier prix de la grille de multiprix d\'un produit différent de zéro',1)
-			,array('TARIF_CAN_SET_PACKAGE_ON_LINE','chaine','1','Affiche ou pas le champs de saisie de conditionnement sur la ligne de propale/comm/facture',1)	
-			,array('TARIF_FACTURE_DISPATCH_ON_EXPEDITION','chaine','0','',1)	
-			,array('TARIF_DONT_ADD_UNIT_SELECT','chaine','1','',1)	
+			,array('TARIF_CAN_SET_PACKAGE_ON_LINE','chaine','1','Affiche ou pas le champs de saisie de conditionnement sur la ligne de propale/comm/facture',1)
+			,array('TARIF_FACTURE_DISPATCH_ON_EXPEDITION','chaine','0','',1)
+			,array('TARIF_DONT_ADD_UNIT_SELECT','chaine','1','',1)
 			,array('TARIF_DEFAULT_TYPE','chaine','PRICE','',1)
-			,array('TARIF_DOL_DEFAULT_UNIT','chaine','UNITE','',1)	
-	
+			,array('TARIF_DOL_DEFAULT_UNIT','chaine','UNITE','',1)
+
 		);
 
 		// Array to add new pages in new tabs
 		// Example: $this->tabs = array('objecttype:+tabname1:Title1:mylangfile@mymodule:$user->rights->mymodule->read:/mymodule/mynewtab1.php?id=__ID__',  	// To add a new tab identified by code tabname1
         //                              'objecttype:+tabname2:Title2:mylangfile@mymodule:$user->rights->othermodule->read:/mymodule/mynewtab2.php?id=__ID__',  	// To add another new tab identified by code tabname2
         //                              'objecttype:-tabname':NU:conditiontoremove);                                                     						// To remove an existing tab identified by code tabname
-        
+
         $this->tabs = array('product:+tabTarif1:Tarifs:tarif@tarif:/tarif/liste.php?fk_product=__ID__');
-        
+
 		// where objecttype can be
 		// 'thirdparty'       to add a tab in third party view
 		// 'intervention'     to add a tab in intervention view
@@ -257,17 +257,17 @@ class modTarif extends DolibarrModules
 		$sql = array();
 
 		$result=$this->load_tables();
-		
+
 		define('INC_FROM_DOLIBARR',true);
 
 		dol_include_once('/tarif/config.php');
 		dol_include_once('/tarif/script/create-maj-base.php');
- 
+
 		dol_include_once('/core/class/extrafields.class.php');
         $extrafields=new ExtraFields($this->db);
-		$res = $extrafields->addExtraField('type_remise', 'Type tarif', 'select', 0, '', 'product', 0, 0, '', array("options"=> array("qte" => "quantite", "conditionnement" => "conditionnement")));		
-		$res = $extrafields->addExtraField('unite_vente', 'Unité de vente', 'select', 0, '', 'product', 0, 0, '', array("options"=> array("weight" => "Poids", "size" => "Longueur", "surface" => "Surface", "volume" => "Volume", "unite" => "Unité")));		
-		
+		$res = $extrafields->addExtraField('type_remise', 'Type tarif', 'select', 0, '', 'product', 0, 0, '', array("options"=> array("qte" => "quantite", "conditionnement" => "conditionnement")));
+		$res = $extrafields->addExtraField('unite_vente', 'Unité de vente', 'select', 0, '', 'product', 0, 0, '', array("options"=> array("weight" => "Poids", "size" => "Longueur", "surface" => "Surface", "volume" => "Volume", "unite" => "Unité")));
+
 		return $this->_init($sql, $options);
 	}
 
