@@ -177,8 +177,11 @@ dol_banner_tab($product, 'ref', $linkback, ($user->socid?0:1), 'ref');
 
 if ($action != 'add' && $action != 'edit')
 {
+	$urlToken = '';
+	if (function_exists('newToken')) $urlToken = "&token=".newToken();
+
 	print '<div class="tabsAction">';
-	print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?fk_product='.$product->id.'&action=add">'.$langs->trans('AddTarif').'</a>';
+	print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?fk_product='.$product->id.$urlToken.'&action=add">'.$langs->trans('AddTarif').'</a>';
 	print '</div>';
 }
 
@@ -370,6 +373,8 @@ else
 
 	$r = new Listview($db, 'tarif');
 
+	$urlToken = '';
+	if (function_exists('newToken')) $urlToken = "&token=".newToken();
 	$renderParameters = array(
         'view_type' => 'list' // default = [list], [raw], [chart]
         ,'limit'=>array(
@@ -378,8 +383,8 @@ else
         ,'subQuery' => array()
         ,'link' => array(
                 'action' => '
-                    <a href="'.$_SERVER['PHP_SELF'].'?id=@rowid@&action=edit&fk_product='.$product->id.'">'.img_edit().'</a>
-                    <a href="'.$_SERVER['PHP_SELF'].'?id=@rowid@&action=delete&fk_product='.$product->id.'">'.img_delete().'</a>
+                    <a href="'.$_SERVER['PHP_SELF'].'?id=@rowid@&action=edit&fk_product='.$product->id.$urlToken.'">'.img_edit().'</a>
+                    <a href="'.$_SERVER['PHP_SELF'].'?id=@rowid@&action=delete&fk_product='.$product->id.$urlToken.'">'.img_delete().'</a>
                 '
             )
         ,'type' => array(
