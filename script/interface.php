@@ -2,8 +2,8 @@
 
 require '../config.php';
 
-$get=GETPOST('get');
-$set=GETPOST('set');
+$get=GETPOST('get','alpha');
+$set=GETPOST('set','alpha');
 
 switch ($get) {
 	case 'unite_poids':
@@ -31,8 +31,8 @@ function _getTUnitPoids()
 	include_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
 	include_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
 
-	$id = GETPOST('fk_product');
-	$type = GETPOST('type');
+	$id = GETPOST('fk_product','int');
+	$type = GETPOST('type','alpha');
 
 	$TRes = array(
 		'unit' => ''
@@ -96,8 +96,8 @@ function _getTConditionnement()
 
 	require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.product.class.php';
 
-	$fk_fourn_price = GETPOST('fk_fourn_price');
-	$fk_product = GETPOST('fk_product');
+	$fk_fourn_price = GETPOST('fk_fourn_price','int');
+	$fk_product = GETPOST('fk_product','int');
 
 	if(!empty($fk_fourn_price))
 	{

@@ -82,9 +82,9 @@ if (empty($reshook))
 	}
 	elseif ($action == 'save')
 	{
-		if(GETPOST('cancel') == '')
+		if(GETPOST('cancel','alpha') == '')
 		{
-			$weight_units = GETPOST('weight_units');
+			$weight_units = GETPOST('weight_units','alpha');
 			if(!empty($weight_units) && !empty($product->array_options['options_unite_vente']))
 			{
 				$unite = measuring_units_string($weight_units, $product->array_options['options_unite_vente']);
@@ -101,15 +101,15 @@ if (empty($reshook))
 			$object->tva_tx = GETPOST('tva_tx','int');
 			$object->price_base_type = 'HT';
 			$object->fk_user_author = $user->id;
-			$object->type_price = GETPOST('type_prix');
-			$object->currency_code = GETPOST('currency');
+			$object->type_price = GETPOST('type_prix','alpha');
+			$object->currency_code = GETPOST('currency','alpha');
 			$object->fk_country = GETPOST('fk_country','int');
 
 			$object->fk_soc = GETPOST('fk_soc','int');
 			$object->fk_project = GETPOST('fk_project','int');
 
-			$prix = price2num(GETPOST('prix_visu'));
-			$remise = price2num(GETPOST('remise'));
+			$prix = price2num(GETPOST('prix_visu','alpha'));
+			$remise = price2num(GETPOST('remise','alpha'));
 
 			if($object->type_price == 'PERCENT/PRICE')
 			{
@@ -126,12 +126,12 @@ if (empty($reshook))
 				$object->remise_percent = $remise;
 			}
 
-			$object->quantite = price2num(GETPOST('quantite'));
+			$object->quantite = price2num(GETPOST('quantite','int'));
 
 			$object->fk_product = $fk_product;
 			$object->fk_categorie_client = GETPOST('fk_categorie_client','int');
-			$object->date_debut = dol_mktime(0, 0, 0, GETPOST('date_debutmonth'), GETPOST('date_debutday'), GETPOST('date_debutyear'));
-			$object->date_fin = dol_mktime(23, 59, 59, GETPOST('date_finmonth'), GETPOST('date_finday'), GETPOST('date_finyear'));
+			$object->date_debut = dol_mktime(0, 0, 0, GETPOST('date_debutmonth','alpha'), GETPOST('date_debutday','alpha'), GETPOST('date_debutyear','alpha'));
+			$object->date_fin = dol_mktime(23, 59, 59, GETPOST('date_finmonth','alpha'), GETPOST('date_finday','alpha'), GETPOST('date_finyear','alpha'));
 
 			$res = $object->save();
 			if ($res < 0)

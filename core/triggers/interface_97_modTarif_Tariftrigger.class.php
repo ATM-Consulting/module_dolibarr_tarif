@@ -98,8 +98,8 @@ class InterfaceTariftrigger
             return $langs->trans("Unknown");
         }
     }
-	
-	
+
+
 	/**
 	 * Function called when a Dolibarrr business event is done.
 	 * All functions "run_trigger" are triggered if file is inside directory htdocs/core/triggers
@@ -115,8 +115,8 @@ class InterfaceTariftrigger
 		//For 8.0 remove warning
 		$result=$this->run_trigger($action, $object, $user, $langs, $conf);
 		return $result;
-	}	
-		
+	}
+
 
     /**
      * Function called when a Dolibarrr business event is done.
@@ -136,7 +136,7 @@ class InterfaceTariftrigger
         // Data and type of action are stored into $object and $action
         // Users
 
-		$all_progress = GETPOST('all_progress');
+		$all_progress = GETPOST('all_progress','alpha');
 		if (!empty($all_progress)) return 0; // cas mise à jour facture de situation, ici c'est inutile et en plus ça fuck tout les pandas du monde
 
 		$TActionInsertAllowed = array(
@@ -209,10 +209,10 @@ class InterfaceTariftrigger
 
 			$fk_country = $parent->thirdparty->country_id;
 
-			$weight = GETPOST('poidsAff_product');
+			$weight = GETPOST('poidsAff_product','int');
 			if ($weight == 0) $weight = 1; //Sinon on est sur un tarif à l'unité donc pas de gestion de poids => 69 chiffre pris au hasard
 
-			$weight_units = GETPOST('weight_unitsAff_product');
+			$weight_units = GETPOST('weight_unitsAff_product','int');
 			if (empty($weight_units)) $weight_units = 69;
 
 			$currency_code = $parent->multicurrency_code;
