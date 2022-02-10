@@ -48,14 +48,15 @@ class TTarif extends TObjetStd {
 		$sql.= " WHERE fk_product = ".$idProd." AND (tc.currency_code = '".$devise."' OR tc.currency_code IS NULL)";
 		
 		if($fk_country>0) $sql.=" AND tc.fk_country IN (-1,0, $fk_country)";
-		if(!empty($TFk_categorie) && is_array($TFk_categorie)) $sql.=" AND tc.fk_categorie_client IN (-1,0, ".implode(',', $TFk_categorie).")";
+		$sql.=" AND tc.fk_categorie_client IN (-1,0";
+        if(!empty($TFk_categorie) && is_array($TFk_categorie)) $sql.= ','.implode(',', $TFk_categorie);
+        $sql.= ")";
         if($fk_soc>0) $sql.=" AND tc.fk_soc IN (-1,0, $fk_soc)";
         if($fk_project>0) $sql.=" AND tc.fk_project IN (-1,0, $fk_project)";
 		
 		$sql .= ' ORDER BY ';
 		if($fk_country>0) $sql .= 'tc.fk_country DESC, ';
 		$sql.= 'quantite DESC, tc.fk_country DESC, tc.fk_categorie_client DESC, tc.fk_soc DESC, tc.fk_project DESC';
-		
 		
 		$resql = $db->query($sql);
 //exit($sql);		
@@ -147,7 +148,9 @@ class TTarif extends TObjetStd {
 		$sql.= " WHERE fk_product = ".$idProd." AND (tc.currency_code = '".$devise."' OR tc.currency_code IS NULL)";
 		
 		if($fk_country>0) $sql.=" AND tc.fk_country IN (-1,0, $fk_country)";
-		if(!empty($TFk_categorie) && is_array($TFk_categorie)) $sql.=" AND tc.fk_categorie_client IN (-1,0, ".implode(',', $TFk_categorie).")";
+		$sql.=" AND tc.fk_categorie_client IN (-1,0";
+        if(!empty($TFk_categorie) && is_array($TFk_categorie)) $sql.= ','.implode(',', $TFk_categorie);
+        $sql.= ")";
 		if($fk_soc>0) $sql.=" AND tc.fk_soc IN (-1,0, $fk_soc)";
         if($fk_project>0) $sql.=" AND tc.fk_project IN (-1,0, $fk_project)";
 		
