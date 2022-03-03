@@ -5,3 +5,26 @@ ATMAbout = This module has been developed by <a href="http://www.atm-consulting.
 
 TarifSetup = Tarif module setup
 TarifAbout = About Tarif
+
+
+# Onglet tarif
+Tarifs= Prices
+Devise= Currency
+Country= Country
+Quantity= Quantity
+Unit= Unit
+Remise= Discount (%)
+Tarif= Price Rate
+Total= Total
+Actions= Actions
+AddTarif= Add a PriceList / Rate
+NewTarif= new Conditions 
+PERCENT= Percentage reduction
+PRICE= Unit Price
+PERCENT/PRICE= Mixed
+TarifList= List of prices by packaging
+TarifFournisseurList= List of supplier rates by packaging
+PriceBase= Price base
+PriceType= Price type
+CategoriesCustomer= Client category
+SellingPrice= Selling price
